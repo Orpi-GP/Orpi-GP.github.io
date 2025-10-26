@@ -33,7 +33,7 @@ const ConversationsManager = {
                     timestamp: new Date()
                 }),
                 lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-                read: sender === 'client' ? false : true
+                read: false
             });
         } catch (error) {
             console.error('Erreur lors de l\'ajout du message:', error);

@@ -379,7 +379,7 @@ body {
 
 .hero {
     height: 100vh;
-    background: linear-gradient(135deg, rgba(227, 6, 19, 0.9), rgba(26, 26, 26, 0.8)),
+    background: linear-gradient(135deg, rgba(227, 6, 19, 0.5), rgba(26, 26, 26, 0.4)),
                 url('../images/grand-theft-auto-v-gta-5-game-city-street-gta-v.jpg');
     background-size: cover;
     background-position: center;
@@ -398,7 +398,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.1);
 }
 
 .hero-content {

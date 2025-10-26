@@ -9,13 +9,22 @@ class NotificationManager {
                 const snapshot = await this.conversationsCollection
                     .where('data.discordId', '==', discordId)
                     .get();
-                const unreadCount = snapshot.docs.filter(doc => doc.data().read === false).length;
+                const unreadCount = snapshot.docs.filter(doc => {
+                    const data = doc.data();
+                    if (!data.messages || data.messages.length === 0) return false;
+                    const lastMessage = data.messages[data.messages.length - 1];
+                    return lastMessage.sender === 'admin';
+                }).length;
                 return unreadCount;
             } else {
-                const snapshot = await this.conversationsCollection
-                    .where('read', '==', false)
-                    .get();
-                return snapshot.size;
+                const snapshot = await this.conversationsCollection.get();
+                const unreadCount = snapshot.docs.filter(doc => {
+                    const data = doc.data();
+                    if (!data.messages || data.messages.length === 0) return false;
+                    const lastMessage = data.messages[data.messages.length - 1];
+                    return lastMessage.sender === 'client' && data.status === 'open';
+                }).length;
+                return unreadCount;
             }
         } catch (error) {
             console.error('Erreur lors du comptage des conversations:', error);
@@ -27,14 +36,24 @@ class NotificationManager {
             this.unsubscribe = this.conversationsCollection
                 .where('data.discordId', '==', discordId)
                 .onSnapshot(snapshot => {
-                    const unreadCount = snapshot.docs.filter(doc => doc.data().read === false).length;
+                    const unreadCount = snapshot.docs.filter(doc => {
+                        const data = doc.data();
+                        if (!data.messages || data.messages.length === 0) return false;
+                        const lastMessage = data.messages[data.messages.length - 1];
+                        return lastMessage.sender === 'admin';
+                    }).length;
                     callback(unreadCount);
                 });
         } else {
             this.unsubscribe = this.conversationsCollection
-                .where('read', '==', false)
                 .onSnapshot(snapshot => {
-                    callback(snapshot.size);
+                    const unreadCount = snapshot.docs.filter(doc => {
+                        const data = doc.data();
+                        if (!data.messages || data.messages.length === 0) return false;
+                        const lastMessage = data.messages[data.messages.length - 1];
+                        return lastMessage.sender === 'client' && data.status === 'open';
+                    }).length;
+                    callback(unreadCount);
                 });
         }
     }
@@ -105,7 +124,11 @@ function setupNotificationsUI() {
 }
 function toggleNotifications() {
     if (discordAuth.isAuthorized()) {
-        window.location.href = 'admin.html#conversations';
+        if (window.location.pathname.includes('admin.html')) {
+            showConversationsModal();
+        } else {
+            window.location.href = 'admin.html#conversations';
+        }
     } else {
         window.location.href = 'mes-conversations.html';
     }
