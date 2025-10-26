@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORPI Immobilier - Agence Paris</title>
+    <link rel="stylesheet" href="css/styles.css?v=1.0.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/cache-buster.js"></script>
+    
+        <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <script src="js/config.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/firebase-properties.js"></script>
+    <script src="js/firebase-notifications.js"></script>
+    <script src="js/notifications.js"></script>
+</head>
+<body>
+        <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="images/logo-orpi-mandelieu.png" alt="ORPI Paris">
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link active">Accueil</a>
+                </li>
+                <li class="nav-item">
+                    <a href="biens.html" class="nav-link">Nos Biens</a>
+                </li>
+                <li class="nav-item" id="guidePrixLink" style="display: none;">
+                    <a href="guide-prix.html" class="nav-link">Guide des Prix</a>
+                </li>
+                <li class="nav-item" id="tableauGeneralLink" style="display: none;">
+                    <a href="tableau-general.html" class="nav-link">Tableau Général</a>
+                </li>
+                <li class="nav-item">
+                    <a href="contact.html" class="nav-link">Contact</a>
+                </li>
+                <li class="nav-item">
+                    <a href="estimation.html" class="nav-link">Estimation</a>
+                </li>
+                <li class="nav-item">
+                    <a href="mes-conversations.html" class="nav-link">
+                        <i class="fas fa-comments"></i> Mes Conversations
+                    </a>
+                </li>
+                                <li class="nav-item" id="adminPanel" style="display: none;">
+                    <a href="admin.html" class="nav-link admin-link">
+                        <i class="fas fa-shield-alt"></i> Panel Administration
+                    </a>
+                </li>
+            </ul>
+                        <span class="notifications-text" id="notificationsText" style="display: none;"></span>
+                        <div class="notifications-btn" id="notificationsBtn" style="display: none;" onclick="toggleNotifications()">
+                <i class="fas fa-bell"></i>
+                <span class="notifications-badge" id="notificationsBadge" style="display: none;">0</span>
+            </div>
+                        <div class="user-profile" id="userProfile" style="display: none;">
+                <img id="userAvatar" src="" alt="Avatar" class="user-avatar">
+                <span id="userName" class="user-name"></span>
+                <button onclick="logout()" class="logout-btn" title="Déconnexion">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+                        <button id="loginBtn" class="discord-login-btn" onclick="loginWithDiscord()">
+                <i class="fab fa-discord"></i> Connexion
+            </button>
+            <div class="nav-toggle" id="navToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+        <section class="hero" id="accueil">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">Bienvenue chez ORPI Paris</h1>
+            <p class="hero-subtitle">Votre partenaire immobilier de confiance</p>
+            <p class="hero-description">Achat, vente, location - Nous réalisons vos projets immobiliers</p>
+            <div class="hero-buttons">
+                <a href="biens.html" class="btn btn-primary">Découvrir nos biens</a>
+                <a href="estimation.html" class="btn btn-secondary">Estimer mon bien</a>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </section>
+
+        <section class="stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <i class="fas fa-home"></i>
+                    <h3 class="stat-number">250+</h3>
+                    <p class="stat-label">Biens disponibles</p>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-users"></i>
+                    <h3 class="stat-number">1500+</h3>
+                    <p class="stat-label">Clients satisfaits</p>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-handshake"></i>
+                    <h3 class="stat-number">15+</h3>
+                    <p class="stat-label">Années d'expérience</p>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-award"></i>
+                    <h3 class="stat-number">98%</h3>
+                    <p class="stat-label">Taux de satisfaction</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+        <section class="services" id="services">
+        <div class="container">
+            <h2 class="section-title">Nos Services</h2>
+            <p class="section-subtitle">Un accompagnement complet pour tous vos projets immobiliers</p>
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <h3>Vente</h3>
+                    <p>Vendez votre bien au meilleur prix grâce à notre expertise et notre réseau</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>Achat</h3>
+                    <p>Trouvez le bien de vos rêves parmi notre large sélection de propriétés</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-file-contract"></i>
+                    </div>
+                    <h3>Location</h3>
+                    <p>Gestion locative complète et accompagnement personnalisé</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <h3>Estimation</h3>
+                    <p>Estimation gratuite et précise de votre bien immobilier</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <h3>Conseil</h3>
+                    <p>Conseils d'experts pour optimiser votre investissement</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-phone-alt"></i>
+                    </div>
+                    <h3>Support 24/7</h3>
+                    <p>Une équipe disponible et réactive pour répondre à vos besoins</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+        <section class="featured-properties" id="biens-une">
+        <div class="container">
+            <h2 class="section-title">Nos Biens à la Une</h2>
+            <p class="section-subtitle">Découvrez notre sélection exclusive de biens d'exception</p>
+            <div id="featuredPropertiesGrid" class="properties-grid">
+            </div>
+            <div id="noFeaturedProperties" style="display: none; text-align: center; padding: 3rem;">
+                <p style="color: var(--text-color); font-size: 1.1rem;">Aucun bien mis en avant pour le moment.</p>
+                <a href="biens.html" class="btn btn-primary" style="margin-top: 1rem;">Voir tous nos biens</a>
+            </div>
+        </div>
+    </section>
+
+        <section class="why-us">
+        <div class="container">
+            <div class="why-us-content">
+                <div class="why-us-text">
+                    <h2>Pourquoi choisir ORPI Paris ?</h2>
+                    <ul class="why-us-list">
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Plus de 15 ans d'expérience dans l'immobilier</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Une équipe professionnelle et à votre écoute</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Un réseau national de confiance</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Des outils digitaux innovants</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Accompagnement de A à Z dans votre projet</span>
+                        </li>
+                    </ul>
+                    <a href="contact.html" class="btn btn-primary">Contactez-nous</a>
+                </div>
+                <div class="why-us-image">
+                    <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Agence ORPI">
+                </div>
+            </div>
+        </div>
+    </section>
+
+        <div id="notificationsModal" class="modal">
+        <div class="modal-content notifications-modal">
+            <div class="modal-header">
+                <h2>Notifications</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="notifications-actions">
+                <button id="markAllReadBtn" class="btn-secondary">Tout marquer comme lu</button>
+            </div>
+            <div id="notificationsList" class="notifications-list">
+                <div class="loading">Chargement...</div>
+            </div>
+        </div>
+    </div>
+
+        <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>ORPI Paris</h3>
+                    <p>Votre partenaire immobilier de confiance depuis 2008</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Liens rapides</h3>
+                    <ul>
+                        <li><a href="index.html">Accueil</a></li>
+                        <li><a href="biens.html">Nos Biens</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                        <li><a href="estimation.html">Estimation</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>ORPI Paris</h3>
+                    <p>Agence immobilière Grand Paris RP</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 ORPI Paris Grand Paris RP. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script src="js/index.js"></script>
+</body>
+</html>
+

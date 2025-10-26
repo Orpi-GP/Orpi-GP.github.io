@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contrat - ORPI Paris</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/cache-buster.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <script src="js/config.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/firebase-contracts.js"></script>
+    <script src="js/toast-notifications.js"></script>
+    
+    <style>
+        .contract-container {
+            max-width: 900px;
+            margin: 100px auto 50px;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .contract-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        .contract-id {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .contract-title {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .contract-status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        .status-pending {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .status-partially_signed {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        .status-completed {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .contract-content {
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: #F9FAFB;
+            border-radius: 8px;
+            line-height: 1.8;
+        }
+
+        .contract-section {
+            margin-bottom: 2rem;
+        }
+
+        .contract-section h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .contract-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-item {
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 0.3rem;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .signatures-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .signature-box {
+            padding: 2rem;
+            border: 2px solid #E5E7EB;
+            border-radius: 10px;
+            text-align: center;
+            background: white;
+        }
+
+        .signature-box.signed {
+            border-color: #10B981;
+            background: #ECFDF5;
+        }
+
+        .signature-box h4 {
+            margin-bottom: 1.5rem;
+            color: #1F2937;
+            font-size: 1.2rem;
+        }
+
+        .signature-canvas {
+            border: 2px dashed #D1D5DB;
+            border-radius: 8px;
+            cursor: crosshair;
+            background: white;
+            display: block;
+            margin: 0 auto 1rem;
+        }
+
+        .signature-image {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .signature-info {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 1rem;
+        }
+
+        .signature-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .btn-sign {
+            padding: 0.75rem 2rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-sign:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(227, 6, 19, 0.3);
+        }
+
+        .btn-clear {
+            padding: 0.75rem 1.5rem;
+            background: #6B7280;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-clear:hover {
+            background: #4B5563;
+        }
+
+        .loading-container {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-container {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .completed-banner {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .completed-banner i {
+            margin-right: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .contract-container {
+                margin: 80px 1rem 2rem;
+                padding: 1.5rem;
+            }
+
+            .signatures-section {
+                grid-template-columns: 1fr;
+            }
+
+            .contract-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="images/logo-orpi-mandelieu.png" alt="ORPI Paris">
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">Accueil</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div id="loadingContainer" class="loading-container">
+        <div class="spinner"></div>
+        <p>Chargement du contrat...</p>
+    </div>
+
+    <div id="errorContainer" class="error-container" style="display: none;">
+        <i class="fas fa-exclamation-triangle error-icon"></i>
+        <h2>Contrat introuvable</h2>
+        <p>Le contrat demandé n'existe pas ou a été supprimé.</p>
+        <a href="index.html" class="btn btn-primary" style="margin-top: 2rem;">Retour à l'accueil</a>
+    </div>
+
+    <div id="contractContainer" class="contract-container" style="display: none;">
+        <div id="completedBanner" class="completed-banner" style="display: none;">
+            <i class="fas fa-check-circle"></i>
+            Contrat entièrement signé et finalisé
+        </div>
+
+        <div class="contract-header">
+            <div class="contract-id">ID: <span id="contractId"></span></div>
+            <h1 class="contract-title" id="contractTitle"></h1>
+            <div class="contract-status" id="contractStatus"></div>
+        </div>
+
+        <div class="contract-info">
+            <div class="info-item">
+                <div class="info-label">Type de contrat</div>
+                <div class="info-value" id="contractType"></div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Créé le</div>
+                <div class="info-value" id="contractDate"></div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Client</div>
+                <div class="info-value" id="contractClient"></div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Montant</div>
+                <div class="info-value" id="contractAmount"></div>
+            </div>
+        </div>
+
+        <div class="contract-content">
+            <div class="contract-section">
+                <h3>Description</h3>
+                <div id="contractDescription"></div>
+            </div>
+            <div class="contract-section">
+                <h3>Termes et conditions</h3>
+                <div id="contractTerms"></div>
+            </div>
+        </div>
+
+        <div class="signatures-section">
+            <div class="signature-box" id="adminSignatureBox">
+                <h4><i class="fas fa-user-tie"></i> Signature Administrateur</h4>
+                <div id="adminSignatureContent"></div>
+            </div>
+
+            <div class="signature-box" id="clientSignatureBox">
+                <h4><i class="fas fa-user"></i> Signature Client</h4>
+                <div id="clientSignatureContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/contrat.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>
+

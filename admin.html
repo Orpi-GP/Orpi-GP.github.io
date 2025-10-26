@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administration - ORPI Paris</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/cache-buster.js"></script>
+    <link rel="stylesheet" href="https://cdn.quilljs.com/1.3.6/quill.snow.css">
+    
+        <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <script src="js/config.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/firebase-properties.js"></script>
+    <script src="js/firebase-conversations.js"></script>
+    <script src="js/firebase-employees.js"></script>
+    <script src="js/firebase-sales.js"></script>
+    <script src="js/firebase-declarations.js"></script>
+    <script src="js/webhook-config.js"></script>
+    <style>
+        .admin-container {
+            min-height: 100vh;
+            padding-top: 100px;
+            background: var(--light-bg);
+        }
+
+        .admin-header {
+            background: linear-gradient(135deg, var(--primary-color), #c20510);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .admin-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .admin-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .admin-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .admin-card-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-color), #ff2a39);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .admin-card-icon i {
+            font-size: 1.8rem;
+            color: white;
+        }
+
+        .admin-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--secondary-color);
+        }
+
+        .admin-card p {
+            color: var(--text-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .admin-btn {
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        .admin-btn:hover {
+            background: #c20510;
+            transform: translateY(-2px);
+        }
+
+        .access-denied {
+            text-align: center;
+            padding: 4rem 2rem;
+            max-width: 600px;
+            margin: 0 auto;
+            min-height: calc(100vh - 300px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .access-denied-icon-container {
+            width: 140px;
+            height: 140px;
+            background: linear-gradient(135deg, #fff5f5, #ffe0e0);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2.5rem;
+            box-shadow: 0 10px 30px rgba(227, 6, 19, 0.2);
+            animation: pulse 2s ease-in-out infinite;
+            position: relative;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 10px 30px rgba(227, 6, 19, 0.2);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 15px 40px rgba(227, 6, 19, 0.3);
+            }
+        }
+
+        .access-denied-icon-container i {
+            font-size: 4.5rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .access-denied h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--secondary-color);
+            font-weight: 700;
+        }
+
+        .access-denied p {
+            font-size: 1.1rem;
+            color: var(--text-color);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .access-denied-info {
+            background: #fff5f5;
+            padding: 1.5rem;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-color);
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .access-denied-info strong {
+            color: var(--primary-color);
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-top: 2rem;
+            padding: 16px 40px;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: var(--transition);
+            box-shadow: 0 5px 15px rgba(227, 6, 19, 0.3);
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+
+        .back-btn i {
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .back-btn:hover {
+            background: #c20510;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(227, 6, 19, 0.4);
+        }
+
+        .back-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .property-count {
+            background: var(--light-bg);
+            padding: 0.75rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .property-count i {
+            margin-right: 0.5rem;
+        }
+
+        .admin-btn-secondary {
+            background: #5865F2;
+        }
+
+        .admin-btn-secondary:hover {
+            background: #4752C4;
+        }
+
+        /* Liste des biens dans le modal de gestion */
+        .properties-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .property-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border: 2px solid var(--light-bg);
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            transition: var(--transition);
+        }
+
+        .property-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow);
+        }
+
+        .property-item-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        .property-item-info {
+            flex: 1;
+        }
+
+        .property-item-title {
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin-bottom: 0.25rem;
+        }
+
+        .property-item-details {
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+
+        .property-item-price {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .property-item-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-direction: column;
+        }
+
+        .property-item-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .btn-edit {
+            background: #5865F2;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #4752C4;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+        }
+
+        .property-status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-disponible {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-reserve {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .status-vendu {
+            background: #dc3545;
+            color: white;
+        }
+
+        .status-negociation {
+            background: #17a2b8;
+            color: white;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--light-bg);
+        }
+
+        .modal-header h2 {
+            color: var(--secondary-color);
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-color);
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            background: var(--light-bg);
+            color: var(--primary-color);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--light-bg);
+            border-radius: 5px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: var(--transition);
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group input[type="file"] {
+            padding: 0.5rem;
+        }
+
+        .images-preview-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .image-preview-item {
+            position: relative;
+            border-radius: 5px;
+            overflow: hidden;
+            border: 2px solid var(--light-bg);
+        }
+
+        .image-preview-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+
+        .image-preview-item .remove-image {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .image-preview-item .remove-image:hover {
+            background: #c20510;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn-cancel {
+            flex: 1;
+            padding: 0.75rem;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-cancel:hover {
+            background: #5a6268;
+        }
+
+        .btn-submit {
+            flex: 1;
+            padding: 0.75rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-submit:hover {
+            background: #c20510;
+        }
+
+        /* IDs List */
+        .ids-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .ids-list li {
+            background: var(--light-bg);
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .ids-list li i {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+        }
+
+        .ids-list li code {
+            background: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Styles pour l'éditeur Quill */
+        .ql-editor {
+            min-height: 200px;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .ql-editor p {
+            margin-bottom: 0.5rem;
+        }
+
+        .ql-editor.ql-blank::before {
+            font-style: italic;
+            color: #aaa;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+        <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html">
+                    <img src="images/logo-orpi-mandelieu.png" alt="ORPI Paris">
+                </a>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">Retour à l'accueil</a>
+                </li>
+            </ul>
+                        <div class="user-profile" id="userProfile" style="display: none;">
+                <img id="userAvatar" src="" alt="Avatar" class="user-avatar">
+                <span id="userName" class="user-name"></span>
+                <button onclick="logout()" class="logout-btn" title="Déconnexion">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="admin-container">
+        <div id="adminAccess" style="display: none;">
+            <div class="admin-header">
+                <h1><i class="fas fa-shield-alt"></i> Panel Administration</h1>
+                <p>Gestion de l'agence ORPI Paris</p>
+            </div>
+
+            <div class="admin-content">
+                <div class="admin-grid" style="grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); max-width: 1200px; margin: 0 auto;">
+                    <div class="admin-card">
+                        <div class="admin-card-icon">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <h3>Gestion des Biens</h3>
+                        <p>Ajouter, modifier ou supprimer des biens immobiliers</p>
+                        <div class="property-count" id="propertyCount">
+                            <i class="fas fa-building"></i> <span>0</span> biens actifs
+                        </div>
+                        <button class="admin-btn" onclick="showAddPropertyModal()">
+                            <i class="fas fa-plus"></i> Ajouter un bien
+                        </button>
+                        <button class="admin-btn admin-btn-secondary" onclick="showManagePropertiesModal()" style="margin-top: 0.5rem;">
+                            <i class="fas fa-edit"></i> Gérer les biens
+                        </button>
+                        <button class="admin-btn admin-btn-secondary" onclick="window.location.href='biens.html'" style="margin-top: 0.5rem;">
+                            <i class="fas fa-list"></i> Voir tous les biens
+                        </button>
+                    </div>
+
+                    <div class="admin-card">
+                        <div class="admin-card-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <h3>Gestion des Conversations</h3>
+                        <p>Consulter et gérer les conversations clients</p>
+                        <div class="property-count" id="conversationsCount">
+                            <i class="fas fa-comments"></i> <span>0</span> conversations actives
+                        </div>
+                        <button class="admin-btn" onclick="showConversationsModal()">
+                            <i class="fas fa-inbox"></i> Voir les conversations
+                        </button>
+                    </div>
+
+                    <div class="admin-card">
+                        <div class="admin-card-icon">
+                            <i class="fas fa-file-contract"></i>
+                        </div>
+                        <h3>Gestion des Contrats</h3>
+                        <p>Créer et gérer les contrats de vente/location</p>
+                        <div class="property-count" id="contractCount">
+                            <i class="fas fa-file-signature"></i> <span>0</span> contrats actifs
+                        </div>
+                        <button class="admin-btn" onclick="showCreateContractModal()">
+                            <i class="fas fa-plus"></i> Créer un contrat
+                        </button>
+                        <button class="admin-btn admin-btn-secondary" onclick="showManageContractsModal()" style="margin-top: 0.5rem;">
+                            <i class="fas fa-list"></i> Gérer les contrats
+                        </button>
+                    </div>
+
+                    <div class="admin-card">
+                        <div class="admin-card-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3>Autorisations</h3>
+                        <p>Gérer les accès administrateurs</p>
+                        <button class="admin-btn" onclick="showAuthorizedIdsModal()">
+                            <i class="fas fa-key"></i> Voir les IDs autorisés
+                        </button>
+                    </div>
+
+                    <div class="admin-card">
+                        <div class="admin-card-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3>Gestion des Employés</h3>
+                        <p>Ajouter, modifier ou supprimer des employés</p>
+                        <div class="property-count" id="employeeCount">
+                            <i class="fas fa-user"></i> <span>0</span> employés
+                        </div>
+                        <button class="admin-btn" onclick="showAddEmployeeModal()">
+                            <i class="fas fa-user-plus"></i> Ajouter un employé
+                        </button>
+                        <button class="admin-btn admin-btn-secondary" onclick="showManageEmployeesModal()" style="margin-top: 0.5rem;">
+                            <i class="fas fa-edit"></i> Gérer les employés
+                        </button>
+                        <button class="admin-btn admin-btn-secondary" onclick="window.location.href='tableau-general.html'" style="margin-top: 0.5rem;">
+                            <i class="fas fa-table"></i> Tableau général
+                        </button>
+                    </div>
+
+                    <div class="admin-card">
+                        <div class="admin-card-icon">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </div>
+                        <h3>Déclarations</h3>
+                        <p>Clôturer les déclarations et consulter l'historique</p>
+                        <div class="property-count" id="declarationCount">
+                            <i class="fas fa-archive"></i> <span>0</span> déclarations archivées
+                        </div>
+                        <button class="admin-btn" onclick="showClotureModal()">
+                            <i class="fas fa-check-circle"></i> Clôturer la période
+                        </button>
+                        <button class="admin-btn admin-btn-secondary" onclick="showHistoriqueModal()" style="margin-top: 0.5rem;">
+                            <i class="fas fa-history"></i> Voir l'historique
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="accessDenied" class="access-denied" style="display: none;">
+            <div class="access-denied-icon-container">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h2>Accès Refusé</h2>
+            <p>Vous n'avez pas l'autorisation d'accéder à cette page.</p>
+            <div class="access-denied-info">
+                <strong><i class="fas fa-info-circle"></i> Information</strong>
+                Seuls les administrateurs autorisés peuvent accéder au panel d'administration. Si vous pensez qu'il s'agit d'une erreur, veuillez contacter un administrateur.
+            </div>
+            <a href="index.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Retour à l'accueil
+            </a>
+        </div>
+    </div>
+
+        <div id="addPropertyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-plus-circle"></i> Ajouter un Bien Immobilier</h2>
+                <button class="modal-close" onclick="closeAddPropertyModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="addPropertyForm" onsubmit="handleAddProperty(event)">
+                <div class="form-group">
+                    <label for="propertyTitle">Titre du bien *</label>
+                    <input type="text" id="propertyTitle" required placeholder="Ex: Villa de luxe avec piscine">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="propertyType">Type *</label>
+                        <select id="propertyType" required>
+                            <option value="">Sélectionner...</option>
+                            <option value="Maison">Maison</option>
+                            <option value="Appartement">Appartement</option>
+                            <option value="Villa">Villa</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="propertyStatus">Statut *</label>
+                        <select id="propertyStatus" required>
+                            <option value="Disponible">Disponible</option>
+                            <option value="Réservé">Réservé</option>
+                            <option value="Vendu">Vendu</option>
+                            <option value="En négociation">En négociation</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="propertyPrice">Prix (€) *</label>
+                    <input type="number" id="propertyPrice" required placeholder="350000" min="0">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="propertyRooms">Pièces</label>
+                        <input type="number" id="propertyRooms" placeholder="4" min="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="propertyArea">Surface (m²)</label>
+                        <input type="number" id="propertyArea" placeholder="120" min="1">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="propertyLocation">Localisation *</label>
+                    <input type="text" id="propertyLocation" required placeholder="Paris 8ème arrondissement">
+                </div>
+
+                <div class="form-group">
+                    <label for="propertyDescription">Description *</label>
+                    <div id="propertyDescriptionEditor" style="min-height: 200px; background: white;"></div>
+                    <textarea id="propertyDescription" required style="display: none;"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" id="propertyFeatured" style="width: auto; cursor: pointer;">
+                        <span>Mettre en avant sur la page d'accueil</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>Images du bien (maximum 5) *</label>
+                    <div id="dropZone" class="drop-zone">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
+                        <p style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;">Glissez-déposez vos images ici</p>
+                        <p style="font-size: 0.9rem; color: #666; margin-bottom: 1rem;">ou</p>
+                        <button type="button" class="btn-select-files" onclick="document.getElementById('propertyImages').click()">
+                            <i class="fas fa-folder-open"></i> Parcourir les fichiers
+                        </button>
+                        <input type="file" id="propertyImages" accept="image/*" multiple required style="display: none;">
+                        <p style="font-size: 0.85rem; color: #999; margin-top: 1rem;">
+                            <i class="fas fa-info-circle"></i> Maximum 5 images (JPG, PNG, WebP)
+                        </p>
+                    </div>
+                    <div id="imagesPreviewContainer" class="images-preview-container"></div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeAddPropertyModal()">Annuler</button>
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+        <div id="authorizedIdsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-shield-alt"></i> IDs Discord Autorisés</h2>
+                <button class="modal-close" onclick="closeAuthorizedIdsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p style="margin-bottom: 1.5rem; color: var(--text-color);">
+                Seuls les utilisateurs Discord avec ces IDs peuvent accéder au panel d'administration.
+            </p>
+            <ul class="ids-list" id="idsList"></ul>
+            <div style="margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 5px;">
+                <strong><i class="fas fa-info-circle"></i> Information :</strong>
+                <p style="margin: 0.5rem 0 0 0;">Pour ajouter ou supprimer des IDs, modifiez le fichier <code>config.js</code> dans le tableau <code>authorizedIds</code>.</p>
+            </div>
+        </div>
+    </div>
+
+        <div id="managePropertiesModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-edit"></i> Gérer les Biens</h2>
+                <button class="modal-close" onclick="closeManagePropertiesModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="properties-list" id="propertiesList">
+                <p style="text-align: center; color: var(--text-color);">Chargement...</p>
+            </div>
+        </div>
+    </div>
+
+        <div id="editPropertyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-edit"></i> Modifier le Bien</h2>
+                <button class="modal-close" onclick="closeEditPropertyModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="editPropertyForm" onsubmit="handleEditProperty(event)">
+                <input type="hidden" id="editPropertyId">
+                
+                <div class="form-group">
+                    <label for="editPropertyTitle">Titre du bien *</label>
+                    <input type="text" id="editPropertyTitle" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editPropertyType">Type *</label>
+                        <select id="editPropertyType" required>
+                            <option value="Maison">Maison</option>
+                            <option value="Appartement">Appartement</option>
+                            <option value="Villa">Villa</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editPropertyStatus">Statut *</label>
+                        <select id="editPropertyStatus" required>
+                            <option value="Disponible">Disponible</option>
+                            <option value="Réservé">Réservé</option>
+                            <option value="Vendu">Vendu</option>
+                            <option value="En négociation">En négociation</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="editPropertyPrice">Prix (€) *</label>
+                    <input type="number" id="editPropertyPrice" required min="0">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editPropertyRooms">Pièces</label>
+                        <input type="number" id="editPropertyRooms" min="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editPropertyArea">Surface (m²)</label>
+                        <input type="number" id="editPropertyArea" min="1">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="editPropertyLocation">Localisation *</label>
+                    <input type="text" id="editPropertyLocation" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editPropertyDescription">Description *</label>
+                    <div id="editPropertyDescriptionEditor" style="min-height: 200px; background: white;"></div>
+                    <textarea id="editPropertyDescription" required style="display: none;"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" id="editPropertyFeatured" style="width: auto; cursor: pointer;">
+                        <span>Mettre en avant sur la page d'accueil</span>
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeEditPropertyModal()">Annuler</button>
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+        <div id="conversationsAdminModal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-comments"></i> Gestion des Conversations</h2>
+                <button class="modal-close" onclick="closeConversationsAdminModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="notifications-filters" style="margin-bottom: 1.5rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <button class="admin-btn" style="flex: 1; min-width: 120px; max-width: 200px;" onclick="filterConversations('all')">
+                    Toutes
+                </button>
+                <button class="admin-btn admin-btn-secondary" style="flex: 1; min-width: 120px; max-width: 200px; background: #17a2b8;" onclick="filterConversations('contact')">
+                    <i class="fas fa-envelope"></i> Contact
+                </button>
+                <button class="admin-btn admin-btn-secondary" style="flex: 1; min-width: 120px; max-width: 200px; background: #28a745;" onclick="filterConversations('estimation')">
+                    <i class="fas fa-calculator"></i> Estimation
+                </button>
+            </div>
+
+            <div id="conversationsAdminList" class="properties-list" style="max-height: 600px;">
+                <p style="text-align: center; color: var(--text-color);">Chargement...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="conversationDetailsModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 id="conversationDetailsTitle">Détails de la conversation</h2>
+                <button class="modal-close" onclick="closeConversationDetailsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="conversationDetailsContent"></div>
+            <div class="form-actions">
+                <button class="btn-cancel" onclick="closeConversationDetailsModal()">Fermer</button>
+                <button class="btn btn-primary" id="replyConversationBtn" onclick="showReplyModal()" style="display: none;">
+                    <i class="fas fa-reply"></i> Répondre
+                </button>
+                <button class="btn btn-secondary" id="reopenConversationBtn" onclick="reopenConversation()" style="display: none; background: #17a2b8;">
+                    <i class="fas fa-redo"></i> Réouvrir
+                </button>
+                <button class="btn" id="closeConversationBtn" onclick="closeConversation()" style="display: none; background: #dc3545; color: white;">
+                    <i class="fas fa-times-circle"></i> Clôturer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="replyConversationModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-reply"></i> Répondre à la conversation</h2>
+                <button class="modal-close" onclick="closeReplyModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="replyConversationForm" onsubmit="handleReplyConversation(event)">
+                <div class="form-group">
+                    <label for="replyMessage">Votre message *</label>
+                    <textarea id="replyMessage" rows="6" required placeholder="Écrivez votre message au client..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeReplyModal()">Annuler</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Envoyer le message
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+        <div id="notificationsAdminModal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-bell"></i> Gestion des Notifications</h2>
+                <button class="modal-close" onclick="closeNotificationsAdminModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="notifications-filters" style="margin-bottom: 1.5rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <button class="admin-btn" style="flex: 1; min-width: 120px; max-width: 200px;" onclick="filterNotifications('all')">
+                    Toutes
+                </button>
+                <button class="admin-btn admin-btn-secondary" style="flex: 1; min-width: 120px; max-width: 200px; background: #17a2b8;" onclick="filterNotifications('contact')">
+                    <i class="fas fa-envelope"></i> Contact
+                </button>
+                <button class="admin-btn admin-btn-secondary" style="flex: 1; min-width: 120px; max-width: 200px; background: #28a745;" onclick="filterNotifications('estimation')">
+                    <i class="fas fa-calculator"></i> Estimation
+                </button>
+            </div>
+
+            <div id="notificationsAdminList" class="properties-list" style="max-height: 600px;">
+                <p style="text-align: center; color: var(--text-color);">Chargement...</p>
+            </div>
+        </div>
+    </div>
+
+        <div id="notificationDetailsModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2 id="notificationDetailsTitle">Détails de la notification</h2>
+                <button class="modal-close" onclick="closeNotificationDetailsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="notificationDetailsContent">
+                        </div>
+            <div class="form-actions">
+                <button class="btn-cancel" onclick="closeNotificationDetailsModal()">Fermer</button>
+                <button class="btn btn-primary" id="respondNotificationBtn" style="display: none;">
+                    <i class="fas fa-reply"></i> Répondre
+                </button>
+                <button class="btn-submit" id="markNotificationReadBtn">
+                    <i class="fas fa-check"></i> Marquer comme lu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="respondNotificationModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-reply"></i> Répondre à la demande</h2>
+                <button class="modal-close" onclick="closeRespondNotificationModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="respondNotificationForm" onsubmit="handleRespondNotification(event)">
+                <div class="form-group">
+                    <label for="responseMessage">Votre réponse *</label>
+                    <textarea id="responseMessage" rows="6" required placeholder="Écrivez votre réponse au client..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeRespondNotificationModal()">Annuler</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Envoyer la réponse
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="addEmployeeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-plus"></i> Ajouter un Employé</h2>
+                <button class="modal-close" onclick="closeAddEmployeeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="addEmployeeForm" onsubmit="handleAddEmployee(event)">
+                <div class="form-group">
+                    <label for="employeeName">Nom complet *</label>
+                    <input type="text" id="employeeName" required placeholder="Ex: John Doe">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="employeeGrade">Grade *</label>
+                        <input type="text" id="employeeGrade" required placeholder="Ex: PDG, DRG, CO-PDG...">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="employeeCommission">Commission (%) *</label>
+                        <input type="number" id="employeeCommission" required placeholder="10" min="0" max="100" step="0.01">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="employeePrimes">Primes (€)</label>
+                        <input type="number" id="employeePrimes" value="0" min="0" step="100">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="employeeDividendes">Dividendes (€)</label>
+                        <input type="number" id="employeeDividendes" value="0" min="0" step="100">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn" onclick="closeAddEmployeeModal()">Annuler</button>
+                    <button type="submit" class="submit-btn">Ajouter l'employé</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+        <div id="manageEmployeesModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2><i class="fas fa-users"></i> Gérer les Employés</h2>
+                <button class="modal-close" onclick="closeManageEmployeesModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="properties-list" id="employeesList">
+                <div class="loading">Chargement...</div>
+            </div>
+        </div>
+    </div>
+
+        <div id="editEmployeeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-edit"></i> Modifier l'Employé</h2>
+                <button class="modal-close" onclick="closeEditEmployeeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="editEmployeeForm" onsubmit="handleEditEmployee(event)">
+                <input type="hidden" id="editEmployeeId">
+                
+                <div class="form-group">
+                    <label for="editEmployeeName">Nom complet *</label>
+                    <input type="text" id="editEmployeeName" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editEmployeeGrade">Grade *</label>
+                        <input type="text" id="editEmployeeGrade" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editEmployeeCommission">Commission (%) *</label>
+                        <input type="number" id="editEmployeeCommission" required min="0" max="100" step="0.01">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editEmployeePrimes">Primes (€)</label>
+                        <input type="number" id="editEmployeePrimes" min="0" step="100">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editEmployeeDividendes">Dividendes (€)</label>
+                        <input type="number" id="editEmployeeDividendes" min="0" step="100">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn" onclick="closeEditEmployeeModal()">Annuler</button>
+                    <button type="submit" class="submit-btn">Mettre à jour</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+        <div id="clotureModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-check-circle"></i> Clôturer la Période</h2>
+                <button class="modal-close" onclick="closeClotureModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="clotureForm" onsubmit="handleCloture(event)">
+                <p style="margin-bottom: 1.5rem; color: var(--text-color);">
+                    ⚠️ <strong>Attention:</strong> Cette action va:
+                </p>
+                <ul style="margin-bottom: 1.5rem; padding-left: 2rem; color: var(--text-color);">
+                    <li>Sauvegarder toutes les ventes actuelles dans l'historique</li>
+                    <li>Archiver les statistiques de tous les employés</li>
+                    <li>Réinitialiser les fiches de vente de tous les employés</li>
+                </ul>
+
+                <div class="form-group">
+                    <label for="periodName">Nom de la période *</label>
+                    <input type="text" id="periodName" required placeholder="Ex: Déclaration Janvier 2024">
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn" onclick="closeClotureModal()">Annuler</button>
+                    <button type="submit" class="submit-btn" style="background-color: #f39c12;">Clôturer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+        <div id="historiqueModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2><i class="fas fa-history"></i> Historique des Déclarations</h2>
+                <button class="modal-close" onclick="closeHistoriqueModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="properties-list" id="historiqueList">
+                <div class="loading">Chargement...</div>
+            </div>
+        </div>
+    </div>
+
+        <div id="declarationDetailsModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2><i class="fas fa-file-alt"></i> Détails de la Déclaration</h2>
+                <button class="modal-close" onclick="closeDeclarationDetailsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="declarationDetailsContent" style="padding: 2rem;">
+                <div class="loading">Chargement...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="createContractModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2><i class="fas fa-file-contract"></i> Créer un Contrat</h2>
+                <button class="modal-close" onclick="closeCreateContractModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="createContractForm" class="modal-body">
+                <div class="form-group">
+                    <label for="contractTypeSelect"><i class="fas fa-tag"></i> Type de contrat *</label>
+                    <select id="contractTypeSelect" required>
+                        <option value="">-- Sélectionner un type --</option>
+                        <option value="Vente">Vente</option>
+                        <option value="Location hebdomadaire">Location hebdomadaire</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="contractTitleInput"><i class="fas fa-heading"></i> Titre du contrat *</label>
+                    <input type="text" id="contractTitleInput" placeholder="Ex: Contrat de vente - Appartement Paris 15e" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="contractClientName"><i class="fas fa-user"></i> Nom du client *</label>
+                    <input type="text" id="contractClientName" placeholder="Nom complet du client" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="contractClientEmail"><i class="fas fa-envelope"></i> Email du client</label>
+                    <input type="email" id="contractClientEmail" placeholder="email@exemple.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="contractAmount"><i class="fas fa-euro-sign"></i> Montant (€)</label>
+                    <input type="number" id="contractAmount" placeholder="0" min="0" step="0.01">
+                </div>
+
+                <div class="form-group">
+                    <label for="contractDescription"><i class="fas fa-align-left"></i> Description *</label>
+                    <textarea id="contractDescription" rows="5" placeholder="Description détaillée du bien et des conditions..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="contractTerms"><i class="fas fa-file-contract"></i> Termes et conditions *</label>
+                    <textarea id="contractTerms" rows="8" placeholder="Termes et conditions du contrat..." required></textarea>
+                </div>
+
+                <div class="modal-footer" style="display: flex; gap: 1rem; justify-content: flex-end; padding-top: 1rem; border-top: 1px solid #e5e7eb; margin-top: 2rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeCreateContractModal()">Annuler</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check"></i> Créer le contrat
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="manageContractsModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2><i class="fas fa-list"></i> Gestion des Contrats</h2>
+                <button class="modal-close" onclick="closeManageContractsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="contracts-filters" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                    <select id="contractFilterStatus" onchange="filterContracts()" style="flex: 1; min-width: 200px; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px;">
+                        <option value="all">Tous les statuts</option>
+                        <option value="pending">En attente</option>
+                        <option value="partially_signed">Partiellement signé</option>
+                        <option value="completed">Complété</option>
+                    </select>
+                    <select id="contractFilterType" onchange="filterContracts()" style="flex: 1; min-width: 200px; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px;">
+                        <option value="all">Tous les types</option>
+                        <option value="Vente">Vente</option>
+                        <option value="Location hebdomadaire">Location hebdomadaire</option>
+                    </select>
+                </div>
+                <div id="contractsList" class="properties-list">
+                    <div class="loading">Chargement des contrats...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="contractDetailsModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2><i class="fas fa-file-contract"></i> Détails du Contrat</h2>
+                <button class="modal-close" onclick="closeContractDetailsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="contractDetailsContent" class="modal-body">
+                <div class="loading">Chargement...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="js/toast-notifications.js"></script>
+    <script src="js/firebase-contracts.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="js/admin-employees.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nos Biens - ORPI Paris</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/cache-buster.js"></script>
+    
+        <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <script src="js/config.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/firebase-properties.js"></script>
+    <script src="js/firebase-notifications.js"></script>
+    <script src="js/notifications.js"></script>
+    <style>
+        .properties-container {
+            min-height: 100vh;
+            padding-top: 100px;
+            padding-bottom: 60px;
+            background: var(--light-bg);
+        }
+
+        .properties-header {
+            background: linear-gradient(135deg, var(--primary-color), #c20510);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .properties-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .properties-header p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+
+        .properties-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .properties-filters {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--light-bg);
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .properties-count {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1.2rem;
+            color: var(--text-color);
+        }
+
+        .properties-count strong {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+
+        .properties-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .property-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .property-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .property-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            background: var(--light-bg);
+        }
+
+        .property-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .property-content {
+            padding: 1.5rem;
+        }
+
+        .property-type {
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .property-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .property-location {
+            color: var(--text-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .property-location i {
+            color: var(--primary-color);
+        }
+
+        .property-details {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--light-bg);
+        }
+
+        .property-detail {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-color);
+        }
+
+        .property-detail i {
+            color: var(--primary-color);
+        }
+
+        .property-price {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .property-footer {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .property-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-view {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-view:hover {
+            background: #c20510;
+        }
+
+        .btn-contact {
+            background: var(--light-bg);
+            color: var(--text-color);
+        }
+
+        .btn-contact:hover {
+            background: #5865F2;
+            color: white;
+        }
+
+        .no-properties {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+        }
+
+        .no-properties i {
+            font-size: 4rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .no-properties h2 {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+
+        .no-properties p {
+            color: var(--text-color);
+            margin-bottom: 2rem;
+        }
+
+        /* Modal détails bien */
+        .property-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            overflow-y: auto;
+        }
+
+        .property-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .property-modal-content {
+            background: white;
+            border-radius: 10px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideDown 0.3s ease;
+        }
+
+        .property-modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            z-index: 10;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .property-modal-close:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Carrousel d'images */
+        .carousel {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background: var(--secondary-color);
+            overflow: hidden;
+        }
+
+        .carousel-images {
+            display: flex;
+            transition: transform 0.5s ease;
+            height: 100%;
+        }
+
+        .carousel-images img {
+            min-width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: var(--secondary-color);
+        }
+
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: var(--transition);
+            z-index: 5;
+        }
+
+        .carousel-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .carousel-btn-prev {
+            left: 1rem;
+        }
+
+        .carousel-btn-next {
+            right: 1rem;
+        }
+
+        .carousel-indicators {
+            position: absolute;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.5rem;
+            z-index: 5;
+        }
+
+        .carousel-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .carousel-indicator.active {
+            background: var(--primary-color);
+            width: 30px;
+            border-radius: 5px;
+        }
+
+        .property-modal-body {
+            padding: 2rem;
+        }
+
+        .property-modal-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .property-modal-title {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .property-modal-price {
+            font-size: 2rem;
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .property-modal-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: var(--light-bg);
+            border-radius: 5px;
+        }
+
+        .property-modal-detail {
+            text-align: center;
+        }
+
+        .property-modal-detail i {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .property-modal-detail strong {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+
+        .property-modal-description {
+            line-height: 1.8;
+            color: var(--text-color);
+            margin-bottom: 2rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .property-modal-description strong {
+            font-weight: 700;
+        }
+
+        .property-modal-description em {
+            font-style: italic;
+        }
+
+        .property-modal-description u {
+            text-decoration: underline;
+        }
+
+        .property-modal-description s {
+            text-decoration: line-through;
+        }
+
+        .property-modal-description ul,
+        .property-modal-description ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+        }
+
+        .property-modal-description ul {
+            list-style-type: disc;
+        }
+
+        .property-modal-description ol {
+            list-style-type: decimal;
+        }
+
+        .property-modal-description li {
+            margin: 0.5rem 0;
+        }
+
+        .property-modal-description a {
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+
+        .property-modal-description a:hover {
+            color: #c20510;
+        }
+
+        .property-modal-description h1,
+        .property-modal-description h2,
+        .property-modal-description h3 {
+            margin: 1.5rem 0 1rem 0;
+            color: var(--secondary-color);
+            font-weight: 700;
+        }
+
+        .property-modal-description h1 {
+            font-size: 1.8rem;
+        }
+
+        .property-modal-description h2 {
+            font-size: 1.5rem;
+        }
+
+        .property-modal-description h3 {
+            font-size: 1.2rem;
+        }
+
+        .property-modal-description p {
+            margin: 0.5rem 0;
+            white-space: pre-wrap;
+        }
+
+        .property-modal-description br {
+            display: block;
+            content: "";
+            margin: 0.5rem 0;
+        }
+
+        .property-modal-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .properties-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .properties-filters {
+                flex-direction: column;
+            }
+
+            .filter-group {
+                width: 100%;
+            }
+
+            .carousel {
+                height: 300px;
+            }
+
+            .property-modal-content {
+                margin: 1rem;
+            }
+
+            .carousel-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+        <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html">
+                    <img src="images/logo-orpi-mandelieu.png" alt="ORPI Paris">
+                </a>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">Accueil</a>
+                </li>
+                <li class="nav-item">
+                    <a href="biens.html" class="nav-link active">Nos Biens</a>
+                </li>
+                <li class="nav-item" id="guidePrixLink" style="display: none;">
+                    <a href="guide-prix.html" class="nav-link">Guide des Prix</a>
+                </li>
+                <li class="nav-item" id="tableauGeneralLink" style="display: none;">
+                    <a href="tableau-general.html" class="nav-link">Tableau Général</a>
+                </li>
+                <li class="nav-item">
+                    <a href="contact.html" class="nav-link">Contact</a>
+                </li>
+                <li class="nav-item">
+                    <a href="estimation.html" class="nav-link">Estimation</a>
+                </li>
+                <li class="nav-item">
+                    <a href="mes-conversations.html" class="nav-link">
+                        <i class="fas fa-comments"></i> Mes Conversations
+                    </a>
+                </li>
+                <li class="nav-item" id="adminPanel" style="display: none;">
+                    <a href="admin.html" class="nav-link admin-link">
+                        <i class="fas fa-shield-alt"></i> Panel Administration
+                    </a>
+                </li>
+            </ul>
+                        <span class="notifications-text" id="notificationsText" style="display: none;"></span>
+                        <div class="notifications-btn" id="notificationsBtn" style="display: none;" onclick="toggleNotifications()">
+                <i class="fas fa-bell"></i>
+                <span class="notifications-badge" id="notificationsBadge" style="display: none;">0</span>
+            </div>
+                        <div class="user-profile" id="userProfile" style="display: none;">
+                <img id="userAvatar" src="" alt="Avatar" class="user-avatar">
+                <span id="userName" class="user-name"></span>
+                <button onclick="logout()" class="logout-btn" title="Déconnexion">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+                        <button id="loginBtn" class="discord-login-btn" onclick="loginWithDiscord()">
+                <i class="fab fa-discord"></i> Connexion
+            </button>
+            <div class="nav-toggle" id="navToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="properties-container">
+        <div class="properties-header">
+            <h1><i class="fas fa-home"></i> Nos Biens Immobiliers</h1>
+            <p>Découvrez notre sélection de biens d'exception à Paris</p>
+        </div>
+
+        <div class="properties-content">
+                        <div class="properties-filters">
+                <div class="filter-group">
+                    <label for="filterType">Type de bien</label>
+                    <select id="filterType" onchange="filtrerBiens()">
+                        <option value="">Tous les types</option>
+                        <option value="Maison">Maison</option>
+                        <option value="Appartement">Appartement</option>
+                        <option value="Villa">Villa</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterPriceMax">Prix maximum (€)</label>
+                    <input type="number" id="filterPriceMax" placeholder="Ex: 500000" onchange="filtrerBiens()">
+                </div>
+                <div class="filter-group">
+                    <label for="filterSearch">Recherche</label>
+                    <input type="text" id="filterSearch" placeholder="Rechercher..." oninput="filtrerBiens()">
+                </div>
+            </div>
+
+                        <div class="properties-count">
+                <strong id="propertiesCount">0</strong> bien(s) disponible(s)
+            </div>
+
+                        <div id="propertiesGrid" class="properties-grid">
+                            </div>
+
+                        <div id="noProperties" class="no-properties" style="display: none;">
+                <i class="fas fa-home"></i>
+                <h2>Aucun bien disponible</h2>
+                <p>Il n'y a actuellement aucun bien immobilier à afficher.</p>
+                <a href="index.html" class="btn btn-primary">Retour à l'accueil</a>
+            </div>
+        </div>
+    </div>
+
+        <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>ORPI Paris</h3>
+                    <p>Votre partenaire immobilier de confiance depuis 2008</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Liens rapides</h3>
+                    <ul>
+                        <li><a href="index.html">Accueil</a></li>
+                        <li><a href="biens.html">Nos Biens</a></li>
+                        <li><a href="index.html#services">Services</a></li>
+                        <li><a href="index.html#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <ul>
+                        <li><i class="fas fa-map-marker-alt"></i> Paris, France</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 ORPI Paris. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <div id="notificationsModal" class="modal">
+        <div class="modal-content notifications-modal">
+            <div class="modal-header">
+                <h2>Notifications</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="notifications-actions">
+                <button id="markAllReadBtn" class="btn-secondary">Tout marquer comme lu</button>
+            </div>
+            <div id="notificationsList" class="notifications-list">
+                <div class="loading">Chargement...</div>
+            </div>
+        </div>
+    </div>
+
+        <div id="propertyModal" class="property-modal">
+        <div class="property-modal-content">
+            <button class="property-modal-close" onclick="closePropertyModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            
+                        <div class="carousel" id="propertyCarousel">
+                <div class="carousel-images" id="carouselImages"></div>
+                <button class="carousel-btn carousel-btn-prev" onclick="changeSlide(-1)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="carousel-btn carousel-btn-next" onclick="changeSlide(1)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <div class="carousel-indicators" id="carouselIndicators"></div>
+            </div>
+            
+                        <div class="property-modal-body">
+                <div class="property-modal-header">
+                    <div class="property-type" id="modalType"></div>
+                    <h2 class="property-modal-title" id="modalTitle"></h2>
+                    <div class="property-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span id="modalLocation"></span>
+                    </div>
+                </div>
+                
+                <div class="property-modal-price" id="modalPrice"></div>
+                
+                <div class="property-modal-details" id="modalDetails"></div>
+                
+                <h3 style="margin-bottom: 1rem; color: var(--secondary-color);">Description</h3>
+                <p class="property-modal-description" id="modalDescription"></p>
+                
+                <div class="property-modal-actions">
+                    <button class="property-btn btn-view" style="flex: 1;" onclick="contacterAgence()">
+                        <i class="fas fa-envelope"></i> Contacter l'agence
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+    <script src="js/biens.js"></script>
+</body>
+</html>
+

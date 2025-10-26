@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide des Prix - ORPI Immobilier</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/cache-buster.js"></script>
+</head>
+<body>
+        <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="images/logo-orpi-mandelieu.png" alt="ORPI Paris">
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">Accueil</a>
+                </li>
+                <li class="nav-item">
+                    <a href="biens.html" class="nav-link">Nos Biens</a>
+                </li>
+                <li class="nav-item" id="guidePrixLink" style="display: none;">
+                    <a href="guide-prix.html" class="nav-link active">Guide des Prix</a>
+                </li>
+                <li class="nav-item" id="tableauGeneralLink" style="display: none;">
+                    <a href="tableau-general.html" class="nav-link">Tableau Général</a>
+                </li>
+                <li class="nav-item">
+                    <a href="contact.html" class="nav-link">Contact</a>
+                </li>
+                <li class="nav-item">
+                    <a href="estimation.html" class="nav-link">Estimation</a>
+                </li>
+                                <li class="nav-item" id="adminPanel" style="display: none;">
+                    <a href="admin.html" class="nav-link admin-link">
+                        <i class="fas fa-shield-alt"></i> Panel Administration
+                    </a>
+                </li>
+            </ul>
+                        <span class="notifications-text" id="notificationsText" style="display: none;"></span>
+                        <div class="notifications-btn" id="notificationsBtn" style="display: none;" onclick="toggleNotifications()">
+                <i class="fas fa-bell"></i>
+                <span class="notifications-badge" id="notificationsBadge" style="display: none;">0</span>
+            </div>
+                        <div class="user-profile" id="userProfile" style="display: none;">
+                <img id="userAvatar" src="" alt="Avatar" class="user-avatar">
+                <span id="userName" class="user-name"></span>
+                <button onclick="logout()" class="logout-btn" title="Déconnexion">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+                        <button id="loginBtn" class="discord-login-btn" onclick="loginWithDiscord()">
+                <i class="fab fa-discord"></i> Connexion
+            </button>
+            <div class="nav-toggle" id="navToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+        <div id="accessDenied" style="display: none; text-align: center; padding: 100px 20px; min-height: 80vh;">
+        <div style="max-width: 600px; margin: 0 auto; background: white; padding: 3rem; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+            <i class="fas fa-lock" style="font-size: 4rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
+            <h2 style="color: var(--secondary-color); margin-bottom: 1rem;">Accès Restreint</h2>
+            <p style="color: var(--text-color); margin-bottom: 2rem;">Cette page est réservée aux administrateurs uniquement.</p>
+            <a href="index.html" class="btn btn-primary">
+                <i class="fas fa-arrow-left"></i> Retour à l'accueil
+            </a>
+        </div>
+    </div>
+
+        <section class="guide-prix-section" id="guidePrixContent" style="display: none;">
+        <div class="container">
+            <h1 class="section-title">Guide des Prix</h1>
+            <p class="section-subtitle">Prix de référence pour l'immobilier - Tarifs évolutifs</p>
+
+                        <div class="price-category">
+                <h2 class="category-title">
+                    <span class="icon">🏗️</span>
+                    Shells - Entrée de Gamme
+                </h2>
+                <div class="price-grid">
+                    <div class="price-card">
+                        <div class="price-header">
+                            <h3>Trevor (shell)</h3>
+                            <div class="price-badge">Shell</div>
+                        </div>
+                        <div class="price-amount">45 000 €</div>
+                        <div class="price-details">
+                            <p>📍 Basique</p>
+                        </div>
+                    </div>
+                    <div class="price-card">
+                        <div class="price-header">
+                            <h3>Micheal (shell)</h3>
+                            <div class="price-badge">Shell</div>
+                        </div>
+                        <div class="price-amount">55 000 €</div>
+                        <div class="price-details">
+                            <p>📍 Standard</p>
+                        </div>
+                    </div>
+                    <div class="price-card">
+                        <div class="price-header">
+                            <h3>Frankaunt (shell)</h3>
+                            <div class="price-badge">Shell</div>
+                        </div>
+                        <div class="price-amount">60 000 €</div>
+                        <div class="price-details">
+                            <p>📍 Amélioré</p>
+                        </div>
+                    </div>
+                    <div class="price-card">
+                        <div class="price-header">
+                            <h3>V16MID (shell)</h3>
+                            <div class="price-badge">Shell</div>
+                        </div>
+                        <div class="price-amount">65 000 €</div>
+                        <div class="price-details">
+                            <p>📍 Moyen</p>
+                        </div>
+                    </div>
+                    <div class="price-card">
+                        <div class="price-header">
+                            <h3>Office1 (shell)</h3>
+                            <div class="price-badge">Shell Pro</div>
+                        </div>
+                        <div class="price-amount">75 000 €</div>
+                        <div class="price-details">
+                            <p>🏢 Bureau Basique</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                        <div class="price-category">
+                <h2 class="category-title">
+                    <span class="icon">🏨</span>
+                    Logements Standards
+                </h2>
+                <div class="price-grid">
+                    <div class="price-card">
+                        <div class="price-header">
+                            <h3>Standard Motel</h3>
+                            <div class="price-badge">Standard</div>
+                        </div>
+                        <div class="price-amount">85 000 €</div>
+                        <div class="price-details">
+                            <p>🛏️ Hébergement Simple</p>
+                        </div>
+                    </div>
+                    <div class="price-card">
+                        <div class="price-header">
+                            <h3>Furnished Mid Apartment</h3>
+                            <div class="price-badge">Meublé</div>
+                        </div>
+                        <div class="price-amount">95 000 €</div>
+                        <div class="price-details">
+                            <p>🛋️ Appartement Meublé</p>
+                        </div>
+                    </div>
+                    <div class="price-card">
+                        <div class="price-header">
+                            <h3>Modern Hotel</h3>
+                            <div class="price-badge">Moderne</div>
+                        </div>
+                        <div class="price-amount">110 000 €</div>
+                        <div class="price-details">
+                            <p>✨ Hôtel Moderne</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                        <div class="price-category">
+                <h2 class="category-title">
+                    <span class="icon">🏡</span>
+                    Maisons de Qualité
+                </h2>
+                <div class="price-grid">
+                    <div class="price-card">
+                        <div class="price-header">
+                            <h3>Maison Très Moyenne</h3>
+                            <div class="price-badge">Basique</div>
+                        </div>
+                        <div class="price-amount">120 000 €</div>
+                        <div class="price-details">
+                            <p>🏘️ Quartier Résidentiel</p>
+                        </div>
+                    </div>
+                    <div class="price-card highlight">
+                        <div class="price-header">
+                            <h3>Maison Moyenne</h3>
+                            <div class="price-badge">Confort</div>
+                        </div>
+                        <div class="price-amount">145 000 €</div>
+                        <div class="price-details">
+                            <p>🌳 Bon Standing</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                        <div class="price-category">
+                <h2 class="category-title">
+                    <span class="icon">💎</span>
+                    Appartements de Luxe
+                </h2>
+                <div class="price-grid">
+                    <div class="price-card highlight">
+                        <div class="price-header">
+                            <h3>Appartement de Luxe n°1</h3>
+                            <div class="price-badge premium">Luxe</div>
+                        </div>
+                        <div class="price-amount">180 000 €</div>
+                        <div class="price-details">
+                            <p>⭐ Haut Standing</p>
+                        </div>
+                    </div>
+                    <div class="price-card highlight">
+                        <div class="price-header">
+                            <h3>Appartement de Luxe n°2</h3>
+                            <div class="price-badge premium">Luxe</div>
+                        </div>
+                        <div class="price-amount">195 000 €</div>
+                        <div class="price-details">
+                            <p>⭐ Prestations Premium</p>
+                        </div>
+                    </div>
+                    <div class="price-card highlight">
+                        <div class="price-header">
+                            <h3>Appartement de Luxe n°3</h3>
+                            <div class="price-badge premium">Luxe</div>
+                        </div>
+                        <div class="price-amount">210 000 €</div>
+                        <div class="price-details">
+                            <p>⭐ Vue Exceptionnelle</p>
+                        </div>
+                    </div>
+                    <div class="price-card highlight">
+                        <div class="price-header">
+                            <h3>Eclipse Aprt 9</h3>
+                            <div class="price-badge premium">Prestige</div>
+                        </div>
+                        <div class="price-amount">240 000 €</div>
+                        <div class="price-details">
+                            <p>🌟 Résidence Prestige</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                        <div class="price-category">
+                <h2 class="category-title">
+                    <span class="icon">🏢</span>
+                    Bureaux Professionnels - Ultra Luxe
+                </h2>
+                <div class="price-grid">
+                    <div class="price-card highlight">
+                        <div class="price-header">
+                            <h3>Arcardius Office Executive</h3>
+                            <div class="price-badge premium">Executive</div>
+                        </div>
+                        <div class="price-amount">150 000 €</div>
+                        <div class="price-details">
+                            <p>💼 Bureau Directionnel</p>
+                        </div>
+                    </div>
+                    <div class="price-card highlight">
+                        <div class="price-header">
+                            <h3>Bureau Maze Bank Office 1</h3>
+                            <div class="price-badge premium">Elite</div>
+                        </div>
+                        <div class="price-amount">250 000 €</div>
+                        <div class="price-details">
+                            <p>👑 Prestige Absolu</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+           
+        </div>
+    </section>
+
+        <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>ORPI Immobilier</h3>
+                <p>Votre partenaire immobilier de confiance à Paris</p>
+            </div>
+            <div class="footer-section">
+                <h3>Liens Rapides</h3>
+                <ul>
+                    <li><a href="index.html">Accueil</a></li>
+                    <li><a href="biens.html">Nos Biens</a></li>
+                    <li><a href="guide-prix.html">Guide des Prix</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Informations</h3>
+                <p>Ce guide est fourni à titre indicatif uniquement.</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 ORPI Immobilier Paris. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <div id="notificationsModal" class="modal">
+        <div class="modal-content notifications-modal">
+            <div class="modal-header">
+                <h2>Notifications</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="notifications-actions">
+                <button id="markAllReadBtn" class="btn-secondary">Tout marquer comme lu</button>
+            </div>
+            <div id="notificationsList" class="notifications-list">
+                <div class="loading">Chargement...</div>
+            </div>
+        </div>
+    </div>
+
+        <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+        <script src="js/firebase-config.js"></script>
+    <script src="js/firebase-notifications.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/guide-prix.js"></script>
+</body>
+</html>
+
