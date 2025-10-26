@@ -742,6 +742,26 @@
                             <i class="fas fa-history"></i> Voir l'historique
                         </button>
                     </div>
+
+                    <div class="admin-card" id="appointmentsCard" style="display: none;">
+                        <div class="admin-card-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <h3>Rendez-vous</h3>
+                        <p>Gérer vos disponibilités et consulter les rendez-vous</p>
+                        <div class="property-count" id="appointmentsCount">
+                            <i class="fas fa-clock"></i> Gérer vos créneaux
+                        </div>
+                        <button class="admin-btn" onclick="window.location.href='admin-disponibilites.html'">
+                            <i class="fas fa-clock"></i> Mes Disponibilités
+                        </button>
+                        <button class="admin-btn admin-btn-secondary" onclick="window.location.href='admin-rendez-vous.html'" style="margin-top: 0.5rem;">
+                            <i class="fas fa-calendar-alt"></i> Voir les rendez-vous
+                        </button>
+                        <button class="admin-btn admin-btn-secondary" onclick="showDisplayNameModal()" style="margin-top: 0.5rem;">
+                            <i class="fas fa-user-tag"></i> Modifier mon pseudo
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1389,9 +1409,39 @@
         </div>
     </div>
 
+    <div id="displayNameModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-tag"></i> Modifier Mon Pseudo</h2>
+                <button class="modal-close" onclick="closeDisplayNameModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="displayNameForm" onsubmit="handleUpdateDisplayName(event)">
+                <p style="margin-bottom: 1.5rem; color: var(--text-color);">
+                    Ce pseudo sera affiché dans les créneaux de rendez-vous visibles par les clients.
+                </p>
+                <div class="form-group">
+                    <label for="displayName">Pseudo d'affichage *</label>
+                    <input type="text" id="displayName" required placeholder="Ex: Jean D." maxlength="50">
+                    <small style="color: #666; display: block; margin-top: 0.5rem;">
+                        <i class="fas fa-info-circle"></i> Ce nom apparaîtra dans les créneaux de rendez-vous
+                    </small>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeDisplayNameModal()">Annuler</button>
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-check"></i> Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script src="js/toast-notifications.js"></script>
     <script src="js/firebase-contracts.js"></script>
+    <script src="js/firebase-availability.js"></script>
     <script src="js/admin.js"></script>
     <script src="js/admin-employees.js"></script>
 </body>

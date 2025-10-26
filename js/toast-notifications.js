@@ -1,21 +1,57 @@
 class ToastNotification {
     constructor() {
         this.container = null;
-        this.init();
+        this.queue = [];
+        this.initPromise = this.init();
     }
-    init() {
-        if (!document.getElementById('toast-container')) {
-            this.container = document.createElement('div');
-            this.container.id = 'toast-container';
-            this.container.className = 'toast-container';
-            document.body.appendChild(this.container);
-        } else {
-            this.container = document.getElementById('toast-container');
+    
+    async init() {
+        return new Promise((resolve) => {
+            const tryInit = () => {
+                if (document.body) {
+                    if (!document.getElementById('toast-container')) {
+                        this.container = document.createElement('div');
+                        this.container.id = 'toast-container';
+                        this.container.className = 'toast-container';
+                        document.body.appendChild(this.container);
+                    } else {
+                        this.container = document.getElementById('toast-container');
+                    }
+                    this.processQueue();
+                    resolve();
+                } else {
+                    setTimeout(tryInit, 50);
+                }
+            };
+            
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', tryInit);
+            } else {
+                tryInit();
+            }
+        });
+    }
+    
+    processQueue() {
+        while (this.queue.length > 0) {
+            const item = this.queue.shift();
+            this.showNow(item.message, item.type, item.duration);
         }
     }
+    
     show(message, type = 'info', duration = 3000) {
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
+        if (!this.container) {
+            this.queue.push({ message, type, duration });
+            return;
+        }
+        this.showNow(message, type, duration);
+    }
+    
+    showNow(message, type = 'info', duration = 3000) {
+        if (!this.container) return;
+        
+        const toastElement = document.createElement('div');
+        toastElement.className = `toast toast-${type}`;
         let icon = '';
         switch(type) {
             case 'success':
@@ -31,22 +67,22 @@ class ToastNotification {
                 icon = '<i class="fas fa-info-circle"></i>';
                 break;
         }
-        toast.innerHTML = `
+        toastElement.innerHTML = `
             <div class="toast-icon">${icon}</div>
             <div class="toast-message">${message}</div>
             <button class="toast-close" onclick="this.parentElement.remove()">
                 <i class="fas fa-times"></i>
             </button>
         `;
-        this.container.appendChild(toast);
+        this.container.appendChild(toastElement);
         setTimeout(() => {
-            toast.classList.add('toast-show');
+            toastElement.classList.add('toast-show');
         }, 10);
         setTimeout(() => {
-            toast.classList.remove('toast-show');
+            toastElement.classList.remove('toast-show');
             setTimeout(() => {
-                if (toast.parentElement) {
-                    toast.remove();
+                if (toastElement.parentElement) {
+                    toastElement.remove();
                 }
             }, 300);
         }, duration);
@@ -64,4 +100,5 @@ class ToastNotification {
         this.show(message, 'info', duration);
     }
 }
-const toast = new ToastNotification();
+
+window.toast = new ToastNotification();

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prendre Rendez-vous - ORPI Paris</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/cache-buster.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <script src="js/config.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/firebase-appointments.js"></script>
+    <script src="js/toast-notifications.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="images/logo-orpi-mandelieu.png" alt="ORPI Paris">
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">Accueil</a>
+                </li>
+                <li class="nav-item">
+                    <a href="biens.html" class="nav-link">Nos Biens</a>
+                </li>
+                <li class="nav-item">
+                    <a href="contact.html" class="nav-link">Contact</a>
+                </li>
+                <li class="nav-item">
+                    <a href="estimation.html" class="nav-link">Estimation</a>
+                </li>
+                <li class="nav-item">
+                    <a href="rendez-vous.html" class="nav-link active">
+                        <i class="fas fa-calendar-alt"></i> Rendez-vous
+                    </a>
+                </li>
+                <li class="nav-item" id="adminPanel" style="display: none;">
+                    <a href="admin.html" class="nav-link admin-link">
+                        <i class="fas fa-shield-alt"></i> Panel Administration
+                    </a>
+                </li>
+            </ul>
+            <button id="loginBtn" class="discord-login-btn" onclick="loginWithDiscord()">
+                <i class="fab fa-discord"></i> Connexion
+            </button>
+            <div class="user-profile" id="userProfile" style="display: none;">
+                <img id="userAvatar" src="" alt="Avatar" class="user-avatar">
+                <span id="userName" class="user-name"></span>
+                <button onclick="logout()" class="logout-btn" title="Déconnexion">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+            <div class="nav-toggle" id="navToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <section class="appointment-section">
+        <div class="container">
+            <div class="appointment-header">
+                <h1><i class="fas fa-calendar-check"></i> Prendre Rendez-vous</h1>
+                <p>Choisissez un créneau disponible pour rencontrer notre équipe</p>
+            </div>
+
+            <div class="appointment-content">
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <button id="prevMonth" class="calendar-nav-btn">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <h2 id="currentMonth">Janvier 2024</h2>
+                        <button id="nextMonth" class="calendar-nav-btn">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="calendar-weekdays">
+                        <div>Lun</div>
+                        <div>Mar</div>
+                        <div>Mer</div>
+                        <div>Jeu</div>
+                        <div>Ven</div>
+                        <div>Sam</div>
+                        <div>Dim</div>
+                    </div>
+                    <div id="calendarDays" class="calendar-days"></div>
+                </div>
+
+                <div class="appointment-form-container">
+                    <div id="noDateSelected" class="no-selection">
+                        <i class="fas fa-calendar-day"></i>
+                        <p>Sélectionnez une date dans le calendrier</p>
+                    </div>
+
+                    <div id="appointmentFormWrapper" style="display: none;">
+                        <h3><i class="fas fa-clock"></i> Créneaux disponibles</h3>
+                        <div id="selectedDateInfo" class="selected-date-info"></div>
+                        
+                        <div id="timeSlotsContainer" class="time-slots-container">
+                            <div class="loading">Chargement des créneaux...</div>
+                        </div>
+
+                        <div id="appointmentDetails" style="display: none;">
+                            <h3><i class="fas fa-user"></i> Vos informations</h3>
+                            <form id="appointmentForm">
+                                <input type="hidden" id="selectedDate" name="selectedDate">
+                                <input type="hidden" id="selectedTime" name="selectedTime">
+                                <input type="hidden" id="selectedEmployee" name="selectedEmployee">
+
+                                <div class="form-group">
+                                    <label for="clientName">Nom complet *</label>
+                                    <input type="text" id="clientName" name="clientName" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="clientPhone">Téléphone *</label>
+                                    <input type="tel" id="clientPhone" name="clientPhone" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="appointmentType">Type de rendez-vous *</label>
+                                    <select id="appointmentType" name="appointmentType" required>
+                                        <option value="">Sélectionnez...</option>
+                                        <option value="achat">Projet d'achat</option>
+                                        <option value="vente">Projet de vente</option>
+                                        <option value="location">Location</option>
+                                        <option value="estimation">Estimation gratuite</option>
+                                        <option value="visite">Visite de bien</option>
+                                        <option value="autre">Autre</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="appointmentMessage">Message (optionnel)</label>
+                                    <textarea id="appointmentMessage" name="appointmentMessage" rows="4" placeholder="Décrivez brièvement votre projet..."></textarea>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="button" class="btn-cancel" onclick="resetAppointmentForm()">
+                                        <i class="fas fa-times"></i> Annuler
+                                    </button>
+                                    <button type="submit" class="btn-submit">
+                                        <i class="fas fa-check"></i> Confirmer le rendez-vous
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <style>
+        .appointment-section {
+            padding: 120px 20px 80px;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .appointment-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .appointment-header h1 {
+            font-size: 2.8rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .appointment-header p {
+            font-size: 1.2rem;
+            color: var(--text-color);
+        }
+
+        .appointment-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .calendar-container {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .calendar-header h2 {
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+        }
+
+        .calendar-nav-btn {
+            background: var(--light-bg);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--text-color);
+        }
+
+        .calendar-nav-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .calendar-weekdays div {
+            text-align: center;
+            font-weight: 600;
+            color: var(--text-color);
+            padding: 0.5rem;
+        }
+
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+            position: relative;
+        }
+
+        .calendar-day:not(.disabled):not(.other-month):hover {
+            background: var(--light-bg);
+            transform: scale(1.05);
+        }
+
+        .calendar-day.other-month {
+            color: #ccc;
+        }
+
+        .calendar-day.disabled {
+            color: #ddd;
+            cursor: not-allowed;
+        }
+
+        .calendar-day.today {
+            border: 2px solid var(--primary-color);
+        }
+
+        .calendar-day.selected {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .calendar-day.has-slots::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background: var(--primary-color);
+            border-radius: 50%;
+        }
+
+        .calendar-day.selected.has-slots::after {
+            background: white;
+        }
+
+        .appointment-form-container {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .no-selection {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-color);
+        }
+
+        .no-selection i {
+            font-size: 4rem;
+            color: var(--light-bg);
+            margin-bottom: 1rem;
+        }
+
+        .no-selection p {
+            font-size: 1.1rem;
+        }
+
+        .selected-date-info {
+            background: var(--light-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+            text-align: center;
+        }
+
+        .time-slots-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .time-slot {
+            padding: 1rem;
+            border: 2px solid var(--light-bg);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .time-slot:hover {
+            border-color: var(--primary-color);
+            background: var(--light-bg);
+        }
+
+        .time-slot.selected {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .time-slot.unavailable {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f5f5f5;
+        }
+
+        .time-slot-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .time-slot-time {
+            font-size: 1.1rem;
+        }
+
+        .time-slot-employee {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 968px) {
+            .appointment-content {
+                grid-template-columns: 1fr;
+            }
+
+            .appointment-header h1 {
+                font-size: 2rem;
+            }
+
+            .time-slots-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>ORPI Paris</h3>
+                    <p>Votre partenaire immobilier de confiance depuis 2008</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Liens rapides</h3>
+                    <ul>
+                        <li><a href="index.html">Accueil</a></li>
+                        <li><a href="biens.html">Nos Biens</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                        <li><a href="rendez-vous.html">Rendez-vous</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>ORPI Paris</h3>
+                    <p>Agence immobilière Grand Paris RP</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 ORPI Paris Grand Paris RP. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script src="js/rendez-vous.js"></script>
+</body>
+</html>
+

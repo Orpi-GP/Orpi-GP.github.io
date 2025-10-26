@@ -14,6 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
         setupConversationsListener();
         setupContractsListener();
         
+        setTimeout(() => {
+            showAppointmentsCard();
+        }, 500);
+        
         if (window.location.hash === '#conversations') {
             setTimeout(() => {
                 showConversationsModal();
@@ -1344,4 +1348,89 @@ async function deleteContract(contractId) {
         toast.error('Erreur lors de la suppression du contrat');
     }
 }
+
+function showAppointmentsCard() {
+    const user = discordAuth.getUser();
+    if (user && DISCORD_CONFIG.authorizedIds.includes(user.id)) {
+        const card = document.getElementById('appointmentsCard');
+        if (card) {
+            card.style.display = 'block';
+            loadUserDisplayName(user);
+        }
+    }
+}
+
+async function loadUserDisplayName(user) {
+    if (!user) return;
+    
+    try {
+        const userDoc = await db.collection('users').doc(user.id).get();
+        if (userDoc.exists && userDoc.data().displayName) {
+            const displayName = userDoc.data().displayName;
+            const countElement = document.getElementById('appointmentsCount');
+            if (countElement) {
+                countElement.innerHTML = `<i class="fas fa-user-tag"></i> Pseudo: ${displayName}`;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading display name:', error);
+    }
+}
+
+function showDisplayNameModal() {
+    const modal = document.getElementById('displayNameModal');
+    modal.classList.add('active');
+    
+    const user = discordAuth.getUser();
+    if (user) {
+        db.collection('users').doc(user.id).get().then(doc => {
+            if (doc.exists && doc.data().displayName) {
+                document.getElementById('displayName').value = doc.data().displayName;
+            } else {
+                document.getElementById('displayName').value = user.username;
+            }
+        });
+    }
+}
+
+function closeDisplayNameModal() {
+    document.getElementById('displayNameModal').classList.remove('active');
+    document.getElementById('displayNameForm').reset();
+}
+
+async function handleUpdateDisplayName(e) {
+    e.preventDefault();
+    
+    const displayName = document.getElementById('displayName').value.trim();
+    
+    if (!displayName) {
+        toast.warning('Veuillez entrer un pseudo');
+        return;
+    }
+    
+    const user = discordAuth.getUser();
+    if (!user) {
+        toast.error('Utilisateur non connecté');
+        return;
+    }
+    
+    try {
+        await db.collection('users').doc(user.id).set({
+            discordId: user.id,
+            username: user.username,
+            displayName: displayName,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        
+        await AvailabilityManager.updateAllEmployeeName(user.id, displayName);
+        
+        toast.success('Pseudo mis à jour avec succès');
+        closeDisplayNameModal();
+        loadUserDisplayName(user);
+    } catch (error) {
+        console.error('Error updating display name:', error);
+        toast.error('Erreur lors de la mise à jour');
+    }
+}
+
 
