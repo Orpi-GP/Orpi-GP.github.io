@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Avis - ORPI Paris</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/cache-buster.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <script src="js/config.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/firebase-reviews.js"></script>
+    <script src="js/toast-notifications.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="images/logo-orpi-mandelieu.png" alt="ORPI Paris">
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">Accueil</a>
+                </li>
+                <li class="nav-item">
+                    <a href="admin.html" class="nav-link">Administration</a>
+                </li>
+                <li class="nav-item">
+                    <a href="admin-avis.html" class="nav-link active">
+                        <i class="fas fa-star"></i> Avis Clients
+                    </a>
+                </li>
+            </ul>
+            <div class="user-profile" id="userProfile" style="display: none;">
+                <img id="userAvatar" src="" alt="Avatar" class="user-avatar">
+                <span id="userName" class="user-name"></span>
+                <button onclick="logout()" class="logout-btn" title="Déconnexion">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <section class="admin-reviews-section">
+        <div class="container">
+            <div class="admin-header">
+                <h1><i class="fas fa-star"></i> Gestion des Avis Clients</h1>
+                <p>Modérer les avis publiés sur votre site</p>
+            </div>
+
+            <div class="reviews-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalReviews">0</div>
+                    <div class="stat-label">Total Avis</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="averageRating">0.0</div>
+                    <div class="stat-label">Note Moyenne</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-stars" id="averageStars"></div>
+                </div>
+            </div>
+
+            <div class="filters-row">
+                <div class="filter-group">
+                    <label for="filterRating">Filtrer par note :</label>
+                    <select id="filterRating">
+                        <option value="all">Toutes les notes</option>
+                        <option value="5">5 étoiles</option>
+                        <option value="4">4 étoiles</option>
+                        <option value="3">3 étoiles</option>
+                        <option value="2">2 étoiles</option>
+                        <option value="1">1 étoile</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="reviews-table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Client</th>
+                            <th>Note</th>
+                            <th>Titre</th>
+                            <th>Commentaire</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reviewsTableBody">
+                        <tr>
+                            <td colspan="6" class="text-center">
+                                <i class="fas fa-spinner fa-spin"></i> Chargement...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <div id="viewReviewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-eye"></i> Détails de l'Avis</h2>
+                <button class="modal-close" onclick="closeViewModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="reviewDetailsContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeViewModal()">
+                    <i class="fas fa-times"></i> Fermer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .admin-reviews-section {
+            padding: 100px 20px 50px;
+            min-height: 100vh;
+            background: var(--light-bg);
+        }
+
+        .admin-header {
+            margin-bottom: 3rem;
+        }
+
+        .admin-header h1 {
+            font-size: 2.5rem;
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-header p {
+            color: var(--text-color);
+            font-size: 1.1rem;
+        }
+
+        .reviews-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: var(--text-color);
+        }
+
+        .stat-stars {
+            font-size: 2rem;
+            color: #ffc107;
+        }
+
+        .filters-row {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .filter-group select {
+            padding: 0.5rem 1rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .reviews-table-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .admin-table thead {
+            background: linear-gradient(135deg, var(--primary-color), #c20510);
+            color: white;
+        }
+
+        .admin-table th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .admin-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .admin-table tbody tr:hover {
+            background: var(--light-bg);
+        }
+
+        .review-stars {
+            color: #ffc107;
+            font-size: 1.2rem;
+        }
+
+        .review-comment-preview {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            width: 35px;
+            height: 35px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-btn.view {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .action-btn.delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        #viewReviewModal .modal-body {
+            padding: 2rem;
+        }
+
+        .review-detail-section {
+            margin-bottom: 2.5rem;
+            background: var(--light-bg);
+            padding: 1.5rem;
+            border-radius: 10px;
+        }
+
+        .review-detail-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .review-detail-section h3 {
+            color: var(--secondary-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--primary-color);
+            font-size: 1.2rem;
+        }
+
+        .detail-row {
+            display: flex;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--secondary-color);
+            width: 180px;
+            flex-shrink: 0;
+            font-size: 1rem;
+        }
+
+        .detail-value {
+            color: var(--text-color);
+            flex: 1;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .modal-footer {
+            padding: 1.5rem 2rem;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-cancel {
+            padding: 0.75rem 1.5rem;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-cancel:hover {
+            background: #5a6268;
+        }
+
+        .comment-box {
+            padding: 1.5rem;
+            background: white;
+            border-radius: 8px;
+            line-height: 1.8;
+            font-size: 1rem;
+            border: 1px solid #e0e0e0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        @media (max-width: 768px) {
+            .admin-header h1 {
+                font-size: 2rem;
+            }
+
+            .reviews-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-table {
+                font-size: 0.9rem;
+            }
+
+            .admin-table th,
+            .admin-table td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>ORPI Paris</h3>
+                    <p>Votre partenaire immobilier de confiance depuis 2008</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <p><i class="fas fa-phone"></i> 01 23 45 67 89</p>
+                    <p><i class="fas fa-envelope"></i> contact@orpi-paris.fr</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 ORPI Paris Grand Paris RP. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script src="js/admin-reviews.js"></script>
+</body>
+</html>
+

@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         setTimeout(() => {
             showAppointmentsCard();
+            loadReviewsCount();
         }, 500);
         
         if (window.location.hash === '#conversations') {
@@ -1357,6 +1358,31 @@ function showAppointmentsCard() {
             card.style.display = 'block';
             loadUserDisplayName(user);
         }
+    }
+}
+
+async function loadReviewsCount() {
+    try {
+        if (typeof ReviewsManager === 'undefined') {
+            const script = document.createElement('script');
+            script.src = 'js/firebase-reviews.js';
+            script.onload = async () => {
+                const stats = await ReviewsManager.getStatistics();
+                const countElement = document.getElementById('reviewsCount');
+                if (countElement) {
+                    countElement.innerHTML = `<i class="fas fa-star"></i> ${stats.total} avis (${stats.average} ⭐)`;
+                }
+            };
+            document.head.appendChild(script);
+        } else {
+            const stats = await ReviewsManager.getStatistics();
+            const countElement = document.getElementById('reviewsCount');
+            if (countElement) {
+                countElement.innerHTML = `<i class="fas fa-star"></i> ${stats.total} avis (${stats.average} ⭐)`;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading reviews count:', error);
     }
 }
 

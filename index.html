@@ -17,6 +17,7 @@
     <script src="js/firebase-config.js"></script>
     <script src="js/firebase-properties.js"></script>
     <script src="js/firebase-notifications.js"></script>
+    <script src="js/firebase-reviews.js"></script>
     <script src="js/notifications.js"></script>
 </head>
 <body>
@@ -47,6 +48,11 @@
                 <li class="nav-item">
                     <a href="rendez-vous.html" class="nav-link">
                         <i class="fas fa-calendar-alt"></i> Rendez-vous
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="avis.html" class="nav-link">
+                        <i class="fas fa-star"></i> Avis
                     </a>
                 </li>
                 <li class="nav-item">
@@ -226,6 +232,35 @@
         </div>
     </section>
 
+    <section class="reviews-carousel-section">
+        <div class="container">
+            <h2 class="section-title">Ce que nos clients disent de nous</h2>
+            <p class="section-subtitle">Découvrez les avis de nos clients satisfaits</p>
+            
+            <div class="carousel-wrapper">
+                <button class="carousel-btn prev" onclick="prevReview()">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                
+                <div class="carousel-container" id="reviewsCarousel">
+                    <div class="carousel-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Chargement des avis...
+                    </div>
+                </div>
+                
+                <button class="carousel-btn next" onclick="nextReview()">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            
+            <div class="carousel-dots" id="carouselDots"></div>
+            
+            <div class="reviews-cta">
+                <a href="avis.html" class="btn btn-primary">Voir tous les avis</a>
+            </div>
+        </div>
+    </section>
+
         <div id="notificationsModal" class="modal">
         <div class="modal-content notifications-modal">
             <div class="modal-header">
@@ -270,6 +305,7 @@
 
     <script src="js/script.js"></script>
     <script src="js/index.js"></script>
+    <script src="js/index-reviews.js"></script>
 </body>
 </html>
 
