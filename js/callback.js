@@ -44,7 +44,6 @@ async function handleCallback() {
         localStorage.setItem('discord_token', accessToken);
         localStorage.setItem('discord_user', JSON.stringify(user));
 
-        // Redirection vers la page d'accueil avec l'URL correcte
         window.location.href = getBaseUrl() + '/index.html';
     } catch (error) {
         console.error('Erreur:', error);

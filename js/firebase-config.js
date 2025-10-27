@@ -9,21 +9,9 @@ const firebaseConfig = {
   };
 let app;
 let db;
-let appCheck;
 try {
     app = firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
-    
-    const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-    
-    if (isProduction) {
-        appCheck = firebase.appCheck();
-        appCheck.activate('6LclLvkrAAAAAJlXiPOxKrw-WfXFjiJPmohN3drz', true);
-        console.log("🛡️ App Check activé");
-    } else {
-        console.log("⚠️ App Check désactivé en développement local");
-    }
-    
     console.log("✅ Firebase initialisé avec succès");
 } catch (error) {
     console.error("❌ Erreur lors de l'initialisation de Firebase:", error);
