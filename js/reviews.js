@@ -1,6 +1,12 @@
 let allReviews = [];
 let currentFilter = 'all';
 
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadReviews();
     setupEventListeners();
@@ -84,10 +90,10 @@ function renderReviews() {
             <div class="review-header">
                 <div class="review-author">
                     <div class="review-avatar">
-                        ${review.name.charAt(0).toUpperCase()}
+                        ${escapeHtml(review.name.charAt(0).toUpperCase())}
                     </div>
                     <div class="review-info">
-                        <h3>${review.name}</h3>
+                        <h3>${escapeHtml(review.name)}</h3>
                         <div class="review-date">${formatDate(review.createdAt)}</div>
                     </div>
                 </div>
@@ -95,8 +101,8 @@ function renderReviews() {
                     ${renderStars(review.rating)}
                 </div>
             </div>
-            <div class="review-title">${review.title}</div>
-            <div class="review-comment">${review.comment}</div>
+            <div class="review-title">${escapeHtml(review.title)}</div>
+            <div class="review-comment">${escapeHtml(review.comment)}</div>
         </div>
     `).join('');
 }

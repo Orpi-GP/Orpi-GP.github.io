@@ -1,6 +1,13 @@
 let quillAdd = null;
 let quillEdit = null;
 
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     updateUI();
     
@@ -334,18 +341,18 @@ async function showManagePropertiesModal() {
         const div = document.createElement('div');
         div.className = 'property-item';
         div.innerHTML = `
-            <img src="${firstImage}" alt="${property.title}" class="property-item-image">
+            <img src="${escapeHtml(firstImage)}" alt="${escapeHtml(property.title)}" class="property-item-image">
             <div class="property-item-info">
-                <div class="property-item-title">${property.title}</div>
-                <div class="property-item-details">${property.type} • ${property.location}</div>
-                <span class="property-status-badge ${statusClass}">${property.status || 'Disponible'}</span>
+                <div class="property-item-title">${escapeHtml(property.title)}</div>
+                <div class="property-item-details">${escapeHtml(property.type)} • ${escapeHtml(property.location)}</div>
+                <span class="property-status-badge ${statusClass}">${escapeHtml(property.status || 'Disponible')}</span>
             </div>
             <div class="property-item-price">${formatPrice(property.price)}</div>
             <div class="property-item-actions">
-                <button class="property-item-btn btn-edit" onclick="editProperty('${property.id}')">
+                <button class="property-item-btn btn-edit" onclick="editProperty('${escapeHtml(property.id)}')">
                     <i class="fas fa-edit"></i> Modifier
                 </button>
-                <button class="property-item-btn btn-delete" onclick="deleteProperty('${property.id}', '${property.title}')">
+                <button class="property-item-btn btn-delete" onclick="deleteProperty('${escapeHtml(property.id)}', '${escapeHtml(property.title)}')">
                     <i class="fas fa-trash"></i> Supprimer
                 </button>
             </div>
@@ -533,11 +540,11 @@ async function loadConversationsAdmin(filter = 'all') {
                     ${typeIcon}
                 </div>
                 <div class="property-item-info">
-                    <div class="property-item-title">ID: ${conv.data?.discordId || 'Non renseigné'}</div>
+                    <div class="property-item-title">ID: ${escapeHtml(conv.data?.discordId || 'Non renseigné')}</div>
                     <div class="property-item-details">
                         ${conv.type === 'contact' ? 'Demande de contact' : 'Demande d\'estimation'}
                         <br>
-                        <small>${messagesCount} message(s) • ${conv.data?.phone || 'Téléphone non renseigné'}</small>
+                        <small>${messagesCount} message(s) • ${escapeHtml(conv.data?.phone || 'Téléphone non renseigné')}</small>
                     </div>
                 </div>
                 <div style="text-align: right; min-width: 200px;">
@@ -605,11 +612,11 @@ async function loadNotificationsAdmin(filter = 'all') {
                     ${typeIcon}
                 </div>
                 <div class="property-item-info">
-                    <div class="property-item-title">${notif.data?.discordPseudo || 'Anonyme'}</div>
+                    <div class="property-item-title">${escapeHtml(notif.data?.discordPseudo || 'Anonyme')}</div>
                     <div class="property-item-details">
                         ${notif.type === 'contact' ? 'Demande de contact' : 'Demande d\'estimation'}
                         <br>
-                        <small>${notif.data?.email || 'Email non renseigné'} • ${notif.data?.phone || 'Téléphone non renseigné'}</small>
+                        <small>${escapeHtml(notif.data?.email || 'Email non renseigné')} • ${escapeHtml(notif.data?.phone || 'Téléphone non renseigné')}</small>
                     </div>
                 </div>
                 <div style="text-align: right; min-width: 200px;">
@@ -647,9 +654,9 @@ async function showNotificationDetails(id) {
         let htmlContent = `
             <div style="background: var(--light-bg); padding: 1.5rem; border-radius: 5px; margin-bottom: 1rem;">
                 <h3 style="margin-bottom: 1rem; color: var(--secondary-color);">Informations du contact</h3>
-                <p><strong>Pseudo Discord:</strong> ${notif.data?.discordPseudo || 'Non renseigné'}</p>
-                <p><strong>Email:</strong> ${notif.data?.email || 'Non renseigné'}</p>
-                <p><strong>Téléphone:</strong> ${notif.data?.phone || 'Non renseigné'}</p>
+                <p><strong>Pseudo Discord:</strong> ${escapeHtml(notif.data?.discordPseudo || 'Non renseigné')}</p>
+                <p><strong>Email:</strong> ${escapeHtml(notif.data?.email || 'Non renseigné')}</p>
+                <p><strong>Téléphone:</strong> ${escapeHtml(notif.data?.phone || 'Non renseigné')}</p>
             </div>
         `;
 
@@ -657,7 +664,7 @@ async function showNotificationDetails(id) {
             htmlContent += `
                 <div style="background: var(--light-bg); padding: 1.5rem; border-radius: 5px;">
                     <h3 style="margin-bottom: 1rem; color: var(--secondary-color);">Message</h3>
-                    <p style="white-space: pre-wrap;">${notif.data?.message || 'Aucun message'}</p>
+                    <p style="white-space: pre-wrap;">${escapeHtml(notif.data?.message || 'Aucun message')}</p>
                 </div>
             `;
         } else if (notif.type === 'estimation') {
@@ -665,16 +672,16 @@ async function showNotificationDetails(id) {
                 <div style="background: var(--light-bg); padding: 1.5rem; border-radius: 5px; margin-bottom: 1rem;">
                     <h3 style="margin-bottom: 1rem; color: var(--secondary-color);">Détails du bien</h3>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <p><strong>Type:</strong> ${notif.data?.propertyType || 'Non renseigné'}</p>
-                        <p><strong>Localisation:</strong> ${notif.data?.location || 'Non renseigné'}</p>
-                        <p><strong>Pièces:</strong> ${notif.data?.rooms || 'Non renseigné'}</p>
-                        <p><strong>Surface:</strong> ${notif.data?.area ? notif.data.area + ' m²' : 'Non renseigné'}</p>
+                        <p><strong>Type:</strong> ${escapeHtml(notif.data?.propertyType || 'Non renseigné')}</p>
+                        <p><strong>Localisation:</strong> ${escapeHtml(notif.data?.location || 'Non renseigné')}</p>
+                        <p><strong>Pièces:</strong> ${escapeHtml(notif.data?.rooms || 'Non renseigné')}</p>
+                        <p><strong>Surface:</strong> ${notif.data?.area ? escapeHtml(notif.data.area) + ' m²' : 'Non renseigné'}</p>
                         <p><strong>Prix d'achat:</strong> ${notif.data?.purchasePrice ? formatPrice(notif.data.purchasePrice) : 'Non renseigné'}</p>
                     </div>
                     ${notif.data?.additionalInfo ? `
                         <div style="margin-top: 1rem;">
                             <strong>Informations complémentaires:</strong>
-                            <p style="white-space: pre-wrap; margin-top: 0.5rem;">${notif.data.additionalInfo}</p>
+                            <p style="white-space: pre-wrap; margin-top: 0.5rem;">${escapeHtml(notif.data.additionalInfo)}</p>
                         </div>
                     ` : ''}
                 </div>
@@ -687,7 +694,7 @@ async function showNotificationDetails(id) {
                         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
                 `;
                 notif.data.photos.forEach((photo, index) => {
-                    htmlContent += `<img src="${photo}" alt="Photo ${index + 1}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 5px;">`;
+                    htmlContent += `<img src="${escapeHtml(photo)}" alt="Photo ${index + 1}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 5px;">`;
                 });
                 htmlContent += `</div></div>`;
             }
@@ -697,7 +704,7 @@ async function showNotificationDetails(id) {
             htmlContent += `
                 <div style="background: #e8f5e9; padding: 1.5rem; border-radius: 5px; border-left: 4px solid #4caf50; margin-top: 1rem;">
                     <h3 style="margin-bottom: 1rem; color: #2e7d32;"><i class="fas fa-reply"></i> Réponse envoyée</h3>
-                    <p style="white-space: pre-wrap;">${notif.response}</p>
+                    <p style="white-space: pre-wrap;">${escapeHtml(notif.response)}</p>
                     ${notif.responseDate ? `<p style="color: #666; font-size: 0.85rem; margin-top: 0.5rem;">Envoyée le ${new Date(notif.responseDate.toDate()).toLocaleString('fr-FR')}</p>` : ''}
                 </div>
             `;
@@ -812,8 +819,8 @@ async function showConversationDetails(conversationId) {
         let htmlContent = `
             <div style="background: var(--light-bg); padding: 1.5rem; border-radius: 5px; margin-bottom: 1rem;">
                 <h3 style="margin-bottom: 1rem; color: var(--secondary-color);">Informations du contact</h3>
-                <p><strong>ID Discord:</strong> ${conversation.data?.discordId || 'Non renseigné'}</p>
-                <p><strong>Téléphone:</strong> ${conversation.data?.phone || 'Non renseigné'}</p>
+                <p><strong>ID Discord:</strong> ${escapeHtml(conversation.data?.discordId || 'Non renseigné')}</p>
+                <p><strong>Téléphone:</strong> ${escapeHtml(conversation.data?.phone || 'Non renseigné')}</p>
             </div>
         `;
 
@@ -822,10 +829,10 @@ async function showConversationDetails(conversationId) {
                 <div style="background: var(--light-bg); padding: 1.5rem; border-radius: 5px; margin-bottom: 1rem;">
                     <h3 style="margin-bottom: 1rem; color: var(--secondary-color);">Détails du bien</h3>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <p><strong>Type:</strong> ${conversation.data?.propertyType || 'Non renseigné'}</p>
-                        <p><strong>Localisation:</strong> ${conversation.data?.location || 'Non renseigné'}</p>
-                        <p><strong>Pièces:</strong> ${conversation.data?.rooms || 'Non renseigné'}</p>
-                        <p><strong>Surface:</strong> ${conversation.data?.area ? conversation.data.area + ' m²' : 'Non renseigné'}</p>
+                        <p><strong>Type:</strong> ${escapeHtml(conversation.data?.propertyType || 'Non renseigné')}</p>
+                        <p><strong>Localisation:</strong> ${escapeHtml(conversation.data?.location || 'Non renseigné')}</p>
+                        <p><strong>Pièces:</strong> ${escapeHtml(conversation.data?.rooms || 'Non renseigné')}</p>
+                        <p><strong>Surface:</strong> ${conversation.data?.area ? escapeHtml(conversation.data.area) + ' m²' : 'Non renseigné'}</p>
                         <p><strong>Prix d'achat:</strong> ${conversation.data?.purchasePrice ? formatPrice(conversation.data.purchasePrice) : 'Non renseigné'}</p>
                     </div>
                 </div>
@@ -852,7 +859,7 @@ async function showConversationDetails(conversationId) {
                             <strong>${senderName}</strong>
                             <span style="font-size: 0.85rem; color: #666; margin-left: auto;">${msg.timestamp ? new Date(msg.timestamp).toLocaleString('fr-FR') : ''}</span>
                         </div>
-                        <p style="white-space: pre-wrap; margin: 0;">${msg.message}</p>
+                        <p style="white-space: pre-wrap; margin: 0;">${escapeHtml(msg.message)}</p>
                     </div>
                 `;
             });
@@ -1395,7 +1402,7 @@ async function loadUserDisplayName(user) {
             const displayName = userDoc.data().displayName;
             const countElement = document.getElementById('appointmentsCount');
             if (countElement) {
-                countElement.innerHTML = `<i class="fas fa-user-tag"></i> Pseudo: ${displayName}`;
+                countElement.innerHTML = `<i class="fas fa-user-tag"></i> Pseudo: ${escapeHtml(displayName)}`;
             }
         }
     } catch (error) {

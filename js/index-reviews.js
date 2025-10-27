@@ -2,6 +2,12 @@ let allReviews = [];
 let currentReviewIndex = 0;
 let carouselInterval;
 
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadCarouselReviews();
     startCarouselAutoplay();
@@ -39,14 +45,14 @@ function renderCarousel() {
                 <div class="review-stars">
                     ${renderStars(review.rating)}
                 </div>
-                <h3 class="review-title">${review.title}</h3>
-                <p class="review-text">${review.comment}</p>
+                <h3 class="review-title">${escapeHtml(review.title)}</h3>
+                <p class="review-text">${escapeHtml(review.comment)}</p>
                 <div class="review-author">
                     <div class="author-avatar">
-                        ${review.name.charAt(0).toUpperCase()}
+                        ${escapeHtml(review.name.charAt(0).toUpperCase())}
                     </div>
                     <div class="author-info">
-                        <div class="author-name">${review.name}</div>
+                        <div class="author-name">${escapeHtml(review.name)}</div>
                         <div class="author-date">${formatDate(review.createdAt)}</div>
                     </div>
                 </div>

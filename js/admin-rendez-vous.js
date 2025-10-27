@@ -1,6 +1,13 @@
 let allAppointments = [];
 let filteredAppointments = [];
 
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     checkAdminAuth();
     loadAppointments();
@@ -60,11 +67,11 @@ function renderAppointments() {
     tbody.innerHTML = filteredAppointments.map(appointment => `
         <tr>
             <td>${formatDate(appointment.date)}</td>
-            <td><strong>${appointment.time}</strong></td>
-            <td>${appointment.clientName}</td>
-            <td>${appointment.clientPhone}</td>
+            <td><strong>${escapeHtml(appointment.time)}</strong></td>
+            <td>${escapeHtml(appointment.clientName)}</td>
+            <td>${escapeHtml(appointment.clientPhone)}</td>
             <td>${getTypeLabel(appointment.type)}</td>
-            <td>${appointment.employeeId}</td>
+            <td>${escapeHtml(appointment.employeeId)}</td>
             <td>
                 <span class="status-badge status-${appointment.status}">
                     ${getStatusLabel(appointment.status)}
@@ -72,16 +79,16 @@ function renderAppointments() {
             </td>
             <td>
                 <div class="action-buttons">
-                    <button class="action-btn view" onclick="viewAppointmentDetails('${appointment.id}')" title="Voir détails">
+                    <button class="action-btn view" onclick="viewAppointmentDetails('${escapeHtml(appointment.id)}')" title="Voir détails">
                         <i class="fas fa-eye"></i>
                     </button>
                     ${appointment.status === 'pending' ? `
-                        <button class="action-btn confirm" onclick="confirmAppointment('${appointment.id}')" title="Confirmer">
+                        <button class="action-btn confirm" onclick="confirmAppointment('${escapeHtml(appointment.id)}')" title="Confirmer">
                             <i class="fas fa-check"></i>
                         </button>
                     ` : ''}
                     ${appointment.status !== 'cancelled' ? `
-                        <button class="action-btn cancel" onclick="cancelAppointment('${appointment.id}')" title="Annuler">
+                        <button class="action-btn cancel" onclick="cancelAppointment('${escapeHtml(appointment.id)}')" title="Annuler">
                             <i class="fas fa-times"></i>
                         </button>
                     ` : ''}
@@ -143,11 +150,11 @@ function viewAppointmentDetails(appointmentId) {
             <h3><i class="fas fa-user"></i> Informations Client</h3>
             <div class="detail-row">
                 <span class="detail-label">Nom :</span>
-                <span class="detail-value">${appointment.clientName}</span>
+                <span class="detail-value">${escapeHtml(appointment.clientName)}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Téléphone :</span>
-                <span class="detail-value">${appointment.clientPhone}</span>
+                <span class="detail-value">${escapeHtml(appointment.clientPhone)}</span>
             </div>
         </div>
         
@@ -159,7 +166,7 @@ function viewAppointmentDetails(appointmentId) {
             </div>
             <div class="detail-row">
                 <span class="detail-label">Heure :</span>
-                <span class="detail-value">${appointment.time}</span>
+                <span class="detail-value">${escapeHtml(appointment.time)}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Type :</span>
@@ -167,7 +174,7 @@ function viewAppointmentDetails(appointmentId) {
             </div>
             <div class="detail-row">
                 <span class="detail-label">Employé :</span>
-                <span class="detail-value">${appointment.employeeId}</span>
+                <span class="detail-value">${escapeHtml(appointment.employeeId)}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Statut :</span>
@@ -182,18 +189,18 @@ function viewAppointmentDetails(appointmentId) {
         ${appointment.message ? `
             <div class="appointment-detail-section">
                 <h3><i class="fas fa-comment"></i> Message</h3>
-                <p>${appointment.message}</p>
+                <p>${escapeHtml(appointment.message)}</p>
             </div>
         ` : ''}
         
         <div class="form-actions">
             ${appointment.status === 'pending' ? `
-                <button class="admin-btn" onclick="confirmAppointment('${appointment.id}'); closeAppointmentDetails();">
+                <button class="admin-btn" onclick="confirmAppointment('${escapeHtml(appointment.id)}'); closeAppointmentDetails();">
                     <i class="fas fa-check"></i> Confirmer
                 </button>
             ` : ''}
             ${appointment.status !== 'cancelled' ? `
-                <button class="admin-btn-secondary admin-btn" onclick="cancelAppointment('${appointment.id}'); closeAppointmentDetails();">
+                <button class="admin-btn-secondary admin-btn" onclick="cancelAppointment('${escapeHtml(appointment.id)}'); closeAppointmentDetails();">
                     <i class="fas fa-times"></i> Annuler
                 </button>
             ` : ''}

@@ -1,6 +1,12 @@
 let allReviews = [];
 let currentFilter = 'all';
 
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
     loadReviews();
@@ -65,22 +71,22 @@ function renderReviews() {
     tbody.innerHTML = filteredReviews.map(review => `
         <tr>
             <td>${formatDate(review.createdAt)}</td>
-            <td><strong>${review.name}</strong></td>
+            <td><strong>${escapeHtml(review.name)}</strong></td>
             <td>
                 <div class="review-stars">
                     ${renderStars(review.rating)}
                 </div>
             </td>
-            <td>${review.title}</td>
+            <td>${escapeHtml(review.title)}</td>
             <td>
-                <div class="review-comment-preview">${review.comment}</div>
+                <div class="review-comment-preview">${escapeHtml(review.comment)}</div>
             </td>
             <td>
                 <div class="action-buttons">
-                    <button class="action-btn view" onclick="viewReview('${review.id}')" title="Voir détails">
+                    <button class="action-btn view" onclick="viewReview('${escapeHtml(review.id)}')" title="Voir détails">
                         <i class="fas fa-eye"></i>
                     </button>
-                    <button class="action-btn delete" onclick="deleteReview('${review.id}')" title="Supprimer">
+                    <button class="action-btn delete" onclick="deleteReview('${escapeHtml(review.id)}')" title="Supprimer">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -125,7 +131,7 @@ function viewReview(reviewId) {
             <h3><i class="fas fa-user"></i> Informations Client</h3>
             <div class="detail-row">
                 <span class="detail-label">Nom :</span>
-                <span class="detail-value">${review.name}</span>
+                <span class="detail-value">${escapeHtml(review.name)}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Date :</span>
@@ -143,14 +149,14 @@ function viewReview(reviewId) {
             </div>
             <div class="detail-row">
                 <span class="detail-label">Titre :</span>
-                <span class="detail-value">${review.title}</span>
+                <span class="detail-value">${escapeHtml(review.title)}</span>
             </div>
         </div>
         
         <div class="review-detail-section">
             <h3><i class="fas fa-comment"></i> Commentaire</h3>
             <div class="comment-box">
-                ${review.comment}
+                ${escapeHtml(review.comment)}
             </div>
         </div>
     `;
