@@ -3,55 +3,6 @@ let salesData = [];
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Début chargement tableau général...');
     
-    try {
-        console.log('Mise à jour FORCÉE des ventes...');
-        const snapshot = await firebase.firestore().collection('sales').get();
-        console.log(`Nombre de ventes: ${snapshot.docs.length}`);
-        
-        if (snapshot.docs.length > 0) {
-            const batch = firebase.firestore().batch();
-            let updateCount = 0;
-            
-            snapshot.docs.forEach(doc => {
-                const sale = doc.data();
-                const prixMaison = parseFloat(sale.prixMaison || 0);
-                const prixLocation = parseFloat(sale.prixLocation || 0);
-                const commission = parseFloat(sale.commission || 0);
-                const ENTREPRISE_PERCENTAGE = 0.15;
-                const SALAIRE_MAX = 150000;
-                
-                let entrepriseRevenue = 0;
-                let benefice = 0;
-                let salaire = 0;
-                
-                if (sale.type === 'vente') {
-                    entrepriseRevenue = prixMaison * ENTREPRISE_PERCENTAGE;
-                    salaire = Math.min(entrepriseRevenue * (commission / 100), SALAIRE_MAX);
-                    benefice = entrepriseRevenue - salaire;
-                } else if (sale.type === 'location') {
-                    entrepriseRevenue = prixLocation * ENTREPRISE_PERCENTAGE;
-                    salaire = Math.min(entrepriseRevenue * (commission / 100), SALAIRE_MAX);
-                    benefice = entrepriseRevenue - salaire;
-                }
-                
-                console.log(`Vente ${doc.id}: coffre=${entrepriseRevenue}, salaire=${salaire}, bénéfice=${benefice}`);
-                
-                batch.update(doc.ref, { 
-                    entrepriseRevenue,
-                    benefice,
-                    salaire
-                });
-                updateCount++;
-            });
-            
-            await batch.commit();
-            console.log(`✅ ${updateCount} ventes mises à jour !`);
-            localStorage.setItem('salesUpdateVersion', 'v3');
-        }
-    } catch (error) {
-        console.error('Erreur mise à jour:', error);
-    }
-    
     await loadTableauData();
     setupRealtimeListeners();
     document.getElementById('refreshBtn')?.addEventListener('click', loadTableauData);
