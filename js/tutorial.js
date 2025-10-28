@@ -20,7 +20,7 @@ const tutorialSteps = [
         target: '#loginBtn',
         title: 'Connexion / Profil',
         description: 'Connectez-vous avec Discord pour accéder à des fonctionnalités exclusives : demander des rendez-vous, consulter vos conversations, et laisser des avis. Si vous êtes déjà connecté, c\'est ici que vous verrez votre profil.',
-        position: 'left',
+        position: 'bottom',
         highlight: true
     },
     {
@@ -257,8 +257,8 @@ class Tutorial {
         this.tooltip.style.right = '';
         this.tooltip.style.transform = '';
         
-        const tooltipWidth = 400;
-        const tooltipHeight = 300;
+        const tooltipWidth = this.tooltip.offsetWidth || 400;
+        const tooltipHeight = this.tooltip.offsetHeight || 300;
         
         let finalPosition = position;
         
@@ -286,32 +286,50 @@ class Tutorial {
                 }
                 this.tooltip.style.top = `${bottomTop}px`;
                 
-                let bottomLeft = rect.left + rect.width / 2;
-                if (bottomLeft + tooltipWidth / 2 > window.innerWidth - padding) {
+                const elementCenter = rect.left + rect.width / 2;
+                const isElementOnRight = rect.left > window.innerWidth / 2;
+                
+                if (isElementOnRight && rect.right + padding > window.innerWidth - tooltipWidth) {
+                    const rightEdge = window.innerWidth - rect.right;
+                    this.tooltip.style.right = `${Math.max(padding, rightEdge)}px`;
+                    this.tooltip.style.left = 'auto';
+                    this.tooltip.style.transform = 'none';
+                } else if (elementCenter + tooltipWidth / 2 > window.innerWidth - padding) {
                     this.tooltip.style.right = `${padding}px`;
                     this.tooltip.style.left = 'auto';
-                    this.tooltip.style.transform = '';
-                } else if (bottomLeft - tooltipWidth / 2 < padding) {
+                    this.tooltip.style.transform = 'none';
+                } else if (elementCenter - tooltipWidth / 2 < padding) {
                     this.tooltip.style.left = `${padding}px`;
-                    this.tooltip.style.transform = '';
+                    this.tooltip.style.right = 'auto';
+                    this.tooltip.style.transform = 'none';
                 } else {
-                    this.tooltip.style.left = `${bottomLeft}px`;
+                    this.tooltip.style.left = `${elementCenter}px`;
+                    this.tooltip.style.right = 'auto';
                     this.tooltip.style.transform = 'translateX(-50%)';
                 }
                 break;
                 
             case 'top':
                 this.tooltip.style.bottom = `${window.innerHeight - rect.top + padding}px`;
-                let topLeft = rect.left + rect.width / 2;
-                if (topLeft + tooltipWidth / 2 > window.innerWidth - padding) {
+                const topElementCenter = rect.left + rect.width / 2;
+                const isTopElementOnRight = rect.left > window.innerWidth / 2;
+                
+                if (isTopElementOnRight && rect.right + padding > window.innerWidth - tooltipWidth) {
+                    const rightEdge = window.innerWidth - rect.right;
+                    this.tooltip.style.right = `${Math.max(padding, rightEdge)}px`;
+                    this.tooltip.style.left = 'auto';
+                    this.tooltip.style.transform = 'none';
+                } else if (topElementCenter + tooltipWidth / 2 > window.innerWidth - padding) {
                     this.tooltip.style.right = `${padding}px`;
                     this.tooltip.style.left = 'auto';
-                    this.tooltip.style.transform = '';
-                } else if (topLeft - tooltipWidth / 2 < padding) {
+                    this.tooltip.style.transform = 'none';
+                } else if (topElementCenter - tooltipWidth / 2 < padding) {
                     this.tooltip.style.left = `${padding}px`;
-                    this.tooltip.style.transform = '';
+                    this.tooltip.style.right = 'auto';
+                    this.tooltip.style.transform = 'none';
                 } else {
-                    this.tooltip.style.left = `${topLeft}px`;
+                    this.tooltip.style.left = `${topElementCenter}px`;
+                    this.tooltip.style.right = 'auto';
                     this.tooltip.style.transform = 'translateX(-50%)';
                 }
                 break;
@@ -319,11 +337,15 @@ class Tutorial {
             case 'left':
                 this.tooltip.style.top = `${Math.max(padding, rect.top + rect.height / 2 - tooltipHeight / 2)}px`;
                 this.tooltip.style.right = `${window.innerWidth - rect.left + padding}px`;
+                this.tooltip.style.left = 'auto';
+                this.tooltip.style.transform = 'none';
                 break;
                 
             case 'right':
                 this.tooltip.style.top = `${Math.max(padding, rect.top + rect.height / 2 - tooltipHeight / 2)}px`;
                 this.tooltip.style.left = `${rect.right + padding}px`;
+                this.tooltip.style.right = 'auto';
+                this.tooltip.style.transform = 'none';
                 break;
         }
     }
