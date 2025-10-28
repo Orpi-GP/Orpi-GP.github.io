@@ -2,14 +2,9 @@ const CACHE_VERSION = 'orpi-v1.0.0';
 const CACHE_NAME = `orpi-cache-${CACHE_VERSION}`;
 
 const urlsToCache = [
-    '/',
-    '/index.html',
-    '/css/styles.css',
-    '/js/config.js',
-    '/js/theme.js',
-    '/js/auth.js',
-    '/images/logo-orpi-mandelieu.png',
-    '/images.png'
+    './index.html',
+    './css/styles.css',
+    './images.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -18,9 +13,21 @@ self.addEventListener('install', (event) => {
         caches.open(CACHE_NAME)
             .then((cache) => {
                 console.log('[Service Worker] Mise en cache des ressources');
-                return cache.addAll(urlsToCache);
+                return Promise.all(
+                    urlsToCache.map(url => {
+                        return cache.add(url).catch(err => {
+                            console.log('[Service Worker] Erreur cache:', url, err);
+                        });
+                    })
+                );
             })
-            .then(() => self.skipWaiting())
+            .then(() => {
+                console.log('[Service Worker] Installation terminée');
+                return self.skipWaiting();
+            })
+            .catch(err => {
+                console.error('[Service Worker] Erreur installation:', err);
+            })
     );
 });
 
@@ -44,23 +51,39 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+    if (event.request.method !== 'GET') {
+        return;
+    }
+    
     event.respondWith(
         caches.match(event.request)
             .then((response) => {
                 if (response) {
                     return response;
                 }
-                return fetch(event.request).then((response) => {
-                    if (!response || response.status !== 200 || response.type !== 'basic') {
+                return fetch(event.request)
+                    .then((response) => {
+                        if (!response || response.status !== 200) {
+                            return response;
+                        }
+                        
+                        if (event.request.url.startsWith('http')) {
+                            const responseToCache = response.clone();
+                            caches.open(CACHE_NAME)
+                                .then((cache) => {
+                                    cache.put(event.request, responseToCache);
+                                })
+                                .catch(err => {
+                                    console.log('[Service Worker] Erreur cache:', err);
+                                });
+                        }
+                        
                         return response;
-                    }
-                    const responseToCache = response.clone();
-                    caches.open(CACHE_NAME)
-                        .then((cache) => {
-                            cache.put(event.request, responseToCache);
-                        });
-                    return response;
-                });
+                    })
+                    .catch(err => {
+                        console.log('[Service Worker] Erreur fetch:', event.request.url);
+                        return new Response('Offline', { status: 503 });
+                    });
             })
     );
 });
