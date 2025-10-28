@@ -4,21 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mes Disponibilités - ORPI Paris</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" type="image/png" href="images.png">
+    <script>
+        document.write('<link rel="stylesheet" href="css/styles.css?v=' + Date.now() + '">');
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="js/cache-buster.js"></script>
     
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     
-    <script src="js/config.js"></script>
-    <script src="js/theme.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/firebase-config.js"></script>
-    <script src="js/firebase-theme.js"></script>
-    <script src="js/firebase-availability.js"></script>
-    <script src="js/toast-notifications.js"></script>
-    <script src="js/page-loader.js"></script>
+    <script>
+        const v = Date.now();
+        document.write('<script src="js/cache-buster.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/config.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/theme.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/auth.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/firebase-config.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/firebase-theme.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/firebase-availability.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/toast-notifications.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/page-loader.js?v=' + v + '"><\/script>');
+    </script>
 </head>
 <body>
     <div id="pageLoader" class="page-loader">
@@ -469,8 +475,11 @@
         </div>
     </footer>
 
-    <script src="js/script.js"></script>
-    <script src="js/admin-disponibilites.js"></script>
+    <script>
+        const v2 = Date.now();
+        document.write('<script src="js/script.js?v=' + v2 + '"><\/script>');
+        document.write('<script src="js/admin-disponibilites.js?v=' + v2 + '"><\/script>');
+    </script>
 </body>
 </html>
 

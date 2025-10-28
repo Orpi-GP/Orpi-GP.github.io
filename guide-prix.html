@@ -4,9 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guide des Prix - ORPI Immobilier</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" type="image/png" href="images.png">
+    <script>
+        document.write('<link rel="stylesheet" href="css/styles.css?v=' + Date.now() + '">');
+        document.write('<script src="js/cache-buster.js?v=' + Date.now() + '"><\/script>');
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="js/cache-buster.js"></script>
 </head>
 <body>
     <div id="pageLoader" class="page-loader">
@@ -336,16 +339,19 @@
         <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
-        <script src="js/firebase-config.js"></script>
-    <script src="js/firebase-theme.js"></script>
-    <script src="js/firebase-notifications.js"></script>
-    <script src="js/config.js"></script>
-    <script src="js/theme.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/notifications.js"></script>
-    <script src="js/page-loader.js"></script>
-    <script src="js/script.js"></script>
-    <script src="js/guide-prix.js"></script>
+    <script>
+        const v = Date.now();
+        document.write('<script src="js/firebase-config.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/firebase-theme.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/firebase-notifications.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/config.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/theme.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/auth.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/notifications.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/page-loader.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/script.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/guide-prix.js?v=' + v + '"><\/script>');
+    </script>
 </body>
 </html>
 

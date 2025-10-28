@@ -5,15 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact - ORPI Immobilier Paris</title>
     <link rel="icon" type="image/png" href="images.png">
-    <link rel="stylesheet" href="css/styles.css">
+    <script>
+        document.write('<link rel="stylesheet" href="css/styles.css?v=' + Date.now() + '">');
+        document.write('<script src="js/cache-buster.js?v=' + Date.now() + '"><\/script>');
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="js/cache-buster.js"></script>
 </head>
 <body>
     <div id="pageLoader" class="page-loader">
         <div class="loader-content">
             <div class="loader-spinner"></div>
-            <div class="loader-text">ORPI Mandelieu</div>
+            <div class="loader-text">ORPI</div>
         </div>
     </div>
 
@@ -145,14 +147,16 @@
     <script src="js/firebase-conversations.js"></script>
     
         <script src="js/config.js"></script>
-    <script src="js/theme.js"></script>
-    <script src="js/auth.js"></script>
-    
-        <script src="js/webhook-config.js"></script>
-    
-        <script src="js/script.js"></script>
-    <script src="js/notifications.js"></script>
-    <script src="js/contact.js"></script>
+    <script>
+        const v = Date.now();
+        document.write('<script src="js/theme.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/auth.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/webhook-config.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/script.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/notifications.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/contact.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/page-loader.js?v=' + v + '"><\/script>');
+    </script>
 </body>
 </html>
 

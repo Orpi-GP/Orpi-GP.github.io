@@ -58,7 +58,10 @@
             margin-top: 2rem;
         }
     </style>
-    <script src="js/page-loader.js"></script>
+    <link rel="icon" type="image/png" href="images.png">
+    <script>
+        document.write('<script src="js/page-loader.js?v=' + Date.now() + '"><\/script>');
+    </script>
 </head>
 <body>
     <div id="pageLoader" class="page-loader">
@@ -75,9 +78,12 @@
         <div id="errorMsg" class="error" style="display: none;"></div>
     </div>
 
-    <script src="js/config.js"></script>
-    <script src="js/theme.js"></script>
-    <script src="js/callback.js"></script>
+    <script>
+        const v = Date.now();
+        document.write('<script src="js/config.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/theme.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/callback.js?v=' + v + '"><\/script>');
+    </script>
 </body>
 </html>
 
