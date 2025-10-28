@@ -3,6 +3,7 @@ let auctionUnsubscribe = null;
 let bidsUnsubscribe = null;
 let countdownInterval = null;
 let uploadedImages = [];
+let quillEditor = null;
 
 function showToast(message, type = 'info') {
     if (window.toast) {
@@ -13,7 +14,26 @@ function showToast(message, type = 'info') {
 document.addEventListener('DOMContentLoaded', () => {
     checkAdminAccess();
     initImageUpload();
+    initQuillEditor();
 });
+
+function initQuillEditor() {
+    quillEditor = new Quill('#editorContainer', {
+        theme: 'snow',
+        placeholder: 'Décrivez le bien en détail...',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'align': [] }],
+                ['link'],
+                ['clean']
+            ]
+        }
+    });
+}
 
 function checkAdminAccess() {
     const user = JSON.parse(localStorage.getItem('discord_user') || 'null');
@@ -199,11 +219,15 @@ function displayAuctionProperty(property) {
     const container = document.getElementById('auctionProperty');
     const imageUrl = property.images && property.images.length > 0 ? property.images[0] : 'images/placeholder.jpg';
     
+    const descriptionHtml = property.description && property.description.includes('<') 
+        ? property.description 
+        : `<p>${property.description || ''}</p>`;
+    
     container.innerHTML = `
         <img src="${imageUrl}" alt="${property.title}">
         <div>
             <h3>${property.title}</h3>
-            <p>${property.description || ''}</p>
+            <div>${descriptionHtml}</div>
             <p><strong>Localisation :</strong> ${property.location || 'Non spécifié'}</p>
             <p><strong>Type :</strong> ${property.type || 'Non spécifié'}</p>
         </div>
@@ -273,7 +297,8 @@ function displayBids(bids) {
 
 window.startAuction = async function() {
     const title = document.getElementById('propertyTitle').value.trim();
-    const description = document.getElementById('propertyDescription').value.trim();
+    const description = quillEditor.root.innerHTML.trim();
+    const descriptionText = quillEditor.getText().trim();
     const location = document.getElementById('propertyLocation').value.trim();
     const type = document.getElementById('propertyType').value;
     const startingPrice = document.getElementById('startingPrice').value;
@@ -284,7 +309,7 @@ window.startAuction = async function() {
         return;
     }
     
-    if (!description) {
+    if (!descriptionText) {
         showToast('Veuillez entrer une description', 'error');
         return;
     }
@@ -335,7 +360,7 @@ window.startAuction = async function() {
         currentAuctionId = result.id;
         
         document.getElementById('propertyTitle').value = '';
-        document.getElementById('propertyDescription').value = '';
+        quillEditor.setContents([]);
         document.getElementById('propertyLocation').value = '';
         document.getElementById('propertyType').value = '';
         document.getElementById('startingPrice').value = '';

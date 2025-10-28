@@ -2,6 +2,8 @@ let currentAuction = null;
 let auctionUnsubscribe = null;
 let bidsUnsubscribe = null;
 let countdownInterval = null;
+let currentImageIndex = 0;
+let propertyImages = [];
 
 function showToast(message, type = 'info') {
     if (window.toast) {
@@ -42,12 +44,18 @@ async function checkAuction() {
 function displayAuction(auction) {
     const property = auction.propertyData;
     
-    const imageUrl = property.images && property.images.length > 0 ? property.images[0] : 'images/placeholder.jpg';
-    document.getElementById('propertyImage').src = imageUrl;
-    document.getElementById('propertyImage').alt = property.title;
+    propertyImages = property.images && property.images.length > 0 ? property.images : ['images/placeholder.jpg'];
+    currentImageIndex = 0;
+    updateImageDisplay();
     
     document.getElementById('propertyTitle').textContent = property.title;
-    document.getElementById('propertyDescription').textContent = property.description || 'Aucune description disponible';
+    
+    const descriptionContainer = document.getElementById('propertyDescription');
+    if (property.description && property.description.includes('<')) {
+        descriptionContainer.innerHTML = property.description;
+    } else {
+        descriptionContainer.textContent = property.description || 'Aucune description disponible';
+    }
     
     const detailsContainer = document.getElementById('propertyDetails');
     detailsContainer.innerHTML = `
@@ -66,6 +74,36 @@ function displayAuction(auction) {
     `;
     
     updateAuctionInfo(auction);
+}
+
+function updateImageDisplay() {
+    const imgElement = document.getElementById('propertyImage');
+    imgElement.src = propertyImages[currentImageIndex];
+    
+    document.getElementById('imageCounter').textContent = `${currentImageIndex + 1} / ${propertyImages.length}`;
+    
+    const prevBtn = document.getElementById('prevImage');
+    const nextBtn = document.getElementById('nextImage');
+    
+    prevBtn.disabled = currentImageIndex === 0;
+    nextBtn.disabled = currentImageIndex === propertyImages.length - 1;
+    
+    if (propertyImages.length <= 1) {
+        prevBtn.style.display = 'none';
+        nextBtn.style.display = 'none';
+    } else {
+        prevBtn.style.display = 'flex';
+        nextBtn.style.display = 'flex';
+    }
+}
+
+function changeImage(direction) {
+    const newIndex = currentImageIndex + direction;
+    
+    if (newIndex >= 0 && newIndex < propertyImages.length) {
+        currentImageIndex = newIndex;
+        updateImageDisplay();
+    }
 }
 
 function updateAuctionInfo(auction) {
