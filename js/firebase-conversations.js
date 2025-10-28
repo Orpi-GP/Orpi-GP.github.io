@@ -24,14 +24,19 @@ const ConversationsManager = {
         }
     },
 
-    async addMessage(conversationId, sender, message) {
+    async addMessage(conversationId, sender, message, attachments = []) {
         try {
+            const messageData = {
+                sender: sender,
+                message: message,
+                timestamp: new Date(),
+                attachments: attachments,
+                read: false,
+                readBy: []
+            };
+            
             await firebase.firestore().collection('conversations').doc(conversationId).update({
-                messages: firebase.firestore.FieldValue.arrayUnion({
-                    sender: sender,
-                    message: message,
-                    timestamp: new Date()
-                }),
+                messages: firebase.firestore.FieldValue.arrayUnion(messageData),
                 lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
                 read: false
             });
@@ -113,6 +118,60 @@ const ConversationsManager = {
             });
         } catch (error) {
             console.error('Erreur lors du marquage comme lu:', error);
+            throw error;
+        }
+    },
+
+    async markMessagesAsRead(conversationId, userId) {
+        try {
+            const conversationRef = firebase.firestore().collection('conversations').doc(conversationId);
+            const doc = await conversationRef.get();
+            
+            if (doc.exists) {
+                const data = doc.data();
+                const updatedMessages = data.messages.map(msg => {
+                    if (!msg.readBy) {
+                        msg.readBy = [];
+                    }
+                    if (!msg.readBy.includes(userId) && msg.sender !== userId) {
+                        msg.readBy.push(userId);
+                        msg.read = true;
+                    }
+                    return msg;
+                });
+                
+                await conversationRef.update({
+                    messages: updatedMessages
+                });
+            }
+        } catch (error) {
+            console.error('Erreur lors du marquage des messages comme lus:', error);
+            throw error;
+        }
+    },
+
+    async getUnreadCount(userId) {
+        try {
+            const snapshot = await firebase.firestore()
+                .collection('conversations')
+                .where('data.discordId', '==', userId)
+                .get();
+            
+            let unreadCount = 0;
+            snapshot.docs.forEach(doc => {
+                const data = doc.data();
+                if (data.messages) {
+                    data.messages.forEach(msg => {
+                        if (msg.sender !== 'client' && (!msg.readBy || !msg.readBy.includes(userId))) {
+                            unreadCount++;
+                        }
+                    });
+                }
+            });
+            
+            return unreadCount;
+        } catch (error) {
+            console.error('Erreur lors du comptage des messages non lus:', error);
             throw error;
         }
     },

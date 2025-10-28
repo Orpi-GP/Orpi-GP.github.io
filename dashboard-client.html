@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Client - ORPI Immobilier Paris</title>
+    <link rel="icon" type="image/png" href="images.png">
+    <script>
+        window.BUILD_V = Math.floor(Date.now() / 3600000);
+        document.write('<link rel="stylesheet" href="css/styles.css?v=' + window.BUILD_V + '">');
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .dashboard-page {
+            min-height: 100vh;
+            padding: 8rem 0 2rem 0;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .dashboard-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .dashboard-header h1 {
+            color: var(--primary-color);
+            margin: 0;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .stat-card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-card-icon.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .stat-card-icon.success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+        
+        .stat-card-icon.warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .stat-card-icon.info {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        
+        .stat-card h3 {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .stat-card .value {
+            color: #1a1a1a;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-card .change {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .change.positive {
+            color: #4caf50;
+        }
+        
+        .change.negative {
+            color: #f44336;
+        }
+        
+        .dashboard-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .content-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            color: var(--primary-color);
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .activity-item {
+            padding: 1rem;
+            border-left: 3px solid var(--primary-color);
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .activity-item-title {
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 0.5rem;
+        }
+        
+        .activity-item-date {
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        .quick-action {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .quick-action:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+        
+        .quick-action-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .quick-action-text {
+            flex: 1;
+        }
+        
+        .quick-action-text h4 {
+            margin: 0 0 0.25rem 0;
+            font-size: 1rem;
+        }
+        
+        .quick-action-text p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        .login-required {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .login-required i {
+            font-size: 4rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .login-required h2 {
+            color: #1a1a1a;
+            margin-bottom: 1rem;
+        }
+        
+        .login-required p {
+            color: #666;
+            margin-bottom: 2rem;
+        }
+        
+        @media (max-width: 992px) {
+            .dashboard-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="pageLoader" class="page-loader">
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <div class="loader-text">ORPI</div>
+        </div>
+    </div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="images/logo-orpi-mandelieu.png" alt="ORPI Logo">
+                <span>ORPI Paris</span>
+            </div>
+            <button class="nav-toggle" id="navToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">Accueil</a>
+                </li>
+                <li class="nav-item nav-dropdown">
+                    <a href="#" class="nav-link">
+                        Biens <i class="fas fa-chevron-down"></i>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="biens.html"><i class="fas fa-home"></i> Tous les biens</a></li>
+                        <li><a href="enchere.html"><i class="fas fa-gavel"></i> Enchères</a></li>
+                        <li><a href="interieurs.html"><i class="fas fa-couch"></i> Intérieurs</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item nav-dropdown">
+                    <a href="#" class="nav-link">
+                        Services <i class="fas fa-chevron-down"></i>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="estimation.html"><i class="fas fa-calculator"></i> Estimation</a></li>
+                        <li><a href="rendez-vous.html"><i class="fas fa-calendar-alt"></i> Rendez-vous</a></li>
+                        <li><a href="avis.html"><i class="fas fa-star"></i> Avis clients</a></li>
+                        <li><a href="mes-conversations.html"><i class="fas fa-comments"></i> Mes conversations</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a href="contact.html" class="nav-link">Contact</a>
+                </li>
+                <li class="nav-item" id="dashboardLink" style="display: none;">
+                    <a href="dashboard-client.html" class="nav-link active">
+                        <i class="fas fa-chart-line"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item" id="adminPanel" style="display: none;">
+                    <a href="admin.html" class="nav-link admin-link">
+                        <i class="fas fa-shield-alt"></i> Panel Administration
+                    </a>
+                </li>
+            </ul>
+            <span class="notifications-text" id="notificationsText" style="display: none;"></span>
+            <div class="notifications-btn" id="notificationsBtn" style="display: none;" onclick="toggleNotifications()">
+                <i class="fas fa-bell"></i>
+                <span class="notifications-badge" id="notificationsBadge" style="display: none;">0</span>
+            </div>
+            <div class="user-profile" id="userProfile" style="display: none;">
+                <img id="userAvatar" src="" alt="Avatar" class="user-avatar">
+                <span id="userName" class="user-name"></span>
+                <button onclick="logout()" class="logout-btn" title="Déconnexion">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+            <button class="discord-login-btn" id="discordLoginBtn" onclick="loginWithDiscord()">
+                <i class="fab fa-discord"></i> Connexion Discord
+            </button>
+        </div>
+    </nav>
+    <div class="nav-overlay" id="navOverlay"></div>
+
+    <section class="dashboard-page">
+        <div class="dashboard-container">
+            <div id="loginRequired" class="login-required">
+                <i class="fas fa-lock"></i>
+                <h2>Connexion requise</h2>
+                <p>Vous devez vous connecter avec Discord pour accéder à votre dashboard personnel</p>
+                <button class="cta-button" onclick="loginWithDiscord()">
+                    <i class="fab fa-discord"></i> Se connecter avec Discord
+                </button>
+            </div>
+
+            <div id="dashboardContent" style="display: none;">
+                <div class="dashboard-header">
+                    <div>
+                        <h1><i class="fas fa-chart-line"></i> Mon Dashboard</h1>
+                        <p style="margin: 0.5rem 0 0 0; color: #666;">Bienvenue <strong id="dashboardUsername"></strong></p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-icon primary">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <h3>Conversations actives</h3>
+                        <div class="value" id="activeConversations">0</div>
+                        <div class="change positive">
+                            <i class="fas fa-arrow-up"></i> 100% ce mois
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-icon success">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <h3>Rendez-vous planifiés</h3>
+                        <div class="value" id="appointments">0</div>
+                        <div class="change positive">
+                            <i class="fas fa-arrow-up"></i> Nouveaux
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-icon warning">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <h3>Biens favoris</h3>
+                        <div class="value" id="favorites">0</div>
+                        <div class="change">
+                            <i class="fas fa-minus"></i> Aucun changement
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-icon info">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <h3>Messages non lus</h3>
+                        <div class="value" id="unreadMessages">0</div>
+                        <div class="change negative">
+                            <i class="fas fa-exclamation"></i> À lire
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-content">
+                    <div class="content-section">
+                        <h2 class="section-title">
+                            <i class="fas fa-clock"></i>
+                            Activité récente
+                        </h2>
+                        <div id="activityList">
+                            <div class="activity-item">
+                                <div class="activity-item-title">Aucune activité récente</div>
+                                <div class="activity-item-date">Commencez par explorer nos services</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h2 class="section-title">
+                            <i class="fas fa-bolt"></i>
+                            Actions rapides
+                        </h2>
+                        <a href="mes-conversations.html" class="quick-action">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <div class="quick-action-text">
+                                <h4>Mes conversations</h4>
+                                <p>Consulter vos messages</p>
+                            </div>
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+
+                        <a href="rendez-vous.html" class="quick-action">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-calendar-plus"></i>
+                            </div>
+                            <div class="quick-action-text">
+                                <h4>Prendre rendez-vous</h4>
+                                <p>Planifier une visite</p>
+                            </div>
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+
+                        <a href="biens.html" class="quick-action">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-home"></i>
+                            </div>
+                            <div class="quick-action-text">
+                                <h4>Parcourir les biens</h4>
+                                <p>Découvrir nos propriétés</p>
+                            </div>
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+
+                        <a href="estimation.html" class="quick-action">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-calculator"></i>
+                            </div>
+                            <div class="quick-action-text">
+                                <h4>Estimer mon bien</h4>
+                                <p>Demander une estimation</p>
+                            </div>
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/firebase-theme.js"></script>
+    <script src="js/firebase-conversations.js"></script>
+    <script>
+        const v = Date.now();
+        document.write('<script src="js/config.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/theme.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/auth.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/notifications.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/page-loader.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/dashboard-client.js?v=' + v + '"><\/script>');
+    </script>
+</body>
+</html>
+

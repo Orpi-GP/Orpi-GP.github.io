@@ -1138,9 +1138,14 @@
                     <label for="replyMessage">Votre message *</label>
                     <textarea id="replyMessage" rows="6" required placeholder="Écrivez votre message au client..."></textarea>
                 </div>
+                <div class="form-group">
+                    <label for="replyAttachments">Pièces jointes (optionnel)</label>
+                    <input type="file" id="replyAttachments" multiple accept="image/*,.pdf,.doc,.docx" onchange="previewReplyAttachments()" style="margin-bottom: 0.5rem;">
+                    <div id="replyAttachmentsPreview" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;"></div>
+                </div>
                 <div class="form-actions">
                     <button type="button" class="btn-cancel" onclick="closeReplyModal()">Annuler</button>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" id="sendReplyBtn">
                         <i class="fas fa-paper-plane"></i> Envoyer le message
                     </button>
                 </div>

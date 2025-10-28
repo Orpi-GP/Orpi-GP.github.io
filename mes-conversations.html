@@ -207,6 +207,168 @@
             margin-bottom: 1rem;
             opacity: 0.3;
         }
+        
+        .unread-badge {
+            display: inline-block;
+            background: #E30613;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-left: 0.5rem;
+        }
+        
+        .message-unread {
+            border-left-width: 6px !important;
+            font-weight: 500;
+        }
+        
+        .new-badge {
+            background: #E30613;
+            color: white;
+            padding: 0.15rem 0.4rem;
+            border-radius: 8px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            margin-left: 0.5rem;
+        }
+        
+        .message-attachments {
+            margin-top: 0.75rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .attachment-image {
+            display: block;
+            border-radius: 8px;
+            overflow: hidden;
+            max-width: 200px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+        
+        .attachment-image:hover {
+            transform: scale(1.05);
+            border-color: var(--primary-color);
+        }
+        
+        .attachment-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .attachment-file {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s;
+        }
+        
+        .attachment-file:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .reply-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .attach-btn {
+            padding: 0.5rem 1rem;
+            background: #6c757d;
+            color: white !important;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            flex: 0 0 auto;
+        }
+        
+        .attach-btn:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        .send-btn {
+            padding: 0.5rem 1.5rem;
+            background: var(--primary-color);
+            color: white !important;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+        
+        .send-btn:hover {
+            background: #c20510;
+            transform: translateY(-2px);
+        }
+        
+        .send-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .attachments-preview {
+            margin-top: 0.75rem;
+        }
+        
+        .preview-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .preview-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .preview-item i {
+            color: var(--primary-color);
+        }
+        
+        .remove-attachment {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        
+        .remove-attachment:hover {
+            background: #ff4444;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -303,18 +465,32 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
     <script src="js/firebase-config.js"></script>
     <script src="js/firebase-theme.js"></script>
     <script src="js/firebase-conversations.js"></script>
+    <script src="js/cloudinary-config.js"></script>
     <script>
         const v = Date.now();
         document.write('<script src="js/config.js?v=' + v + '"><\/script>');
         document.write('<script src="js/theme.js?v=' + v + '"><\/script>');
         document.write('<script src="js/auth.js?v=' + v + '"><\/script>');
         document.write('<script src="js/notifications.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/firebase-push-notifications.js?v=' + v + '"><\/script>');
         document.write('<script src="js/page-loader.js?v=' + v + '"><\/script>');
         document.write('<script src="js/navbar.js?v=' + v + '"><\/script>');
         document.write('<script src="js/client-conversations-page.js?v=' + v + '"><\/script>');
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/firebase-messaging-sw.js')
+                .then((registration) => {
+                    console.log('Service Worker enregistré:', registration);
+                })
+                .catch((error) => {
+                    console.error('Erreur lors de l\'enregistrement du Service Worker:', error);
+                });
+        }
     </script>
 </body>
 </html>

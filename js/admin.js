@@ -874,8 +874,30 @@ async function showConversationDetails(conversationId) {
                             <span style="font-size: 0.85rem; color: #666; margin-left: auto;">${msg.timestamp ? new Date(msg.timestamp).toLocaleString('fr-FR') : ''}</span>
                         </div>
                         <p style="white-space: pre-wrap; margin: 0;">${escapeHtml(msg.message)}</p>
-                    </div>
                 `;
+                
+                if (msg.attachments && msg.attachments.length > 0) {
+                    htmlContent += '<div style="margin-top: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.5rem;">';
+                    msg.attachments.forEach(att => {
+                        const isImage = att.type && att.type.startsWith('image/');
+                        if (isImage) {
+                            htmlContent += `
+                                <a href="${att.url}" target="_blank" style="display: block; border-radius: 8px; overflow: hidden; max-width: 200px; border: 2px solid #e0e0e0; transition: all 0.3s;">
+                                    <img src="${att.url}" alt="${escapeHtml(att.name)}" style="width: 100%; height: auto; display: block;" />
+                                </a>
+                            `;
+                        } else {
+                            htmlContent += `
+                                <a href="${att.url}" target="_blank" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: white; border: 2px solid #e0e0e0; border-radius: 8px; text-decoration: none; color: #333; transition: all 0.3s;">
+                                    <i class="fas fa-file"></i> ${escapeHtml(att.name)}
+                                </a>
+                            `;
+                        }
+                    });
+                    htmlContent += '</div>';
+                }
+                
+                htmlContent += `</div>`;
             });
         }
 
@@ -938,6 +960,8 @@ function showReplyModal() {
     
     const modal = document.getElementById('replyConversationModal');
     document.getElementById('replyMessage').value = '';
+    document.getElementById('replyAttachments').value = '';
+    document.getElementById('replyAttachmentsPreview').innerHTML = '';
     document.getElementById('conversationDetailsModal').classList.remove('active');
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -946,6 +970,53 @@ function showReplyModal() {
 function closeReplyModal() {
     document.getElementById('replyConversationModal').classList.remove('active');
     document.body.style.overflow = 'auto';
+}
+
+function previewReplyAttachments() {
+    const fileInput = document.getElementById('replyAttachments');
+    const preview = document.getElementById('replyAttachmentsPreview');
+    const files = Array.from(fileInput.files);
+    
+    if (files.length === 0) {
+        preview.innerHTML = '';
+        return;
+    }
+    
+    let html = '';
+    files.forEach((file, index) => {
+        const isImage = file.type.startsWith('image/');
+        html += `
+            <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; background: #f8f9fa; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 0.9rem;">
+                ${isImage ? '<i class="fas fa-image" style="color: var(--primary-color);"></i>' : '<i class="fas fa-file" style="color: var(--primary-color);"></i>'}
+                <span>${escapeHtml(file.name)}</span>
+            </div>
+        `;
+    });
+    
+    preview.innerHTML = html;
+}
+
+async function uploadFileToCloudinary(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', window.CLOUDINARY_CONFIG.uploadPreset);
+    
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${window.CLOUDINARY_CONFIG.cloudName}/auto/upload`, {
+        method: 'POST',
+        body: formData
+    });
+    
+    if (!response.ok) {
+        throw new Error('Erreur lors de l\'upload du fichier');
+    }
+    
+    const data = await response.json();
+    return {
+        url: data.secure_url,
+        name: file.name,
+        type: file.type,
+        size: file.size
+    };
 }
 
 async function handleReplyConversation(event) {
@@ -957,14 +1028,30 @@ async function handleReplyConversation(event) {
     }
     
     const replyMessage = document.getElementById('replyMessage').value.trim();
+    const fileInput = document.getElementById('replyAttachments');
+    const files = Array.from(fileInput.files);
     
-    if (!replyMessage) {
-        toast.error('Veuillez entrer un message');
+    if (!replyMessage && files.length === 0) {
+        toast.error('Veuillez entrer un message ou joindre un fichier');
         return;
     }
     
     try {
-        await ConversationsManager.addMessage(currentConversationId, 'admin', replyMessage);
+        const sendBtn = document.getElementById('sendReplyBtn');
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
+        
+        let attachments = [];
+        
+        if (files.length > 0) {
+            toast.info('Upload des fichiers en cours...');
+            for (const file of files) {
+                const uploadedFile = await uploadFileToCloudinary(file);
+                attachments.push(uploadedFile);
+            }
+        }
+        
+        await ConversationsManager.addMessage(currentConversationId, 'admin', replyMessage || '', attachments);
         
         toast.success('Message envoyé avec succès !');
         closeReplyModal();
@@ -973,6 +1060,12 @@ async function handleReplyConversation(event) {
     } catch (error) {
         console.error('Erreur lors de l\'envoi du message:', error);
         toast.error('Erreur lors de l\'envoi du message');
+    } finally {
+        const sendBtn = document.getElementById('sendReplyBtn');
+        if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer le message';
+        }
     }
 }
 

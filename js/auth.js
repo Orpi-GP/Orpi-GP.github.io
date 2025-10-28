@@ -88,6 +88,7 @@ function updateUI() {
     const discordLoginBtn = document.getElementById('discordLoginBtn');
     const userProfile = document.getElementById('userProfile');
     const adminPanel = document.getElementById('adminPanel');
+    const dashboardLink = document.getElementById('dashboardLink');
     
     if (discordAuth.isLoggedIn()) {
         const user = discordAuth.getUser();
@@ -101,6 +102,10 @@ function updateUI() {
             const usernameElement = document.getElementById('userName');
             if (avatarElement) avatarElement.src = discordAuth.getAvatarUrl(user);
             if (usernameElement) usernameElement.textContent = discordAuth.getUsername(user);
+        }
+        
+        if (dashboardLink) {
+            dashboardLink.style.display = 'block';
         }
         
         if (adminPanel && discordAuth.isAuthorized()) {
@@ -118,6 +123,7 @@ function updateUI() {
         if (discordLoginBtn) discordLoginBtn.style.display = 'inline-flex';
         if (userProfile) userProfile.style.display = 'none';
         if (adminPanel) adminPanel.style.display = 'none';
+        if (dashboardLink) dashboardLink.style.display = 'none';
         
         const guidePrixLink = document.getElementById('guidePrixLink');
         const tableauGeneralLink = document.getElementById('tableauGeneralLink');
