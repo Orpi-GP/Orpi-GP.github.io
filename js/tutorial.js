@@ -191,15 +191,32 @@ class Tutorial {
         this.currentStep = stepIndex;
         const step = tutorialSteps[stepIndex];
         let targetElement = document.querySelector(step.target);
+        let actualTarget = step.target;
 
         if (step.target === '#loginBtn') {
+            const loginBtn = document.querySelector('#loginBtn');
             const userProfile = document.querySelector('#userProfile');
+            
             if (userProfile && getComputedStyle(userProfile).display !== 'none') {
                 targetElement = userProfile;
+                actualTarget = '#userProfile';
+            } else if (loginBtn && getComputedStyle(loginBtn).display !== 'none') {
+                targetElement = loginBtn;
             }
         }
 
-        if (!targetElement || (step.optional && getComputedStyle(targetElement).display === 'none')) {
+        if (!targetElement || getComputedStyle(targetElement).display === 'none') {
+            if (step.optional) {
+                if (stepIndex < tutorialSteps.length - 1) {
+                    this.next();
+                } else {
+                    this.complete();
+                }
+                return;
+            }
+        }
+
+        if (!targetElement) {
             if (stepIndex < tutorialSteps.length - 1) {
                 this.next();
             } else {
@@ -211,7 +228,10 @@ class Tutorial {
         targetElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
         
         setTimeout(() => {
-            const rect = targetElement.getBoundingClientRect();
+            const finalElement = document.querySelector(actualTarget);
+            if (!finalElement) return;
+            
+            const rect = finalElement.getBoundingClientRect();
 
             if (step.highlight) {
                 this.highlightBox.style.top = `${rect.top - 8}px`;
