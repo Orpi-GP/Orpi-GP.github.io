@@ -316,6 +316,11 @@
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2025 ORPI Paris Grand Paris RP. Tous droits réservés.</p>
+                <p style="margin-top: 0.5rem;">
+                    <a href="#" onclick="event.preventDefault(); tutorial.reset();" style="color: #E30613; text-decoration: underline; cursor: pointer;">
+                        <i class="fas fa-question-circle"></i> Relancer le tutoriel
+                    </a>
+                </p>
             </div>
         </div>
     </footer>
@@ -324,6 +329,7 @@
         document.write('<script src="js/script.js?v=' + window.BUILD_V + '"><\/script>');
         document.write('<script src="js/index.js?v=' + window.BUILD_V + '"><\/script>');
         document.write('<script src="js/index-reviews.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/tutorial.js?v=' + window.BUILD_V + '"><\/script>');
     </script>
 </body>
 </html>
