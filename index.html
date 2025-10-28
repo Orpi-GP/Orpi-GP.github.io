@@ -6,7 +6,8 @@
     <title>ORPI Immobilier - Agence Paris</title>
     <link rel="icon" type="image/png" href="images.png">
     <script>
-        document.write('<link rel="stylesheet" href="css/styles.css?v=' + Date.now() + '">');
+        window.BUILD_V = Math.floor(Date.now() / 3600000);
+        document.write('<link rel="stylesheet" href="css/styles.css?v=' + window.BUILD_V + '">');
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -14,18 +15,17 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     
     <script>
-        const v = Date.now();
-        document.write('<script src="js/cache-buster.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/config.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/theme.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/auth.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/firebase-config.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/firebase-theme.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/firebase-properties.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/firebase-notifications.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/firebase-reviews.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/notifications.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/page-loader.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/cache-buster.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/config.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/theme.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/auth.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-config.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-theme.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-properties.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-notifications.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-reviews.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/notifications.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/page-loader.js?v=' + window.BUILD_V + '"><\/script>');
     </script>
 </head>
 <body>
@@ -322,10 +322,9 @@
     </footer>
 
     <script>
-        const v2 = Date.now();
-        document.write('<script src="js/script.js?v=' + v2 + '"><\/script>');
-        document.write('<script src="js/index.js?v=' + v2 + '"><\/script>');
-        document.write('<script src="js/index-reviews.js?v=' + v2 + '"><\/script>');
+        document.write('<script src="js/script.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/index.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/index-reviews.js?v=' + window.BUILD_V + '"><\/script>');
     </script>
 </body>
 </html>

@@ -6,7 +6,8 @@
     <title>Gestion des Intérieurs - ORPI Paris</title>
     <link rel="icon" type="image/png" href="images.png">
     <script>
-        document.write('<link rel="stylesheet" href="css/styles.css?v=' + Date.now() + '">');
+        window.BUILD_V = Math.floor(Date.now() / 3600000);
+        document.write('<link rel="stylesheet" href="css/styles.css?v=' + window.BUILD_V + '">');
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.quilljs.com/1.3.6/quill.snow.css">
