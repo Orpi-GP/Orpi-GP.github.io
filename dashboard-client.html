@@ -241,6 +241,419 @@
                 grid-template-columns: 1fr;
             }
         }
+        
+        .unread-badge-header {
+            display: inline-block;
+            background: #E30613;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-left: 0.5rem;
+        }
+        
+        .messaging-widget {
+            min-height: 500px;
+        }
+        
+        .messaging-empty {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #999;
+        }
+        
+        .messaging-empty i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+        
+        .messaging-empty p {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn-start-conversation {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-start-conversation:hover {
+            background: #c20510;
+            transform: translateY(-2px);
+        }
+        
+        #messagingContent {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 1.5rem;
+            height: 500px;
+            max-width: 100%;
+            overflow: hidden;
+        }
+        
+        .conversations-list {
+            border-right: 2px solid #e0e0e0;
+            overflow-y: auto;
+            padding-right: 1rem;
+        }
+        
+        .conversation-item {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .conversation-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .conversation-item.active {
+            background: #e3f2fd;
+            border-color: var(--primary-color);
+        }
+        
+        .conversation-item.unread {
+            background: #fff3cd;
+            font-weight: 600;
+        }
+        
+        .conversation-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .conversation-item-title {
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        
+        .conversation-item-date {
+            font-size: 0.75rem;
+            color: #666;
+        }
+        
+        .conversation-item-preview {
+            font-size: 0.85rem;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .conversation-detail {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+            min-width: 0;
+        }
+        
+        .conversation-placeholder {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+        }
+        
+        .conversation-placeholder i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+        
+        .conversation-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .message-bubble {
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+            max-width: 80%;
+        }
+        
+        .message-bubble.client {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            margin-left: auto;
+        }
+        
+        .message-bubble.admin {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .message-sender {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .message-text {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        .message-time {
+            font-size: 0.7rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+        
+        .conversation-reply {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .reply-input-area {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .conversation-reply textarea {
+            flex: 1;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            resize: vertical;
+            min-height: 60px;
+            font-family: inherit;
+        }
+        
+        .reply-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .conversation-reply button {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .conversation-reply button:hover {
+            background: #c20510;
+        }
+        
+        .conversation-reply .attach-file-btn {
+            background: #666;
+            padding: 0.75rem 1rem;
+        }
+        
+        .conversation-reply .attach-file-btn:hover {
+            background: #555;
+        }
+        
+        .attachments-preview {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            padding: 0.5rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .preview-item {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .preview-item .remove-preview {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: #E30613;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        
+        .modal-container {
+            background: white;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 2px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: var(--primary-color);
+        }
+        
+        .modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #999;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .modal-close-btn:hover {
+            color: #333;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+        
+        .btn-secondary {
+            padding: 0.75rem 1.5rem;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-primary {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            background: #c20510;
+        }
+        
+        @media (max-width: 768px) {
+            #messagingContent {
+                grid-template-columns: 1fr;
+            }
+            
+            .conversations-list {
+                display: none;
+            }
+        }
+        
+        .dashboard-notif-badge {
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            background: #E30613;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.15rem 0.4rem;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -282,15 +695,15 @@
                         <li><a href="estimation.html"><i class="fas fa-calculator"></i> Estimation</a></li>
                         <li><a href="rendez-vous.html"><i class="fas fa-calendar-alt"></i> Rendez-vous</a></li>
                         <li><a href="avis.html"><i class="fas fa-star"></i> Avis clients</a></li>
-                        <li><a href="mes-conversations.html"><i class="fas fa-comments"></i> Mes conversations</a></li>
                     </ul>
                 </li>
                 <li class="nav-item">
                     <a href="contact.html" class="nav-link">Contact</a>
                 </li>
                 <li class="nav-item" id="dashboardLink" style="display: none;">
-                    <a href="dashboard-client.html" class="nav-link active">
+                    <a href="dashboard-client.html" class="nav-link active" style="position: relative;">
                         <i class="fas fa-chart-line"></i> Dashboard
+                        <span id="dashboardBadge" class="dashboard-notif-badge" style="display: none;">0</span>
                     </a>
                 </li>
                 <li class="nav-item" id="adminPanel" style="display: none;">
@@ -402,17 +815,6 @@
                             <i class="fas fa-bolt"></i>
                             Actions rapides
                         </h2>
-                        <a href="mes-conversations.html" class="quick-action">
-                            <div class="quick-action-icon">
-                                <i class="fas fa-comments"></i>
-                            </div>
-                            <div class="quick-action-text">
-                                <h4>Mes conversations</h4>
-                                <p>Consulter vos messages</p>
-                            </div>
-                            <i class="fas fa-chevron-right"></i>
-                        </a>
-
                         <a href="rendez-vous.html" class="quick-action">
                             <div class="quick-action-icon">
                                 <i class="fas fa-calendar-plus"></i>
@@ -445,17 +847,88 @@
                             </div>
                             <i class="fas fa-chevron-right"></i>
                         </a>
+
+                        <a href="contact.html" class="quick-action">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="quick-action-text">
+                                <h4>Nous contacter</h4>
+                                <p>Envoyer un message</p>
+                            </div>
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="dashboard-content">
+                    <div class="content-section" style="grid-column: 1 / -1;">
+                        <h2 class="section-title">
+                            <i class="fas fa-comments"></i>
+                            Messagerie
+                            <span id="unreadBadge" class="unread-badge-header" style="display: none;">0</span>
+                        </h2>
+                        <div id="messagingWidget" class="messaging-widget">
+                            <div class="messaging-empty" id="messagingEmpty">
+                                <i class="fas fa-inbox"></i>
+                                <p>Aucune conversation active</p>
+                                <button class="btn-start-conversation" onclick="openNewConversationModal()">
+                                    <i class="fas fa-plus"></i> Nouvelle conversation
+                                </button>
+                            </div>
+                            <div id="messagingContent" style="display: none;">
+                                <div class="conversations-list" id="conversationsList"></div>
+                                <div class="conversation-detail" id="conversationDetail">
+                                    <div class="conversation-placeholder">
+                                        <i class="fas fa-comments"></i>
+                                        <p>Sélectionnez une conversation</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
+    <div id="newConversationModal" class="modal-overlay" style="display: none;">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3><i class="fas fa-comment-medical"></i> Nouvelle conversation</h3>
+                <button class="modal-close-btn" onclick="closeNewConversationModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="newConversationForm" onsubmit="startNewConversation(event)">
+                    <div class="form-group">
+                        <label for="conversationSubject">Sujet *</label>
+                        <input type="text" id="conversationSubject" required placeholder="Ex: Question sur un bien">
+                    </div>
+                    <div class="form-group">
+                        <label for="conversationMessage">Message *</label>
+                        <textarea id="conversationMessage" rows="5" required placeholder="Votre message..."></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" onclick="closeNewConversationModal()">
+                            Annuler
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-paper-plane"></i> Envoyer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
     <script src="js/firebase-theme.js"></script>
     <script src="js/firebase-conversations.js"></script>
+    <script src="js/cloudinary-config.js"></script>
     <script>
         const v = Date.now();
         document.write('<script src="js/config.js?v=' + v + '"><\/script>');

@@ -106,6 +106,7 @@ function updateUI() {
         
         if (dashboardLink) {
             dashboardLink.style.display = 'block';
+            updateDashboardBadge(user.id);
         }
         
         if (adminPanel && discordAuth.isAuthorized()) {
@@ -139,6 +140,62 @@ function loginWithDiscord() {
 function logout() {
     if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
         discordAuth.logout();
+    }
+}
+
+async function updateDashboardBadge(userId) {
+    try {
+        if (typeof firebase === 'undefined' || !firebase.firestore) {
+            return;
+        }
+        
+        const snapshot = await firebase.firestore()
+            .collection('conversations')
+            .where('data.discordId', '==', userId)
+            .get();
+        
+        let unreadCount = 0;
+        snapshot.docs.forEach(doc => {
+            const data = doc.data();
+            if (data.messages) {
+                unreadCount += data.messages.filter(msg => 
+                    msg.sender !== 'client' && (!msg.readBy || !msg.readBy.includes(userId))
+                ).length;
+            }
+        });
+        
+        const badge = document.getElementById('dashboardBadge');
+        if (badge && unreadCount > 0) {
+            badge.textContent = unreadCount;
+            badge.style.display = 'inline-block';
+        }
+        
+        firebase.firestore()
+            .collection('conversations')
+            .where('data.discordId', '==', userId)
+            .onSnapshot((snapshot) => {
+                let count = 0;
+                snapshot.docs.forEach(doc => {
+                    const data = doc.data();
+                    if (data.messages) {
+                        count += data.messages.filter(msg => 
+                            msg.sender !== 'client' && (!msg.readBy || !msg.readBy.includes(userId))
+                        ).length;
+                    }
+                });
+                
+                const badgeElement = document.getElementById('dashboardBadge');
+                if (badgeElement) {
+                    if (count > 0) {
+                        badgeElement.textContent = count;
+                        badgeElement.style.display = 'inline-block';
+                    } else {
+                        badgeElement.style.display = 'none';
+                    }
+                }
+            });
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour du badge:', error);
     }
 }
 

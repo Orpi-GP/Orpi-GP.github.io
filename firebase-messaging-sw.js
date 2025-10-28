@@ -24,7 +24,7 @@ messaging.onBackgroundMessage((payload) => {
         tag: 'orpi-notification',
         requireInteraction: true,
         data: {
-            url: payload.data?.url || '/mes-conversations.html'
+            url: payload.data?.url || '/dashboard-client.html'
         }
     };
     
@@ -36,7 +36,7 @@ self.addEventListener('notificationclick', (event) => {
     
     event.notification.close();
     
-    const urlToOpen = event.notification.data?.url || '/mes-conversations.html';
+    const urlToOpen = event.notification.data?.url || '/dashboard-client.html';
     
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true })

@@ -130,7 +130,7 @@ function toggleNotifications() {
             window.location.href = 'admin.html#conversations';
         }
     } else {
-        window.location.href = 'mes-conversations.html';
+        window.location.href = 'dashboard-client.html';
     }
 }
 function convertImageToBase64(file, maxWidth = 1200, quality = 0.8) {
