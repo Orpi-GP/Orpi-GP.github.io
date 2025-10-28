@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forcer la mise à jour des ventes</title>
+    <link rel="icon" type="image/png" href="images.png">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body style="padding: 2rem;">
+    <div style="max-width: 600px; margin: 0 auto; background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        <h1 style="color: #E30613; margin-bottom: 1rem;">🔄 Mise à jour des ventes</h1>
+        <p style="margin-bottom: 1.5rem;">Cette page permet de forcer la mise à jour de toutes les ventes avec les nouveaux calculs (salaires basés sur les 15% du coffre entreprise).</p>
+        
+        <button onclick="forceUpdate()" style="background: #E30613; color: white; border: none; padding: 1rem 2rem; border-radius: 8px; font-size: 1rem; cursor: pointer; width: 100%;">
+            ⚡ Forcer la mise à jour
+        </button>
+        
+        <div id="status" style="margin-top: 1.5rem; padding: 1rem; border-radius: 8px; display: none;"></div>
+        
+        <div style="margin-top: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 8px; font-size: 0.9rem;">
+            <strong>Note :</strong> Cette opération va recalculer les bénéfices et salaires de toutes les ventes existantes.
+        </div>
+    </div>
+
+    <script src="js/firebase-config.js"></script>
+    <script>
+        async function forceUpdate() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.style.display = 'block';
+            statusDiv.style.background = '#fff3cd';
+            statusDiv.style.color = '#856404';
+            statusDiv.innerHTML = '⏳ Mise à jour en cours...';
+            
+            try {
+                console.log('Démarrage de la mise à jour...');
+                localStorage.removeItem('salesUpdateVersion');
+                
+                const snapshot = await firebase.firestore().collection('sales').get();
+                console.log(`Nombre de ventes trouvées: ${snapshot.docs.length}`);
+                const batch = firebase.firestore().batch();
+                let updateCount = 0;
+                
+                snapshot.docs.forEach(doc => {
+                    const sale = doc.data();
+                    const prixMaison = parseFloat(sale.prixMaison || 0);
+                    const prixLocation = parseFloat(sale.prixLocation || 0);
+                    const commission = parseFloat(sale.commission || 0);
+                    const ENTREPRISE_PERCENTAGE = 0.15;
+                    const SALAIRE_MAX = 150000;
+                    
+                    console.log(`Vente ${doc.id}:`, {
+                        type: sale.type,
+                        prix: sale.type === 'vente' ? prixMaison : prixLocation,
+                        commission: commission,
+                        ancien_benefice: sale.benefice,
+                        ancien_salaire: sale.salaire,
+                        ancien_entrepriseRevenue: sale.entrepriseRevenue
+                    });
+                    
+                    let entrepriseRevenue = 0;
+                    let benefice = 0;
+                    let salaire = 0;
+                    
+                    if (sale.type === 'vente') {
+                        entrepriseRevenue = prixMaison * ENTREPRISE_PERCENTAGE;
+                        salaire = Math.min(entrepriseRevenue * (commission / 100), SALAIRE_MAX);
+                        benefice = entrepriseRevenue - salaire;
+                    } else if (sale.type === 'location') {
+                        entrepriseRevenue = prixLocation * ENTREPRISE_PERCENTAGE;
+                        salaire = Math.min(entrepriseRevenue * (commission / 100), SALAIRE_MAX);
+                        benefice = entrepriseRevenue - salaire;
+                    }
+                    
+                    console.log(`Nouveaux calculs:`, {
+                        entrepriseRevenue,
+                        salaire,
+                        benefice
+                    });
+                    
+                    batch.update(doc.ref, { 
+                        entrepriseRevenue,
+                        benefice,
+                        salaire
+                    });
+                    updateCount++;
+                });
+                
+                if (updateCount > 0) {
+                    await batch.commit();
+                    statusDiv.style.background = '#d4edda';
+                    statusDiv.style.color = '#155724';
+                    statusDiv.innerHTML = `✅ <strong>Succès !</strong><br>${updateCount} vente(s) ont été mises à jour avec les nouveaux calculs.<br><br>Vous pouvez maintenant retourner sur la <a href="fiche-employee.html" style="color: #155724; text-decoration: underline;">fiche employé</a> ou le <a href="tableau-general.html" style="color: #155724; text-decoration: underline;">tableau général</a>.`;
+                    localStorage.setItem('salesUpdateVersion', 'v3');
+                } else {
+                    statusDiv.style.background = '#d1ecf1';
+                    statusDiv.style.color = '#0c5460';
+                    statusDiv.innerHTML = `ℹ️ <strong>Info</strong><br>Aucune vente à mettre à jour. Toutes les ventes sont déjà à jour.`;
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                statusDiv.style.background = '#f8d7da';
+                statusDiv.style.color = '#721c24';
+                statusDiv.innerHTML = `❌ <strong>Erreur !</strong><br>${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
+

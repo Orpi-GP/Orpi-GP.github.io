@@ -2,6 +2,22 @@ let currentEmployeeId = null;
 let currentEmployee = null;
 let employeeSales = [];
 let editingSaleId = null;
+
+function showSuccess(message) {
+    if (window.toast) {
+        toast.success(message);
+    } else {
+        console.log('SUCCESS:', message);
+    }
+}
+
+function showError(message) {
+    if (window.toast) {
+        toast.error(message);
+    } else {
+        console.error('ERROR:', message);
+    }
+}
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     currentEmployeeId = urlParams.get('id');
@@ -9,6 +25,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         toast.error('ID employé manquant');
         window.location.href = 'tableau-general.html';
         return;
+    }
+    const updateVersion = 'v3';
+    const currentVersion = localStorage.getItem('salesUpdateVersion');
+    console.log('Version actuelle:', currentVersion, 'Version cible:', updateVersion);
+    
+    if (currentVersion !== updateVersion) {
+        console.log('Mise à jour des ventes nécessaire...');
+        try {
+            const result = await salesDB.updateExistingSalesWithEntrepriseRevenue();
+            if (result.success) {
+                console.log(`${result.updated} ventes ont été mises à jour avec les nouveaux calculs`);
+                showSuccess(`${result.updated} vente(s) mise(s) à jour avec les nouveaux calculs`);
+                localStorage.setItem('salesUpdateVersion', updateVersion);
+                await loadSales();
+            }
+        } catch (error) {
+            console.error('Erreur lors de la mise à jour des ventes:', error);
+            showError('Erreur lors de la mise à jour des ventes');
+        }
     }
     await loadEmployeeData();
     setupEventListeners();
@@ -50,7 +85,7 @@ function displaySales() {
     if (employeeSales.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="10" class="text-center">
+                <td colspan="11" class="text-center">
                     <p style="padding: 2rem;">Aucune vente enregistrée. Cliquez sur "Ajouter une Vente" pour commencer.</p>
                 </td>
             </tr>
@@ -69,6 +104,7 @@ function displaySales() {
                 <td><span class="badge badge-${sale.type === 'vente' ? 'success' : 'info'}">${sale.type === 'vente' ? 'Vente' : 'Location'}</span></td>
                 <td>${prixMaison}</td>
                 <td>${prixLocation}</td>
+                <td style="color: #28a745; font-weight: 600;">+${formatCurrency(sale.entrepriseRevenue || 0)}</td>
                 <td>${formatCurrency(sale.benefice || 0)}</td>
                 <td><strong>${formatCurrency(sale.salaire || 0)}</strong></td>
                 <td>${currentEmployee.commission || 0}%</td>
@@ -86,6 +122,7 @@ function updateSummary() {
     let totalCA = 0;
     let totalBenefice = 0;
     let totalSalaire = 0;
+    let totalEntrepriseRevenue = 0;
     employeeSales.forEach(sale => {
         totalVentes++;
         if (sale.type === 'vente') {
@@ -95,11 +132,16 @@ function updateSummary() {
         }
         totalBenefice += parseFloat(sale.benefice || 0);
         totalSalaire += parseFloat(sale.salaire || 0);
+        totalEntrepriseRevenue += parseFloat(sale.entrepriseRevenue || 0);
     });
     document.getElementById('totalSales').textContent = totalVentes;
     document.getElementById('totalCA').textContent = formatCurrency(totalCA);
     document.getElementById('totalBenefice').textContent = formatCurrency(totalBenefice);
     document.getElementById('employeeSalaire').textContent = formatCurrency(totalSalaire);
+    const entrepriseRevenueEl = document.getElementById('totalEntrepriseRevenue');
+    if (entrepriseRevenueEl) {
+        entrepriseRevenueEl.textContent = '+' + formatCurrency(totalEntrepriseRevenue);
+    }
 }
 function setupEventListeners() {
     document.getElementById('addSaleBtn').addEventListener('click', openAddSaleModal);
@@ -194,6 +236,7 @@ async function handleSaleSubmit(e) {
         prixLocation: type === 'location' ? prixLocation : 0,
         benefice: stats.benefice,
         salaire: stats.salaire,
+        entrepriseRevenue: stats.entrepriseRevenue,
         commission: currentEmployee.commission || 0
     };
     try {

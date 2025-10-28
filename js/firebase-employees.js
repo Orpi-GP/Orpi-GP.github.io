@@ -99,6 +99,8 @@ const employeesDB = {
             let totalLocations = 0;
             let totalCA = 0;
             let totalBenefice = 0;
+            let totalSalaire = 0;
+            let totalEntrepriseRevenue = 0;
             salesSnapshot.docs.forEach(doc => {
                 const sale = doc.data();
                 if (sale.type === 'vente') {
@@ -109,12 +111,16 @@ const employeesDB = {
                     totalCA += parseFloat(sale.prixLocation || 0);
                 }
                 totalBenefice += parseFloat(sale.benefice || 0);
+                totalSalaire += parseFloat(sale.salaire || 0);
+                totalEntrepriseRevenue += parseFloat(sale.entrepriseRevenue || 0);
             });
             return {
                 totalVentes,
                 totalLocations,
                 totalCA,
                 totalBenefice,
+                totalSalaire,
+                totalEntrepriseRevenue,
                 nombreVentes: totalVentes + totalLocations
             };
         } catch (error) {

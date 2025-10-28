@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Administration - ORPI Paris</title>
+    <link rel="icon" type="image/png" href="images.png">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="js/cache-buster.js"></script>
@@ -16,6 +17,7 @@
     <script src="js/theme.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/firebase-config.js"></script>
+    <script src="js/firebase-theme.js"></script>
     <script src="js/firebase-properties.js"></script>
     <script src="js/firebase-conversations.js"></script>
     <script src="js/firebase-employees.js"></script>
@@ -613,7 +615,14 @@
     </style>
 </head>
 <body>
-        <nav class="navbar">
+    <div id="pageLoader" class="page-loader">
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <div class="loader-text">ORPI Admin</div>
+        </div>
+    </div>
+
+    <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
                 <a href="index.html">
@@ -662,6 +671,39 @@
                         <button class="admin-btn admin-btn-secondary" onclick="window.location.href='biens.html'" style="margin-top: 0.5rem;">
                             <i class="fas fa-list"></i> Voir tous les biens
                         </button>
+                    </div>
+
+                    <div class="admin-card">
+                        <div class="admin-card-icon">
+                            <i class="fas fa-couch"></i>
+                        </div>
+                        <h3>Gestion des Intérieurs</h3>
+                        <p>Ajouter, modifier ou supprimer des intérieurs disponibles</p>
+                        <button class="admin-btn" onclick="window.location.href='admin-interieurs.html'">
+                            <i class="fas fa-cog"></i> Gérer les intérieurs
+                        </button>
+                        <button class="admin-btn admin-btn-secondary" onclick="window.location.href='interieurs.html'" style="margin-top: 0.5rem;">
+                            <i class="fas fa-eye"></i> Voir les intérieurs
+                        </button>
+                    </div>
+
+                    <div class="admin-card">
+                        <div class="admin-card-icon">
+                            <i class="fas fa-palette"></i>
+                        </div>
+                        <h3>Thème du Site</h3>
+                        <p>Changer l'apparence du site selon les événements</p>
+                        <div style="margin-top: 1rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--secondary-color);">Thème actif :</label>
+                            <select id="themeSelector" onchange="changeTheme(this.value)" style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-bg); border-radius: 8px; font-size: 1rem; margin-bottom: 1rem;">
+                                <option value="default">🏠 Par défaut (ORPI)</option>
+                                <option value="halloween">🎃 Halloween</option>
+                                <option value="christmas">🎄 Noël</option>
+                            </select>
+                        </div>
+                        <div id="themePreview" style="padding: 1rem; background: var(--light-bg); border-radius: 8px; text-align: center; font-weight: 600; color: var(--primary-color);">
+                            Thème actuel : <span id="currentThemeName">Chargement...</span>
+                        </div>
                     </div>
 
                     <div class="admin-card">
@@ -1457,6 +1499,7 @@
 
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script src="js/toast-notifications.js"></script>
+    <script src="js/sw-register.js"></script>
     <script src="js/firebase-contracts.js"></script>
     <script src="js/firebase-availability.js"></script>
     <script src="js/admin.js"></script>

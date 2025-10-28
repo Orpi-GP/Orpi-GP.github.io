@@ -97,22 +97,79 @@ const salesDB = {
         const prixLocation = parseFloat(saleData.prixLocation || 0);
         const commission = parseFloat(employeeCommission || 0);
         const SALAIRE_MAX = 150000;
+        const ENTREPRISE_PERCENTAGE = 0.15;
         let totalCA = 0;
         let benefice = 0;
         let salaire = 0;
+        let entrepriseRevenue = 0;
         if (saleData.type === 'vente') {
             totalCA = prixMaison;
-            benefice = prixMaison * (commission / 100);
-            salaire = Math.min(benefice, SALAIRE_MAX);
+            entrepriseRevenue = prixMaison * ENTREPRISE_PERCENTAGE;
+            salaire = Math.min(entrepriseRevenue * (commission / 100), SALAIRE_MAX);
+            benefice = entrepriseRevenue - salaire;
         } else if (saleData.type === 'location') {
             totalCA = prixLocation;
-            benefice = prixLocation * (commission / 100);
-            salaire = Math.min(benefice, SALAIRE_MAX);
+            entrepriseRevenue = prixLocation * ENTREPRISE_PERCENTAGE;
+            salaire = Math.min(entrepriseRevenue * (commission / 100), SALAIRE_MAX);
+            benefice = entrepriseRevenue - salaire;
         }
         return {
             totalCA,
             benefice,
-            salaire
+            salaire,
+            entrepriseRevenue
         };
+    },
+    async updateExistingSalesWithEntrepriseRevenue() {
+        try {
+            const snapshot = await firebase.firestore()
+                .collection(this.collection)
+                .get();
+            const batch = firebase.firestore().batch();
+            let updateCount = 0;
+            snapshot.docs.forEach(doc => {
+                const sale = doc.data();
+                const prixMaison = parseFloat(sale.prixMaison || 0);
+                const prixLocation = parseFloat(sale.prixLocation || 0);
+                const commission = parseFloat(sale.commission || 0);
+                const ENTREPRISE_PERCENTAGE = 0.15;
+                const SALAIRE_MAX = 150000;
+                let entrepriseRevenue = 0;
+                let benefice = 0;
+                let salaire = 0;
+                if (sale.type === 'vente') {
+                    entrepriseRevenue = prixMaison * ENTREPRISE_PERCENTAGE;
+                    salaire = Math.min(entrepriseRevenue * (commission / 100), SALAIRE_MAX);
+                    benefice = entrepriseRevenue - salaire;
+                } else if (sale.type === 'location') {
+                    entrepriseRevenue = prixLocation * ENTREPRISE_PERCENTAGE;
+                    salaire = Math.min(entrepriseRevenue * (commission / 100), SALAIRE_MAX);
+                    benefice = entrepriseRevenue - salaire;
+                }
+                const needsUpdate = 
+                    sale.entrepriseRevenue === undefined || 
+                    sale.entrepriseRevenue !== entrepriseRevenue ||
+                    sale.benefice !== benefice ||
+                    sale.salaire !== salaire;
+                if (needsUpdate) {
+                    batch.update(doc.ref, { 
+                        entrepriseRevenue,
+                        benefice,
+                        salaire
+                    });
+                    updateCount++;
+                }
+            });
+            if (updateCount > 0) {
+                await batch.commit();
+                console.log(`${updateCount} ventes mises à jour avec les nouveaux calculs`);
+            } else {
+                console.log('Toutes les ventes sont déjà à jour');
+            }
+            return { success: true, updated: updateCount };
+        } catch (error) {
+            console.error('Erreur lors de la mise à jour des ventes:', error);
+            throw error;
+        }
     }
 };

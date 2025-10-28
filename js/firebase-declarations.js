@@ -28,6 +28,7 @@ const declarationsDB = {
                 let totalCA = 0;
                 let totalBenefice = 0;
                 let totalSalaire = 0;
+                let totalEntrepriseRevenue = 0;
                 employeeSales.forEach(sale => {
                     if (sale.type === 'vente') {
                         totalVentes++;
@@ -38,6 +39,7 @@ const declarationsDB = {
                     }
                     totalBenefice += parseFloat(sale.benefice || 0);
                     totalSalaire += parseFloat(sale.salaire || 0);
+                    totalEntrepriseRevenue += parseFloat(sale.entrepriseRevenue || 0);
                 });
                 employeesData.push({
                     employeeId: employee.id,
@@ -50,6 +52,7 @@ const declarationsDB = {
                     totalCA,
                     totalBenefice,
                     totalSalaire,
+                    totalEntrepriseRevenue,
                     sales: employeeSales
                 });
             }
@@ -63,7 +66,8 @@ const declarationsDB = {
                 totalLocations: employeesData.reduce((sum, emp) => sum + emp.totalLocations, 0),
                 totalCA: employeesData.reduce((sum, emp) => sum + emp.totalCA, 0),
                 totalBenefice: employeesData.reduce((sum, emp) => sum + emp.totalBenefice, 0),
-                totalSalaires: employeesData.reduce((sum, emp) => sum + emp.totalSalaire, 0)
+                totalSalaires: employeesData.reduce((sum, emp) => sum + emp.totalSalaire, 0),
+                totalEntrepriseRevenue: employeesData.reduce((sum, emp) => sum + emp.totalEntrepriseRevenue, 0)
             });
             salesSnapshot.docs.forEach(doc => {
                 batch.delete(doc.ref);

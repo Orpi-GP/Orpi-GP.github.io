@@ -1466,4 +1466,90 @@ async function handleUpdateDisplayName(e) {
     }
 }
 
+async function initThemeSelector() {
+    const selector = document.getElementById('themeSelector');
+    const currentThemeName = document.getElementById('currentThemeName');
+    
+    if (selector && currentThemeName) {
+        try {
+            const currentTheme = await getActiveTheme();
+            THEME_CONFIG.activeTheme = currentTheme;
+            selector.value = currentTheme;
+            updateThemeName(currentTheme);
+            
+            listenToThemeChanges((newTheme) => {
+                selector.value = newTheme;
+                updateThemeName(newTheme);
+            });
+        } catch (error) {
+            console.error('Erreur init theme selector:', error);
+        }
+    }
+}
+
+function updateThemeName(theme) {
+    const currentThemeName = document.getElementById('currentThemeName');
+    if (!currentThemeName) return;
+    
+    const themeNames = {
+        'default': '🏠 Par défaut (ORPI)',
+        'halloween': '🎃 Halloween',
+        'christmas': '🎄 Noël'
+    };
+    
+    currentThemeName.textContent = themeNames[theme] || themeNames['default'];
+}
+
+window.changeTheme = async function(themeName) {
+    try {
+        const selector = document.getElementById('themeSelector');
+        if (selector) {
+            selector.disabled = true;
+        }
+        
+        if (window.toast) {
+            toast.info('Changement de thème en cours...');
+        }
+        
+        const result = await setActiveTheme(themeName);
+        
+        if (result.success) {
+            if (window.themeManager) {
+                themeManager.removeThemeEffects();
+                THEME_CONFIG.activeTheme = themeName;
+                themeManager.applyTheme(themeName);
+                updateThemeName(themeName);
+            }
+            
+            if (window.toast) {
+                const themeNames = {
+                    'default': 'Thème par défaut',
+                    'halloween': 'Thème Halloween',
+                    'christmas': 'Thème Noël'
+                };
+                toast.success(`${themeNames[themeName]} activé pour tous les visiteurs !`);
+            }
+        } else {
+            if (window.toast) {
+                toast.error('Erreur lors du changement de thème');
+            }
+        }
+        
+        if (selector) {
+            selector.disabled = false;
+        }
+    } catch (error) {
+        console.error('Erreur changement thème:', error);
+        if (window.toast) {
+            toast.error('Erreur lors du changement de thème');
+        }
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        initThemeSelector();
+    }, 100);
+});
+
 

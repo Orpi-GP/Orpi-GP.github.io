@@ -4,11 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact - ORPI Immobilier Paris</title>
+    <link rel="icon" type="image/png" href="images.png">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="js/cache-buster.js"></script>
 </head>
 <body>
+    <div id="pageLoader" class="page-loader">
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <div class="loader-text">ORPI Mandelieu</div>
+        </div>
+    </div>
+
         <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
@@ -21,6 +29,9 @@
                 </li>
                 <li class="nav-item">
                     <a href="biens.html" class="nav-link">Nos Biens</a>
+                </li>
+                <li class="nav-item">
+                    <a href="interieurs.html" class="nav-link">Intérieurs</a>
                 </li>
                 <li class="nav-item">
                     <a href="contact.html" class="nav-link active">Contact</a>
@@ -130,6 +141,7 @@
         <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js"></script>
+    <script src="js/firebase-theme.js"></script>
     <script src="js/firebase-conversations.js"></script>
     
         <script src="js/config.js"></script>

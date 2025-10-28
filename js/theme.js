@@ -55,7 +55,7 @@ const themeManager = {
         container.id = 'halloween-decorations';
         container.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; overflow: hidden;';
         
-        for (let i = 0; i < 30; i++) {
+        for (let i = 0; i < 20; i++) {
             const particle = document.createElement('div');
             particle.className = 'halloween-particle';
             particle.style.cssText = `
@@ -106,7 +106,7 @@ const themeManager = {
         container.id = 'christmas-decorations';
         container.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; overflow: hidden;';
         
-        for (let i = 0; i < 80; i++) {
+        for (let i = 0; i < 60; i++) {
             const snowflake = document.createElement('div');
             const size = 0.3 + Math.random() * 0.8;
             const isEmoji = Math.random() > 0.7;
@@ -126,16 +126,13 @@ const themeManager = {
             container.appendChild(snowflake);
         }
         
-        const lights = ['🔴', '🟢', '🟡', '🔵', '🟣'];
+        const lights = ['🔴', '🟢', '🟡', '🔵'];
         const lightPositions = [
             { top: '10%', left: '10%' },
             { top: '8%', left: '30%' },
             { top: '12%', left: '50%' },
             { top: '9%', left: '70%' },
-            { top: '11%', left: '90%' },
-            { top: '20%', right: '5%' },
-            { bottom: '15%', left: '8%' },
-            { bottom: '18%', right: '12%' }
+            { top: '11%', left: '90%' }
         ];
         
         lightPositions.forEach((pos, i) => {
@@ -239,9 +236,27 @@ const themeManager = {
         if (christmasAnim) christmasAnim.remove();
     },
 
-    init() {
-        const activeTheme = THEME_CONFIG.activeTheme || 'default';
-        this.applyTheme(activeTheme);
+    async init() {
+        this.removeThemeEffects();
+        
+        if (typeof getActiveTheme === 'function') {
+            const activeTheme = await getActiveTheme();
+            THEME_CONFIG.activeTheme = activeTheme;
+            this.applyTheme(activeTheme);
+            
+            if (typeof listenToThemeChanges === 'function') {
+                listenToThemeChanges((newTheme) => {
+                    if (newTheme !== THEME_CONFIG.activeTheme) {
+                        this.removeThemeEffects();
+                        THEME_CONFIG.activeTheme = newTheme;
+                        this.applyTheme(newTheme);
+                        console.log('Thème mis à jour en temps réel :', newTheme);
+                    }
+                });
+            }
+        } else {
+            this.applyTheme('default');
+        }
     }
 };
 

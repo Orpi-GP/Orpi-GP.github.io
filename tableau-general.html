@@ -4,11 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tableau Général - ORPI Immobilier</title>
+    <link rel="icon" type="image/png" href="images.png">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="js/cache-buster.js"></script>
 </head>
 <body>
+    <div id="pageLoader" class="page-loader">
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <div class="loader-text">ORPI Admin</div>
+        </div>
+    </div>
+
         <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
@@ -99,6 +107,13 @@
                     </div>
                 </div>
                 <div class="summary-card">
+                    <div class="summary-icon">🏦</div>
+                    <div class="summary-content">
+                        <div class="summary-value" id="totalEntrepriseRevenue" style="color: #28a745;">0 €</div>
+                        <div class="summary-label">Coffre Entreprise (15%)</div>
+                    </div>
+                </div>
+                <div class="summary-card">
                     <div class="summary-icon">💵</div>
                     <div class="summary-content">
                         <div class="summary-value" id="totalSalaires">0 €</div>
@@ -184,6 +199,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
         <script src="js/firebase-config.js"></script>
+    <script src="js/firebase-theme.js"></script>
     <script src="js/firebase-employees.js"></script>
     <script src="js/firebase-sales.js"></script>
     <script src="js/firebase-notifications.js"></script>
@@ -192,6 +208,8 @@
     <script src="js/auth.js"></script>
     <script src="js/notifications.js"></script>
     <script src="js/toast-notifications.js"></script>
+    <script src="js/page-loader.js"></script>
+    <script src="js/sw-register.js"></script>
     <script src="js/tableau-general.js"></script>
     <script src="js/script.js"></script>
 </body>
