@@ -291,6 +291,7 @@ async function loadInterieurs() {
     const container = document.getElementById('interieursListContainer');
     
     try {
+        await loadCategories();
         const result = await getAllInterieurs();
         
         if (result.success && result.data.length > 0) {
