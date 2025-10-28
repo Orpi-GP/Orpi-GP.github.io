@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enchère en Cours - ORPI Paris</title>
+    <link rel="icon" type="image/png" href="images.png">
+    <script>
+        window.BUILD_V = Math.floor(Date.now() / 3600000);
+        document.write('<link rel="stylesheet" href="css/styles.css?v=' + window.BUILD_V + '">');
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <script>
+        document.write('<script src="js/config.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/theme.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/auth.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-config.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-theme.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-auctions.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/toast-notifications.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/page-loader.js?v=' + window.BUILD_V + '"><\/script>');
+    </script>
+    <style>
+        .auction-page {
+            min-height: 100vh;
+            padding: 140px 20px 80px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .no-auction {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .no-auction i {
+            font-size: 5rem;
+            color: #E30613;
+            margin-bottom: 2rem;
+        }
+
+        .auction-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .auction-main {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .property-display {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .property-image {
+            width: 100%;
+            height: 500px;
+            object-fit: cover;
+        }
+
+        .property-info {
+            padding: 2rem;
+        }
+
+        .property-info h1 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+
+        .property-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .detail-item {
+            text-align: center;
+            padding: 1rem;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+
+        .detail-item i {
+            font-size: 1.5rem;
+            color: #E30613;
+            margin-bottom: 0.5rem;
+        }
+
+        .bid-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 120px;
+        }
+
+        .countdown {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #E30613;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #fff3f3;
+            border-radius: 15px;
+        }
+
+        .current-price {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .current-price .label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .current-price .price {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #E30613;
+        }
+
+        .bid-form {
+            margin: 2rem 0;
+        }
+
+        .bid-form input {
+            width: 100%;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+
+        .bid-form input:focus {
+            outline: none;
+            border-color: #E30613;
+        }
+
+        .btn-bid {
+            width: 100%;
+            padding: 1.5rem;
+            background: #E30613;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-bid:hover {
+            background: #c00510;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(227, 6, 19, 0.3);
+        }
+
+        .btn-bid:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .quick-bids {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .quick-bid-btn {
+            padding: 0.75rem;
+            background: #f5f5f5;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quick-bid-btn:hover {
+            background: #E30613;
+            color: white;
+            border-color: #E30613;
+        }
+
+        .bids-history {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .bid-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        .bid-item.highest {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+        }
+
+        .bid-info {
+            flex-grow: 1;
+        }
+
+        .bid-info strong {
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        .bid-time {
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        .bid-amount {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #E30613;
+        }
+
+        .auction-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 1rem;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+
+        .stat-card .label {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .stat-card .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        @media (max-width: 1024px) {
+            .auction-main {
+                grid-template-columns: 1fr;
+            }
+
+            .bid-panel {
+                position: static;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .property-details {
+                grid-template-columns: 1fr;
+            }
+
+            .countdown {
+                font-size: 1.8rem;
+            }
+
+            .current-price .price {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="pageLoader" class="page-loader">
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <div class="loader-text">ORPI</div>
+        </div>
+    </div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html">
+                    <img src="images/logo-orpi-mandelieu.png" alt="ORPI Logo">
+                </a>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="index.html" class="nav-link">Accueil</a></li>
+                <li class="nav-item"><a href="biens.html" class="nav-link">Nos Biens</a></li>
+                <li class="nav-item"><a href="enchere.html" class="nav-link active">Enchères</a></li>
+                <li class="nav-item"><a href="contact.html" class="nav-link">Contact</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="auction-page">
+        <div id="noAuction" class="no-auction" style="display: none;">
+            <i class="fas fa-gavel"></i>
+            <h1>Aucune Enchère en Cours</h1>
+            <p>Il n'y a pas d'enchère active pour le moment. Revenez plus tard pour participer aux prochaines ventes aux enchères !</p>
+            <a href="biens.html" style="display: inline-block; margin-top: 2rem; padding: 1rem 2rem; background: #E30613; color: white; text-decoration: none; border-radius: 10px;">
+                Voir Nos Biens
+            </a>
+        </div>
+
+        <div id="auctionContent" class="auction-container" style="display: none;">
+            <div class="auction-main">
+                <div class="property-display">
+                    <img id="propertyImage" src="" alt="" class="property-image">
+                    <div class="property-info">
+                        <h1 id="propertyTitle">-</h1>
+                        <p id="propertyDescription">-</p>
+                        <div class="property-details" id="propertyDetails"></div>
+                    </div>
+                </div>
+
+                <div class="bid-panel">
+                    <div class="countdown" id="countdown">--:--:--</div>
+
+                    <div class="current-price">
+                        <div class="label">Prix Actuel</div>
+                        <div class="price" id="currentPrice">0 €</div>
+                    </div>
+
+                    <div class="auction-stats">
+                        <div class="stat-card">
+                            <div class="label">Enchères</div>
+                            <div class="value" id="bidsCount">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="label">Prix de départ</div>
+                            <div class="value" id="startingPrice">0 €</div>
+                        </div>
+                    </div>
+
+                    <div class="bid-form">
+                        <input type="text" id="bidderName" placeholder="Votre nom" maxlength="50">
+                        <input type="number" id="bidAmount" placeholder="Votre enchère (€)" min="0" step="1000">
+                        
+                        <div class="quick-bids">
+                            <button class="quick-bid-btn" onclick="addQuickBid(5000)">+5k€</button>
+                            <button class="quick-bid-btn" onclick="addQuickBid(10000)">+10k€</button>
+                            <button class="quick-bid-btn" onclick="addQuickBid(20000)">+20k€</button>
+                        </div>
+
+                        <button onclick="placeBid()" class="btn-bid">
+                            <i class="fas fa-gavel"></i> Enchérir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bids-history">
+                <h2><i class="fas fa-history"></i> Historique des Enchères</h2>
+                <div id="bidsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>ORPI Paris</h3>
+                    <p>Agence immobilière Grand Paris RP</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 ORPI Paris Grand Paris RP. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.write('<script src="js/script.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/enchere.js?v=' + window.BUILD_V + '"><\/script>');
+    </script>
+</body>
+</html>
+

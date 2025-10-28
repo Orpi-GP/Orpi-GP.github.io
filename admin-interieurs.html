@@ -17,15 +17,16 @@
     
     <script src="js/config.js"></script>
     <script>
-        const v = Date.now();
-        document.write('<script src="js/cache-buster.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/theme.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/auth.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/firebase-config.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/firebase-theme.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/firebase-interieurs.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/toast-notifications.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/page-loader.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/cloudinary-config.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/cloudinary-upload.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/cache-buster.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/theme.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/auth.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-config.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-theme.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-interieurs.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/toast-notifications.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/page-loader.js?v=' + window.BUILD_V + '"><\/script>');
     </script>
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <style>

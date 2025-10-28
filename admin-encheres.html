@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Enchères - ORPI Paris</title>
+    <link rel="icon" type="image/png" href="images.png">
+    <script>
+        window.BUILD_V = Math.floor(Date.now() / 3600000);
+        document.write('<link rel="stylesheet" href="css/styles.css?v=' + window.BUILD_V + '">');
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <script src="js/config.js"></script>
+    <script>
+        document.write('<script src="js/cloudinary-config.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/cloudinary-upload.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/cache-buster.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/theme.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/auth.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-config.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-theme.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-properties.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-auctions.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/toast-notifications.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/page-loader.js?v=' + window.BUILD_V + '"><\/script>');
+    </script>
+    <style>
+        .admin-container {
+            min-height: 100vh;
+            padding-top: 100px;
+            background: var(--light-bg);
+        }
+
+        .auction-controls {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .auction-active {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+        }
+
+        .btn-action {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-right: 1rem;
+        }
+
+        .btn-start {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-stop {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-start:hover {
+            background: #45a049;
+        }
+
+        .btn-stop:hover {
+            background: #da190b;
+        }
+
+        .current-auction {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .property-preview {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .property-preview img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .auction-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .info-card {
+            background: #f5f5f5;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .info-card h4 {
+            margin: 0 0 0.5rem 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .info-card .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #E30613;
+        }
+
+        .bids-list {
+            margin-top: 2rem;
+        }
+
+        .bid-item {
+            background: #f9f9f9;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bid-item.highest {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+        }
+
+        #accessDenied {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        #accessDenied i {
+            font-size: 4rem;
+            color: #E30613;
+            margin-bottom: 1rem;
+        }
+
+        .countdown {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #E30613;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .image-upload-zone {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #fafafa;
+        }
+
+        .image-upload-zone:hover,
+        .image-upload-zone.dragover {
+            border-color: #E30613;
+            background: #fff3f3;
+        }
+
+        .image-upload-zone i {
+            font-size: 3rem;
+            color: #E30613;
+            margin-bottom: 1rem;
+        }
+
+        .image-upload-zone p {
+            margin: 0.5rem 0;
+            color: #666;
+        }
+
+        .images-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .image-preview-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-preview-item .remove-image {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .image-preview-item .remove-image:hover {
+            background: #d32f2f;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div id="pageLoader" class="page-loader">
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <div class="loader-text">ORPI Admin</div>
+        </div>
+    </div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html">
+                    <img src="images/logo-orpi-mandelieu.png" alt="ORPI Paris">
+                </a>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">Accueil</a>
+                </li>
+                <li class="nav-item">
+                    <a href="admin.html" class="nav-link">Admin</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" onclick="logout()" class="nav-link">Déconnexion</a>
+                </li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <div id="accessDenied" style="display: none;">
+        <i class="fas fa-lock"></i>
+        <h1>Accès Refusé</h1>
+        <p>Vous devez être connecté avec Discord pour accéder à cette page.</p>
+        <button onclick="loginWithDiscord()" class="btn-action btn-start">
+            <i class="fab fa-discord"></i> Se connecter
+        </button>
+    </div>
+
+    <div id="adminAccess" class="admin-container" style="display: none;">
+        <div class="container">
+            <h1><i class="fas fa-gavel"></i> Gestion des Enchères</h1>
+
+            <div id="createAuctionSection" class="auction-controls">
+                <h2>Créer une Nouvelle Enchère</h2>
+                
+                <div class="form-group">
+                    <label for="propertyTitle">Titre du bien :</label>
+                    <input type="text" id="propertyTitle" placeholder="Ex: Villa de luxe avec piscine" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="propertyDescription">Description :</label>
+                    <textarea id="propertyDescription" rows="4" placeholder="Décrivez le bien en détail..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="propertyLocation">Localisation :</label>
+                    <input type="text" id="propertyLocation" placeholder="Ex: Paris 16ème" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="propertyType">Type de bien :</label>
+                    <select id="propertyType" required>
+                        <option value="">Sélectionner...</option>
+                        <option value="Appartement">Appartement</option>
+                        <option value="Maison">Maison</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Images du bien :</label>
+                    <div class="image-upload-zone" id="imageUploadZone">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Glissez-déposez vos images ici ou cliquez pour sélectionner</p>
+                        <p style="font-size: 0.85rem; color: #999; margin-top: 0.5rem;">Maximum 5 images</p>
+                        <input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
+                    </div>
+                    <div class="images-preview" id="imagesPreview"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="startingPrice">Prix de départ (€) :</label>
+                    <input type="number" id="startingPrice" placeholder="50000" min="0" step="1000" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="duration">Durée (heures) :</label>
+                    <input type="number" id="duration" placeholder="24" min="1" max="168" value="24" required>
+                </div>
+
+                <button onclick="startAuction()" class="btn-action btn-start">
+                    <i class="fas fa-play"></i> Lancer l'Enchère
+                </button>
+            </div>
+
+            <div id="currentAuctionSection" class="current-auction" style="display: none;">
+                <h2>Enchère en Cours</h2>
+                
+                <div class="countdown" id="countdown"></div>
+
+                <div class="property-preview" id="auctionProperty"></div>
+
+                <div class="auction-info">
+                    <div class="info-card">
+                        <h4>Prix de départ</h4>
+                        <div class="value" id="startPrice">-</div>
+                    </div>
+                    <div class="info-card">
+                        <h4>Prix actuel</h4>
+                        <div class="value" id="currentPrice">-</div>
+                    </div>
+                    <div class="info-card">
+                        <h4>Nombre d'enchères</h4>
+                        <div class="value" id="bidsCount">0</div>
+                    </div>
+                    <div class="info-card">
+                        <h4>Meilleur enchérisseur</h4>
+                        <div class="value" id="highestBidder" style="font-size: 1.2rem;">-</div>
+                    </div>
+                </div>
+
+                <div class="bids-list">
+                    <h3>Historique des Enchères</h3>
+                    <div id="bidsList"></div>
+                </div>
+
+                <button onclick="stopAuction()" class="btn-action btn-stop">
+                    <i class="fas fa-stop"></i> Arrêter l'Enchère
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.write('<script src="js/script.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/admin-encheres.js?v=' + window.BUILD_V + '"><\/script>');
+    </script>
+</body>
+</html>
+

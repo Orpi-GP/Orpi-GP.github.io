@@ -79,7 +79,7 @@ body {
     width: 100%;
     background: var(--white);
     box-shadow: var(--shadow);
-    z-index: 1000;
+    z-index: 10000;
     transition: var(--transition);
 }
 
@@ -110,6 +110,97 @@ body {
 
 .nav-menu .nav-item {
     white-space: nowrap;
+    position: relative;
+}
+
+.nav-dropdown {
+    position: relative;
+}
+
+.nav-dropdown::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 10px;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-radius: 8px;
+    list-style: none;
+    padding: 0.5rem 0;
+    min-width: 220px;
+    display: none;
+    z-index: 10001;
+    margin-top: 0;
+    padding-top: 0.5rem;
+}
+
+.nav-dropdown:hover .dropdown-menu,
+.nav-dropdown.hover .dropdown-menu {
+    display: block;
+    animation: fadeInDown 0.3s ease;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdown-menu li {
+    list-style: none;
+}
+
+.dropdown-menu a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    color: var(--text-color);
+    text-decoration: none;
+    transition: all 0.3s;
+    font-size: 0.95rem;
+    white-space: nowrap;
+}
+
+.dropdown-menu a:hover {
+    background: linear-gradient(90deg, #fff3f3, transparent);
+    color: var(--primary-color);
+    padding-left: 1.5rem;
+}
+
+.dropdown-menu a i {
+    width: 20px;
+    text-align: center;
+    color: var(--primary-color);
+    font-size: 0.9rem;
+}
+
+.nav-dropdown > .nav-link {
+    cursor: pointer;
+}
+
+.nav-dropdown > .nav-link i {
+    font-size: 0.65rem;
+    margin-left: 0.3rem;
+    transition: transform 0.3s;
+}
+
+.nav-dropdown:hover > .nav-link i,
+.nav-dropdown.hover > .nav-link i {
+    transform: rotate(180deg);
 }
 
 .nav-link {
@@ -118,6 +209,8 @@ body {
     font-weight: 500;
     transition: var(--transition);
     position: relative;
+    display: flex;
+    align-items: center;
 }
 
 .nav-link:hover,
@@ -1123,6 +1216,36 @@ body {
 
     .nav-menu.active {
         left: 0;
+    }
+
+    .dropdown-menu {
+        position: static;
+        box-shadow: none;
+        padding: 0;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        background: #f8f8f8;
+        border-radius: 5px;
+        display: none;
+        animation: none;
+    }
+
+    .nav-dropdown.active .dropdown-menu {
+        display: block;
+    }
+    
+    .dropdown-menu a:hover {
+        background: #ebebeb;
+        padding-left: 1.25rem;
+    }
+
+    .dropdown-menu a {
+        padding: 0.5rem 1.5rem;
+        font-size: 0.9rem;
+    }
+
+    .nav-dropdown > .nav-link {
+        justify-content: center;
     }
 
     .nav-toggle {

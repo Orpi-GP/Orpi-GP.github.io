@@ -437,20 +437,23 @@ async function handleFiles(files) {
         return;
     }
     
-    showToast(`Conversion de ${imageFiles.length} image(s)...`, 'info');
+    showToast(`Upload de ${imageFiles.length} image(s) vers Cloudinary...`, 'info');
     
-    for (const file of imageFiles) {
-        try {
-            const compressed = await compressImage(file);
-            currentImages.push(compressed);
-        } catch (error) {
-            console.error("Erreur conversion image:", error);
-            showToast('Erreur lors de la conversion d\'une image', 'error');
-        }
+    try {
+        const imageUrls = await cloudinaryUpload.uploadMultipleImages(
+            imageFiles,
+            (progress, current, total) => {
+                showToast(`Upload ${current}/${total} (${Math.round(progress)}%)`, 'info');
+            }
+        );
+        
+        currentImages.push(...imageUrls);
+        displayImagesPreviews();
+        showToast('Images ajoutées avec succès', 'success');
+    } catch (error) {
+        console.error("Erreur upload image:", error);
+        showToast('Erreur lors de l\'upload des images', 'error');
     }
-    
-    displayImagesPreviews();
-    showToast('Images ajoutées avec succès', 'success');
 }
 
 async function compressImage(file) {
@@ -575,12 +578,28 @@ function confirmDelete(id, titre) {
 }
 
 async function deleteInterieurById(id) {
-    const result = await deleteInterieur(id);
-    
-    if (result.success) {
-        showToast('Intérieur supprimé avec succès', 'success');
-        loadInterieurs();
-    } else {
+    try {
+        const doc = await db.collection('interieurs').doc(id).get();
+        const interieur = doc.data();
+        
+        if (interieur && interieur.images && Array.isArray(interieur.images)) {
+            for (const imageUrl of interieur.images) {
+                if (imageUrl.includes('cloudinary.com')) {
+                    await cloudinaryUpload.deleteImage(imageUrl);
+                }
+            }
+        }
+        
+        const result = await deleteInterieur(id);
+        
+        if (result.success) {
+            showToast('Intérieur supprimé avec succès', 'success');
+            loadInterieurs();
+        } else {
+            showToast('Erreur lors de la suppression', 'error');
+        }
+    } catch (error) {
+        console.error('Erreur suppression:', error);
         showToast('Erreur lors de la suppression', 'error');
     }
 }

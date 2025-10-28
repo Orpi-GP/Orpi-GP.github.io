@@ -257,11 +257,14 @@ async function handleAddProperty(event) {
             return;
         }
 
-        const imagesBase64 = [];
-        for (let i = 0; i < imageFiles.length; i++) {
-            const base64 = await convertImageToBase64(imageFiles[i]);
-            imagesBase64.push(base64);
-        }
+        toast.info(`Upload de ${imageFiles.length} image(s) vers Cloudinary...`);
+        
+        const imageUrls = await cloudinaryUpload.uploadMultipleImages(
+            imageFiles,
+            (progress, current, total) => {
+                submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Upload ${current}/${total} (${Math.round(progress)}%)`;
+            }
+        );
 
         const property = {
             title: document.getElementById('propertyTitle').value,
@@ -272,7 +275,7 @@ async function handleAddProperty(event) {
             area: document.getElementById('propertyArea').value || null,
             location: document.getElementById('propertyLocation').value,
             description: document.getElementById('propertyDescription').value,
-            images: imagesBase64,
+            images: imageUrls,
             featured: document.getElementById('propertyFeatured').checked
         };
 
@@ -280,7 +283,7 @@ async function handleAddProperty(event) {
         closeAddPropertyModal();
         selectedImages = [];
         
-        toast.success(`Bien ajouté avec succès avec ${imagesBase64.length} image(s) !`);
+        toast.success(`Bien ajouté avec succès avec ${imageUrls.length} image(s) !`);
         
     } catch (error) {
         console.error('Erreur:', error);
@@ -437,6 +440,17 @@ async function deleteProperty(id, title) {
     }
     
     try {
+        const doc = await db.collection('properties').doc(id).get();
+        const property = doc.data();
+        
+        if (property && property.images && Array.isArray(property.images)) {
+            for (const imageUrl of property.images) {
+                if (imageUrl.includes('cloudinary.com')) {
+                    await cloudinaryUpload.deleteImage(imageUrl);
+                }
+            }
+        }
+        
         await propertyManager.delete(id);
         toast.success('Bien supprimé avec succès !');
         closeManagePropertiesModal();

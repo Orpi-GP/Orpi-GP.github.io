@@ -17,17 +17,18 @@
     
     <script src="js/config.js"></script>
     <script>
-        const v = Date.now();
-        document.write('<script src="js/theme.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/auth.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/firebase-config.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/firebase-theme.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/firebase-properties.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/firebase-conversations.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/firebase-employees.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/firebase-sales.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/firebase-declarations.js?v=' + v + '"><\/script>');
-        document.write('<script src="js/webhook-config.js?v=' + v + '"><\/script>');
+        document.write('<script src="js/cloudinary-config.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/cloudinary-upload.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/theme.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/auth.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-config.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-theme.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-properties.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-conversations.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-employees.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-sales.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-declarations.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/webhook-config.js?v=' + window.BUILD_V + '"><\/script>');
     </script>
     <style>
         .admin-container {
@@ -689,6 +690,20 @@
                         </button>
                         <button class="admin-btn admin-btn-secondary" onclick="window.location.href='interieurs.html'" style="margin-top: 0.5rem;">
                             <i class="fas fa-eye"></i> Voir les intérieurs
+                        </button>
+                    </div>
+
+                    <div class="admin-card">
+                        <div class="admin-card-icon">
+                            <i class="fas fa-gavel"></i>
+                        </div>
+                        <h3>Ventes aux Enchères</h3>
+                        <p>Créer et gérer les ventes aux enchères en direct</p>
+                        <button class="admin-btn" onclick="window.location.href='admin-encheres.html'">
+                            <i class="fas fa-play"></i> Gérer les enchères
+                        </button>
+                        <button class="admin-btn admin-btn-secondary" onclick="window.location.href='enchere.html'" style="margin-top: 0.5rem;">
+                            <i class="fas fa-eye"></i> Voir les enchères
                         </button>
                     </div>
 
