@@ -1,11 +1,25 @@
-window.addEventListener('load', () => {
+let loaderHidden = false;
+
+function hideLoader() {
+    if (loaderHidden) return;
+    loaderHidden = true;
     const loader = document.getElementById('pageLoader');
     if (loader) {
-        setTimeout(() => {
-            loader.classList.add('loaded');
-        }, 300);
+        loader.classList.add('loaded');
+        console.log('✅ Loader caché');
     }
+}
+
+window.addEventListener('load', () => {
+    setTimeout(hideLoader, 300);
 });
+
+setTimeout(() => {
+    if (!loaderHidden) {
+        console.warn('⚠️ Timeout: forçage de la disparition du loader');
+        hideLoader();
+    }
+}, 3000);
 
 document.addEventListener('DOMContentLoaded', () => {
     const links = document.querySelectorAll('a[href]:not([href^="#"]):not([href^="mailto:"]):not([href^="tel:"]):not([target="_blank"])');
