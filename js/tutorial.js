@@ -18,8 +18,8 @@ const tutorialSteps = [
     },
     {
         target: '#loginBtn',
-        title: 'Connexion Discord',
-        description: 'Connectez-vous avec Discord pour accéder à des fonctionnalités exclusives : demander des rendez-vous, consulter vos conversations, et laisser des avis.',
+        title: 'Connexion / Profil',
+        description: 'Connectez-vous avec Discord pour accéder à des fonctionnalités exclusives : demander des rendez-vous, consulter vos conversations, et laisser des avis. Si vous êtes déjà connecté, c\'est ici que vous verrez votre profil.',
         position: 'left',
         highlight: true
     },
@@ -190,7 +190,14 @@ class Tutorial {
 
         this.currentStep = stepIndex;
         const step = tutorialSteps[stepIndex];
-        const targetElement = document.querySelector(step.target);
+        let targetElement = document.querySelector(step.target);
+
+        if (step.target === '#loginBtn') {
+            const userProfile = document.querySelector('#userProfile');
+            if (userProfile && getComputedStyle(userProfile).display !== 'none') {
+                targetElement = userProfile;
+            }
+        }
 
         if (!targetElement || (step.optional && getComputedStyle(targetElement).display === 'none')) {
             if (stepIndex < tutorialSteps.length - 1) {
