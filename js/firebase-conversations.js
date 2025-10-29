@@ -40,6 +40,31 @@ const ConversationsManager = {
                 lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
                 read: false
             });
+
+            if (sender === 'admin' && typeof window !== 'undefined' && typeof window.DISCORD_BOT_DM_API === 'string' && window.DISCORD_BOT_DM_API) {
+                try {
+                    const doc = await firebase.firestore().collection('conversations').doc(conversationId).get();
+                    if (doc.exists) {
+                        const data = doc.data();
+                        const discordId = data && data.data ? data.data.discordId : null;
+                        if (discordId) {
+                            const link = `${window.location.origin}/mes-conversations.html?conv=${encodeURIComponent(conversationId)}`;
+                            const preview = (message || '').toString().slice(0, 300);
+                            const formatted = `📬 Vous avez reçu une réponse à votre conversation chez ORPI.\n\n${preview}\n\n🔗 Ouvrir la conversation: ${link}`;
+                            const payload = {
+                                discordId: discordId,
+                                message: formatted,
+                                attachments: Array.isArray(attachments) ? attachments.map(a => ({ name: a.name, url: a.url })) : []
+                            };
+                            const headers = { 'Content-Type': 'application/json' };
+                            if (window.DISCORD_BOT_DM_TOKEN) {
+                                headers['Authorization'] = `Bearer ${window.DISCORD_BOT_DM_TOKEN}`;
+                            }
+                            fetch(window.DISCORD_BOT_DM_API, { method: 'POST', headers: headers, body: JSON.stringify(payload) }).catch(() => {});
+                        }
+                    }
+                } catch (e) {}
+            }
         } catch (error) {
             console.error('Erreur lors de l\'ajout du message:', error);
             throw error;
