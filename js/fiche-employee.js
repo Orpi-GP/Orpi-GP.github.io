@@ -151,6 +151,7 @@ function setupEventListeners() {
         });
     });
     document.getElementById('saleForm').addEventListener('submit', handleSaleSubmit);
+    loadInteriorOptions();
     document.getElementById('saleType').addEventListener('change', function() {
         const prixMaisonGroup = document.getElementById('prixMaisonGroup');
         const prixLocationGroup = document.getElementById('prixLocationGroup');
@@ -175,6 +176,7 @@ function openAddSaleModal() {
     document.getElementById('saleModalTitle').innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter une Vente';
     document.getElementById('saleForm').reset();
     document.getElementById('saleId').value = '';
+    loadInteriorOptions();
     document.getElementById('saleModal').style.display = 'block';
 }
 function closeSaleModal() {
@@ -195,6 +197,11 @@ async function editSale(saleId) {
     document.getElementById('saleInterieur').value = sale.interieur || '';
     document.getElementById('saleType').value = sale.type || '';
     document.getElementById('saleType').dispatchEvent(new Event('change'));
+    await loadInteriorOptions();
+    if (sale.interieur) {
+        const select = document.getElementById('saleInterieur');
+        select.value = sale.interieur;
+    }
     if (sale.type === 'vente') {
         document.getElementById('salePrixMaison').value = sale.prixMaison || '';
     } else if (sale.type === 'location') {
@@ -225,12 +232,17 @@ async function handleSaleSubmit(e) {
         prixMaison,
         prixLocation
     }, currentEmployee.commission || 0);
+    const interieurSelect = document.getElementById('saleInterieur');
+    const selectedOption = interieurSelect.options[interieurSelect.selectedIndex];
+    const selectedInterieurId = selectedOption ? selectedOption.getAttribute('data-id') : null;
+
     const saleData = {
         employeeId: currentEmployeeId,
         employeeName: currentEmployee.name,
         acheteur: document.getElementById('saleAcheteur').value,
         propriete: document.getElementById('salePropriete').value,
         interieur: document.getElementById('saleInterieur').value,
+        interieurId: selectedInterieurId || null,
         type: type,
         prixMaison: type === 'vente' ? prixMaison : 0,
         prixLocation: type === 'location' ? prixLocation : 0,
@@ -267,4 +279,53 @@ function showSuccess(message) {
 }
 function showError(message) {
     toast.error(message);
+}
+
+async function loadInteriorOptions() {
+    try {
+        const select = document.getElementById('saleInterieur');
+        if (!select) return;
+        const currentValue = select.value;
+        select.innerHTML = '<option value="">-- Sélectionner --</option>';
+        const store = typeof db !== 'undefined' ? db : firebase.firestore();
+        const categoriesSnapshot = await store.collection('interieurs_categories').orderBy('name', 'asc').get();
+        const categoryIdToName = {};
+        categoriesSnapshot.forEach(doc => {
+            const data = doc.data();
+            categoryIdToName[doc.id] = data.name;
+        });
+
+        const interieursSnapshot = await store.collection('interieurs').orderBy('titre', 'asc').get();
+
+        const groups = {};
+        interieursSnapshot.forEach(doc => {
+            const data = doc.data();
+            const catName = categoryIdToName[data.categorieId] || 'Sans catégorie';
+            if (!groups[catName]) {
+                const og = document.createElement('optgroup');
+                og.label = catName;
+                groups[catName] = og;
+            }
+            const opt = document.createElement('option');
+            opt.value = data.titre;
+            opt.textContent = data.titre;
+            opt.setAttribute('data-id', doc.id);
+            groups[catName].appendChild(opt);
+        });
+
+        const groupNames = Object.keys(groups).sort();
+        groupNames.forEach(name => select.appendChild(groups[name]));
+
+        if (groupNames.length === 0) {
+            const og = document.createElement('optgroup');
+            og.label = 'Aucun intérieur';
+            select.appendChild(og);
+        }
+
+        if (currentValue) {
+            select.value = currentValue;
+        }
+    } catch (error) {
+        console.error('Erreur chargement intérieurs:', error);
+    }
 }
