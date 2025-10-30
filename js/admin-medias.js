@@ -2,7 +2,7 @@ let allMedias = [];
 let filteredMedias = [];
 let allProperties = [];
 let allInterieurs = [];
-const WORKER_BASE = '/api-media';
+const WORKER_BASE = 'https://orpi-cloudinary-proxy.orpigp.workers.dev';
 let selectedIds = new Set();
 
 document.addEventListener('DOMContentLoaded', async () => {
