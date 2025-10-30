@@ -36,7 +36,7 @@ const DISCORD_CONFIG = window.DISCORD_CONFIG;
 const DISCORD_API = 'https://discord.com/api/v10';
 
 const THEME_CONFIG = {
-    activeTheme: 'default'
+    activeTheme: 'halloween'
 };
 
 
@@ -61,6 +61,13 @@ window.SITE_CONFIG = {
 (function enforceMaintenance() {
     try {
         if (!window.SITE_CONFIG || !window.SITE_CONFIG.maintenance) return;
+        try {
+            var u = new URL(window.location.href);
+            if (!u.searchParams.get('__v')) {
+                u.searchParams.set('__v', Date.now().toString());
+                return window.location.replace(u.toString());
+            }
+        } catch(e){}
         if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
             navigator.serviceWorker.getRegistrations().then(function(regs){
                 regs.forEach(function(r){ try{ r.unregister(); }catch(e){} });
