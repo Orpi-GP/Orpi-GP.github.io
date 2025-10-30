@@ -41,7 +41,7 @@ const THEME_CONFIG = {
 
 
 window.SITE_CONFIG = {
-    maintenance: true,
+    maintenance: false,
     maintenanceMessage: "Nous effectuons une maintenance. Merci de revenir plus tard."
 };
 
