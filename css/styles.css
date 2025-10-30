@@ -89,12 +89,12 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 2rem;
-    gap: 1.5rem;
+    padding: 0.5rem 2rem;
+    gap: 1rem;
 }
 
 .nav-logo img {
-    height: 50px;
+    height: 40px;
     width: auto;
     flex-shrink: 0;
 }
@@ -102,7 +102,7 @@ body {
 .nav-menu {
     display: flex;
     list-style: none;
-    gap: 2rem;
+    gap: 1.5rem;
     flex-grow: 1;
     justify-content: center;
     align-items: center;
@@ -211,6 +211,7 @@ body {
     position: relative;
     display: flex;
     align-items: center;
+    font-size: 0.95rem;
 }
 
 .nav-link:hover,
@@ -252,7 +253,7 @@ body {
     background: #5865F2;
     color: white;
     border: none;
-    padding: 10px 20px;
+    padding: 8px 16px;
     border-radius: 5px;
     font-weight: 600;
     cursor: pointer;
@@ -260,7 +261,7 @@ body {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 1rem;
+    font-size: 0.9rem;
 }
 
 .discord-login-btn:hover {
@@ -276,16 +277,16 @@ body {
 .user-profile {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem 1rem;
+    gap: 0.5rem;
+    padding: 0.4rem 0.8rem;
     background: var(--light-bg);
     border-radius: 25px;
     transition: var(--transition);
 }
 
 .user-avatar {
-    width: 40px;
-    height: 40px;
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
     border: 2px solid var(--primary-color);
 }
@@ -293,6 +294,7 @@ body {
 .user-name {
     font-weight: 600;
     color: var(--text-color);
+    font-size: 0.9rem;
 }
 
 .logout-btn {
@@ -344,8 +346,8 @@ body {
 
 .notifications-btn {
     position: relative;
-    width: 45px;
-    height: 45px;
+    width: 38px;
+    height: 38px;
     background: var(--light-bg);
     border-radius: 50%;
     display: flex;
@@ -2812,5 +2814,94 @@ body {
     .submit-btn {
         width: 100%;
         justify-content: center;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#messagesContainer::-webkit-scrollbar {
+    width: 8px;
+}
+
+#messagesContainer::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+}
+
+#messagesContainer::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+#messagesContainer::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+#autocompleteSuggestions::-webkit-scrollbar {
+    width: 6px;
+}
+
+#autocompleteSuggestions::-webkit-scrollbar-track {
+    background: #f3f4f6;
+}
+
+#autocompleteSuggestions::-webkit-scrollbar-thumb {
+    background: #E30613;
+    border-radius: 3px;
+}
+
+@keyframes messageAppear {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.new-message {
+    animation: messageAppear 0.3s ease-out;
+}
+
+#conversationDetailsContent a {
+    color: #E30613;
+    text-decoration: underline;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+#conversationDetailsContent a:hover {
+    color: #c20510;
+    text-decoration: none;
+}
+
+@media (max-width: 768px) {
+    #messagesContainer {
+        height: 300px !important;
+    }
+    
+    .conversation-message {
+        max-width: 90% !important;
+    }
+    
+    #keywordHelper,
+    #quickRepliesSection {
+        font-size: 0.85rem;
+    }
+    
+    #keywordButtons,
+    #quickReplyButtons {
+        grid-template-columns: 1fr !important;
     }
 }

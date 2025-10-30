@@ -204,6 +204,18 @@ function displayClientConversations(conversations, discordId) {
                     }
                 }
                 
+                let messageContent = msg.message || '';
+                console.log('[Message]', isClient ? 'Client' : 'Admin', messageContent.substring(0, 100));
+                
+                if (messageContent.includes('<a href=')) {
+                    console.log('[Message] Contient des liens HTML');
+                    messageContent = messageContent.replace(/\n/g, '<br>');
+                } else {
+                    const div = document.createElement('div');
+                    div.textContent = messageContent;
+                    messageContent = div.innerHTML.replace(/\n/g, '<br>');
+                }
+                
                 html += `
                     <div class="message-item ${messageClass} ${isUnread ? 'message-unread' : ''}">
                         <div class="message-sender">
@@ -211,7 +223,7 @@ function displayClientConversations(conversations, discordId) {
                             <span class="message-time">${time}</span>
                             ${isUnread ? '<span class="new-badge">NOUVEAU</span>' : ''}
                         </div>
-                        <div style="white-space: pre-wrap;">${msg.message}</div>
+                        <div style="line-height: 1.6;">${messageContent}</div>
                 `;
                 
                 if (msg.attachments && msg.attachments.length > 0) {

@@ -25,6 +25,7 @@
         document.write('<script src="js/firebase-theme.js?v=' + window.BUILD_V + '"><\/script>');
         document.write('<script src="js/firebase-properties.js?v=' + window.BUILD_V + '"><\/script>');
         document.write('<script src="js/firebase-conversations.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/admin-conversations-enhanced.js?v=' + window.BUILD_V + '"><\/script>');
         document.write('<script>window.DISCORD_BOT_DM_API="https://83.150.218.5:26016/send-dm";window.DISCORD_BOT_DM_TOKEN="9bd3bc4627d075b6e2f9e5519d71834e9b6ce2675ef7550e081e4c5ff48785a12c51f04a8531708b97a0e1b2e8a1176f6a839cc76537d8d3fed16d7ac40a77df7af2a06beb";<\/script>');
         document.write('<script src="js/firebase-employees.js?v=' + window.BUILD_V + '"><\/script>');
         document.write('<script src="js/firebase-sales.js?v=' + window.BUILD_V + '"><\/script>');
@@ -1077,26 +1078,26 @@
 
         <div id="conversationsAdminModal" class="modal">
         <div class="modal-content" style="max-width: 900px;">
-            <div class="modal-header">
-                <h2><i class="fas fa-comments"></i> Gestion des Conversations</h2>
+            <div class="modal-header" style="padding: 1rem 1.5rem; background: linear-gradient(135deg, #E30613, #c20510);">
+                <h2 style="font-size: 1.2rem; margin: 0;"><i class="fas fa-comments"></i> Conversations</h2>
                 <button class="modal-close" onclick="closeConversationsAdminModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             
-            <div class="notifications-filters" style="margin-bottom: 1.5rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                <button class="admin-btn" style="flex: 1; min-width: 120px; max-width: 200px;" onclick="filterConversations('all')">
+            <div class="notifications-filters" style="margin: 1rem 1.5rem; display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+                <button class="admin-btn" style="flex: 1; min-width: 100px; max-width: 150px; padding: 0.5rem 1rem; font-size: 0.9rem;" onclick="filterConversations('all')">
                     Toutes
                 </button>
-                <button class="admin-btn admin-btn-secondary" style="flex: 1; min-width: 120px; max-width: 200px; background: #17a2b8;" onclick="filterConversations('contact')">
+                <button class="admin-btn admin-btn-secondary" style="flex: 1; min-width: 100px; max-width: 150px; padding: 0.5rem 1rem; font-size: 0.9rem; background: #17a2b8;" onclick="filterConversations('contact')">
                     <i class="fas fa-envelope"></i> Contact
                 </button>
-                <button class="admin-btn admin-btn-secondary" style="flex: 1; min-width: 120px; max-width: 200px; background: #28a745;" onclick="filterConversations('estimation')">
+                <button class="admin-btn admin-btn-secondary" style="flex: 1; min-width: 100px; max-width: 150px; padding: 0.5rem 1rem; font-size: 0.9rem; background: #28a745;" onclick="filterConversations('estimation')">
                     <i class="fas fa-calculator"></i> Estimation
                 </button>
             </div>
 
-            <div id="conversationsAdminList" class="properties-list" style="max-height: 600px;">
+            <div id="conversationsAdminList" class="properties-list" style="max-height: 600px; padding: 0 1.5rem 1.5rem 1.5rem;">
                 <p style="text-align: center; color: var(--text-color);">Chargement...</p>
             </div>
         </div>
@@ -1104,8 +1105,8 @@
 
     <div id="conversationDetailsModal" class="modal">
         <div class="modal-content" style="max-width: 800px;">
-            <div class="modal-header">
-                <h2 id="conversationDetailsTitle">Détails de la conversation</h2>
+            <div class="modal-header" style="padding: 1rem 1.5rem; background: linear-gradient(135deg, #E30613, #c20510);">
+                <h2 id="conversationDetailsTitle" style="font-size: 1.2rem; margin: 0;">Détails de la conversation</h2>
                 <button class="modal-close" onclick="closeConversationDetailsModal()">
                     <i class="fas fa-times"></i>
                 </button>
@@ -1134,8 +1135,8 @@
 
     <div id="replyConversationModal" class="modal">
         <div class="modal-content" style="max-width: 700px;">
-            <div class="modal-header">
-                <h2><i class="fas fa-reply"></i> Répondre à la conversation</h2>
+            <div class="modal-header" style="padding: 1rem 1.5rem; background: linear-gradient(135deg, #E30613, #c20510);">
+                <h2 style="font-size: 1.2rem; margin: 0;"><i class="fas fa-reply"></i> Répondre</h2>
                 <button class="modal-close" onclick="closeReplyModal()">
                     <i class="fas fa-times"></i>
                 </button>

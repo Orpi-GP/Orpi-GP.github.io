@@ -167,9 +167,13 @@ function displayConversationsList(conversations) {
             }
         }
         
-        const lastMessage = conv.messages && conv.messages.length > 0 
+        let lastMessage = conv.messages && conv.messages.length > 0 
             ? conv.messages[conv.messages.length - 1].message 
             : 'Aucun message';
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = lastMessage;
+        const lastMessageText = tempDiv.textContent || tempDiv.innerText || lastMessage;
         
         const isActive = currentConversationId === conv.id;
         const isUnread = unreadCount > 0;
@@ -183,7 +187,7 @@ function displayConversationsList(conversations) {
                     </div>
                     <div class="conversation-item-date">${date}</div>
                 </div>
-                <div class="conversation-item-preview">${escapeHtml(lastMessage)}</div>
+                <div class="conversation-item-preview">${escapeHtml(lastMessageText)}</div>
             </div>
         `;
     });
@@ -241,13 +245,20 @@ function displayConversationDetail(conv) {
                 }
             }
             
+            let messageDisplay = msg.message || '';
+            if (messageDisplay.includes('<a href=')) {
+                messageDisplay = messageDisplay.replace(/\n/g, '<br>');
+            } else {
+                messageDisplay = escapeHtml(messageDisplay).replace(/\n/g, '<br>');
+            }
+            
             html += `
                 <div class="message-bubble ${messageClass}">
                     <div class="message-sender">
                         <i class="fas fa-${isClient ? 'user' : 'user-shield'}"></i>
                         ${senderName}
                     </div>
-                    <div class="message-text">${escapeHtml(msg.message)}</div>
+                    <div class="message-text">${messageDisplay}</div>
             `;
             
             if (msg.attachments && msg.attachments.length > 0) {
@@ -549,11 +560,15 @@ function displayRecentActivity(conversations) {
             }
         }
         
-        const lastMessage = conv.messages && conv.messages.length > 0 
+        let lastMessage = conv.messages && conv.messages.length > 0 
             ? conv.messages[conv.messages.length - 1].message 
             : 'Aucun message';
         
-        const preview = lastMessage.substring(0, 100) + (lastMessage.length > 100 ? '...' : '');
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = lastMessage;
+        const lastMessageText = tempDiv.textContent || tempDiv.innerText || lastMessage;
+        
+        const preview = lastMessageText.substring(0, 100) + (lastMessageText.length > 100 ? '...' : '');
         
         html += `
             <div class="activity-item">

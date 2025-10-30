@@ -849,65 +849,102 @@ async function showConversationDetails(conversationId) {
         title.innerHTML = `<i class="fas fa-${conversation.type === 'contact' ? 'envelope' : 'calculator'}"></i> ${conversation.type === 'contact' ? 'Demande de contact' : 'Demande d\'estimation'}`;
 
         let htmlContent = `
-            <div style="background: var(--light-bg); padding: 1.5rem; border-radius: 5px; margin-bottom: 1rem;">
-                <h3 style="margin-bottom: 1rem; color: var(--secondary-color);">Informations du contact</h3>
-                <p><strong>ID Discord:</strong> ${escapeHtml(conversation.data?.discordId || 'Non renseigné')}</p>
-                <p><strong>Téléphone:</strong> ${escapeHtml(conversation.data?.phone || 'Non renseigné')}</p>
+            <div style="background: var(--light-bg); padding: 1rem; border-radius: 5px; margin: 1rem 1.5rem;">
+                <h3 style="margin-bottom: 0.75rem; color: var(--secondary-color); font-size: 1rem;">Informations du contact</h3>
+                <p style="margin: 0.25rem 0;"><strong>ID Discord:</strong> ${escapeHtml(conversation.data?.discordId || 'Non renseigné')}</p>
+                <p style="margin: 0.25rem 0;"><strong>Téléphone:</strong> ${escapeHtml(conversation.data?.phone || 'Non renseigné')}</p>
             </div>
         `;
 
         if (conversation.type === 'estimation') {
             htmlContent += `
-                <div style="background: var(--light-bg); padding: 1.5rem; border-radius: 5px; margin-bottom: 1rem;">
-                    <h3 style="margin-bottom: 1rem; color: var(--secondary-color);">Détails du bien</h3>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <p><strong>Type:</strong> ${escapeHtml(conversation.data?.propertyType || 'Non renseigné')}</p>
-                        <p><strong>Localisation:</strong> ${escapeHtml(conversation.data?.location || 'Non renseigné')}</p>
-                        <p><strong>Pièces:</strong> ${escapeHtml(conversation.data?.rooms || 'Non renseigné')}</p>
-                        <p><strong>Surface:</strong> ${conversation.data?.area ? escapeHtml(conversation.data.area) + ' m²' : 'Non renseigné'}</p>
-                        <p><strong>Prix d'achat:</strong> ${conversation.data?.purchasePrice ? formatPrice(conversation.data.purchasePrice) : 'Non renseigné'}</p>
+                <div style="background: var(--light-bg); padding: 1rem; border-radius: 5px; margin: 0 1.5rem 1rem 1.5rem;">
+                    <h3 style="margin-bottom: 0.75rem; color: var(--secondary-color); font-size: 1rem;">Détails du bien</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                        <p style="margin: 0.25rem 0;"><strong>Type:</strong> ${escapeHtml(conversation.data?.propertyType || 'Non renseigné')}</p>
+                        <p style="margin: 0.25rem 0;"><strong>Localisation:</strong> ${escapeHtml(conversation.data?.location || 'Non renseigné')}</p>
+                        <p style="margin: 0.25rem 0;"><strong>Pièces:</strong> ${escapeHtml(conversation.data?.rooms || 'Non renseigné')}</p>
+                        <p style="margin: 0.25rem 0;"><strong>Surface:</strong> ${conversation.data?.area ? escapeHtml(conversation.data.area) + ' m²' : 'Non renseigné'}</p>
+                        <p style="margin: 0.25rem 0;"><strong>Prix d'achat:</strong> ${conversation.data?.purchasePrice ? formatPrice(conversation.data.purchasePrice) : 'Non renseigné'}</p>
                     </div>
                 </div>
             `;
         }
 
         htmlContent += `
-            <div style="background: var(--light-bg); padding: 1.5rem; border-radius: 5px; margin-bottom: 1rem; max-height: 400px; overflow-y: auto;">
-                <h3 style="margin-bottom: 1rem; color: var(--secondary-color);"><i class="fas fa-comments"></i> Conversation</h3>
-                <div id="messagesContainer">
+            <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; margin: 0 1.5rem 1rem 1.5rem; display: flex; flex-direction: column; height: 450px;">
+                <div style="background: linear-gradient(135deg, #E30613 0%, #c20510 100%); padding: 0.75rem 1rem; border-radius: 10px 10px 0 0; color: white; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 8px rgba(227, 6, 19, 0.2);">
+                    <i class="fas fa-comments" style="font-size: 1rem;"></i>
+                    <h3 style="margin: 0; font-size: 1rem; font-weight: 600;">Conversation</h3>
+                    <div style="margin-left: auto; display: flex; gap: 0.5rem; align-items: center;">
+                        <span style="background: rgba(255,255,255,0.2); padding: 0.25rem 0.6rem; border-radius: 12px; font-size: 0.8rem;">
+                            ${conversation.messages ? conversation.messages.length : 0} msg
+                        </span>
+                    </div>
+                </div>
+                <div id="messagesContainer" style="flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem; background: white;">
         `;
 
         if (conversation.messages && conversation.messages.length > 0) {
-            conversation.messages.forEach(msg => {
+            conversation.messages.forEach((msg, index) => {
                 const isClient = msg.sender === 'client';
-                const bgColor = isClient ? '#e3f2fd' : '#e8f5e9';
-                const icon = isClient ? 'fa-user' : 'fa-user-shield';
-                const senderName = isClient ? 'Client' : 'ORPI Admin';
+                const bgColor = isClient ? '#eff6ff' : '#f0fdf4';
+                const borderColor = isClient ? '#3b82f6' : '#22c55e';
+                const icon = isClient ? 'fa-user-circle' : 'fa-user-shield';
+                const senderName = isClient ? 'Client' : 'ORPI';
+                const alignment = isClient ? 'flex-start' : 'flex-end';
+                const messageAlign = isClient ? 'left' : 'right';
+                
+                let msgTime = '';
+                if (msg.timestamp) {
+                    try {
+                        const msgDate = msg.timestamp.toDate ? msg.timestamp.toDate() : new Date(msg.timestamp);
+                        msgTime = msgDate.toLocaleString('fr-FR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    } catch (e) {
+                        msgTime = '';
+                    }
+                }
+                
+                let messageDisplay = msg.message || '';
+                if (messageDisplay.includes('<a href=')) {
+                    messageDisplay = messageDisplay.replace(/\n/g, '<br>');
+                } else {
+                    messageDisplay = escapeHtml(messageDisplay).replace(/\n/g, '<br>');
+                }
                 
                 htmlContent += `
-                    <div style="background: ${bgColor}; padding: 1rem; border-radius: 8px; margin-bottom: 0.5rem; border-left: 4px solid ${isClient ? '#2196f3' : '#4caf50'};">
-                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                            <i class="fas ${icon}" style="color: ${isClient ? '#2196f3' : '#4caf50'};"></i>
-                            <strong>${senderName}</strong>
-                            <span style="font-size: 0.85rem; color: #666; margin-left: auto;">${msg.timestamp ? new Date(msg.timestamp).toLocaleString('fr-FR') : ''}</span>
-                        </div>
-                        <p style="white-space: pre-wrap; margin: 0;">${escapeHtml(msg.message)}</p>
+                    <div style="display: flex; justify-content: ${alignment}; animation: slideIn 0.3s ease-out;">
+                        <div style="max-width: 75%; min-width: 200px;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; ${isClient ? '' : 'flex-direction: row-reverse;'}">
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: ${borderColor}; display: flex; align-items: center; justify-content: center; color: white;">
+                                    <i class="fas ${icon}" style="font-size: 0.9rem;"></i>
+                                </div>
+                                <strong style="color: ${borderColor}; font-size: 0.9rem;">${senderName}</strong>
+                                <span style="font-size: 0.75rem; color: #94a3b8;">${msgTime}</span>
+                            </div>
+                            <div style="background: ${bgColor}; padding: 1rem 1.25rem; border-radius: ${isClient ? '4px 16px 16px 16px' : '16px 4px 16px 16px'}; border-left: 3px solid ${borderColor}; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: relative;">
+                                <div style="color: #1e293b; line-height: 1.6; word-wrap: break-word;">${messageDisplay}</div>
                 `;
                 
                 if (msg.attachments && msg.attachments.length > 0) {
-                    htmlContent += '<div style="margin-top: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.5rem;">';
+                    htmlContent += '<div style="margin-top: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.5rem; padding-top: 0.75rem; border-top: 1px solid rgba(0,0,0,0.1);">';
                     msg.attachments.forEach(att => {
                         const isImage = att.type && att.type.startsWith('image/');
                         if (isImage) {
                             htmlContent += `
-                                <a href="${att.url}" target="_blank" style="display: block; border-radius: 8px; overflow: hidden; max-width: 200px; border: 2px solid #e0e0e0; transition: all 0.3s;">
+                                <a href="${att.url}" target="_blank" style="display: block; border-radius: 8px; overflow: hidden; max-width: 250px; border: 2px solid ${borderColor}; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';">
                                     <img src="${att.url}" alt="${escapeHtml(att.name)}" style="width: 100%; height: auto; display: block;" />
                                 </a>
                             `;
                         } else {
                             htmlContent += `
-                                <a href="${att.url}" target="_blank" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: white; border: 2px solid #e0e0e0; border-radius: 8px; text-decoration: none; color: #333; transition: all 0.3s;">
-                                    <i class="fas fa-file"></i> ${escapeHtml(att.name)}
+                                <a href="${att.url}" target="_blank" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1rem; background: white; border: 2px solid ${borderColor}; border-radius: 8px; text-decoration: none; color: ${borderColor}; transition: all 0.2s; font-size: 0.85rem;" onmouseover="this.style.background='${borderColor}'; this.style.color='white';" onmouseout="this.style.background='white'; this.style.color='${borderColor}';">
+                                    <i class="fas fa-file-download"></i> ${escapeHtml(att.name)}
                                 </a>
                             `;
                         }
@@ -915,8 +952,19 @@ async function showConversationDetails(conversationId) {
                     htmlContent += '</div>';
                 }
                 
-                htmlContent += `</div>`;
+                htmlContent += `
+                            </div>
+                        </div>
+                    </div>
+                `;
             });
+        } else {
+            htmlContent += `
+                <div style="text-align: center; padding: 3rem; color: #94a3b8;">
+                    <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                    <p>Aucun message dans cette conversation</p>
+                </div>
+            `;
         }
 
         htmlContent += `
@@ -926,13 +974,13 @@ async function showConversationDetails(conversationId) {
 
         if (conversation.status === 'open') {
             htmlContent += `
-                <div style="background: #fff3cd; padding: 1rem; border-radius: 5px; border-left: 4px solid #ffc107; margin-top: 1rem;">
+                <div style="background: #fff3cd; padding: 0.75rem 1rem; border-radius: 5px; border-left: 4px solid #ffc107; margin: 0 1.5rem 1rem 1.5rem; font-size: 0.9rem;">
                     <i class="fas fa-comment-dots"></i> <strong>Conversation active</strong> - Vous pouvez répondre au client
                 </div>
             `;
         } else {
             htmlContent += `
-                <div style="background: #d4edda; padding: 1rem; border-radius: 5px; border-left: 4px solid #28a745; margin-top: 1rem;">
+                <div style="background: #d4edda; padding: 0.75rem 1rem; border-radius: 5px; border-left: 4px solid #28a745; margin: 0 1.5rem 1rem 1.5rem; font-size: 0.9rem;">
                     <i class="fas fa-check-circle"></i> <strong>Conversation clôturée</strong>
                 </div>
             `;
@@ -968,6 +1016,18 @@ async function showConversationDetails(conversationId) {
         closeConversationsAdminModal();
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
+        
+        // Activer le scroll automatique et faire défiler vers le bas
+        setTimeout(() => {
+            const messagesContainer = document.getElementById('messagesContainer');
+            if (messagesContainer) {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+            // Activer le ConversationUI si disponible
+            if (typeof ConversationUI !== 'undefined') {
+                ConversationUI.enableAutoScroll(conversationId);
+            }
+        }, 100);
     } catch (error) {
         console.error('Erreur:', error);
         toast.error('Erreur lors du chargement de la conversation.');
@@ -993,6 +1053,16 @@ function showReplyModal() {
     document.getElementById('conversationDetailsModal').classList.remove('active');
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
+    
+    // Initialiser l'interface améliorée si disponible
+    setTimeout(() => {
+        if (typeof ConversationUI !== 'undefined') {
+            if (!document.getElementById('keywordHelper')) {
+                ConversationUI.initEnhancedInterface();
+            }
+            ConversationUI.updatePreview();
+        }
+    }, 100);
 }
 
 function closeReplyModal() {
@@ -1079,7 +1149,12 @@ async function handleReplyConversation(event) {
             }
         }
         
-        await ConversationsManager.addMessage(currentConversationId, 'admin', replyMessage || '', attachments);
+        let processedMessage = replyMessage || '';
+        if (typeof ConversationEnhancer !== 'undefined') {
+            processedMessage = ConversationEnhancer.processKeywords(replyMessage || '');
+        }
+        
+        await ConversationsManager.addMessage(currentConversationId, 'admin', processedMessage, attachments);
         
         toast.success('Message envoyé avec succès !');
         closeReplyModal();

@@ -18,7 +18,7 @@ function getRedirectUri() {
     return `${origin}/callback.html`;
 }
 
-const DISCORD_CONFIG = {
+window.DISCORD_CONFIG = {
     clientId: '1431754840723423313',
     redirectUri: getRedirectUri(),
     scope: 'identify',
@@ -27,9 +27,17 @@ const DISCORD_CONFIG = {
         '1344790136629493832',
         '1146744331244412950',
         '375964979540525058',
-        '335853228736380938',
+        '335853228736380938'
+    ],
+    notificationIds: [
+        '317665879443767306',
+        '1344790136629493832',
+        '1146744331244412950',
+        '375964979540525058'
     ]
 };
+
+const DISCORD_CONFIG = window.DISCORD_CONFIG;
 
 const DISCORD_API = 'https://discord.com/api/v10';
 
