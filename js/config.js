@@ -45,6 +45,19 @@ window.SITE_CONFIG = {
     maintenanceMessage: "Nous effectuons une maintenance. Merci de revenir plus tard."
 };
 
+(function ensureFreshConfig(){
+    try{
+        if (!window.__CONFIG_REFRESHED__) {
+            window.__CONFIG_REFRESHED__ = true;
+            var s = document.createElement('script');
+            s.src = 'js/config.js?v=' + Date.now();
+            s.defer = true;
+            document.head.appendChild(s);
+            return; 
+        }
+    }catch(e){}
+})();
+
 (function enforceMaintenance() {
     try {
         if (!window.SITE_CONFIG || !window.SITE_CONFIG.maintenance) return;
