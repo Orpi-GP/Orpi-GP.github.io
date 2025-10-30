@@ -103,6 +103,30 @@ const ConversationsManager = {
         }
     },
 
+    async archiveConversation(conversationId) {
+        try {
+            await firebase.firestore().collection('conversations').doc(conversationId).update({
+                archived: true,
+                archivedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        } catch (error) {
+            console.error('Erreur lors de l\'archivage de la conversation:', error);
+            throw error;
+        }
+    },
+
+    async unarchiveConversation(conversationId) {
+        try {
+            await firebase.firestore().collection('conversations').doc(conversationId).update({
+                archived: false,
+                archivedAt: null
+            });
+        } catch (error) {
+            console.error('Erreur lors du désarchivage de la conversation:', error);
+            throw error;
+        }
+    },
+
     async getAll() {
         try {
             const snapshot = await firebase.firestore()

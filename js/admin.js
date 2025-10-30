@@ -516,6 +516,14 @@ async function loadConversationsAdmin(filter = 'all') {
             conversations = conversations.filter(c => c.type === filter);
         }
 
+        conversations.sort((a, b) => {
+            if (a.archived && !b.archived) return 1;
+            if (!a.archived && b.archived) return -1;
+            const dateA = a.lastUpdated ? a.lastUpdated.toDate() : new Date(0);
+            const dateB = b.lastUpdated ? b.lastUpdated.toDate() : new Date(0);
+            return dateB - dateA;
+        });
+
         if (conversations.length === 0) {
             list.innerHTML = '<p style="text-align: center; color: var(--text-color);">Aucune conversation.</p>';
             return;
@@ -547,7 +555,16 @@ async function loadConversationsAdmin(filter = 'all') {
                 '<span class="property-status-badge status-disponible"><i class="fas fa-comment-dots"></i> Active</span>' : 
                 '<span class="property-status-badge" style="background: #6c757d; color: white;"><i class="fas fa-check"></i> Clôturée</span>';
             
+            const archivedBadge = conv.archived ?
+                '<span class="property-status-badge" style="background: #9ca3af; color: white;"><i class="fas fa-archive"></i> Archivée</span>' :
+                '';
+            
             const messagesCount = conv.messages ? conv.messages.length : 0;
+            
+            if (conv.archived) {
+                div.style.opacity = '0.6';
+                div.style.background = '#f5f5f5';
+            }
             
             div.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 1rem; font-size: 1.5rem;">
@@ -566,6 +583,7 @@ async function loadConversationsAdmin(filter = 'all') {
                     <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                         ${!conv.read ? '<span class="property-status-badge" style="background: #ff9800; color: white;">Non lu</span>' : ''}
                         ${statusBadge}
+                        ${archivedBadge}
                     </div>
                 </div>
             `;
@@ -925,6 +943,8 @@ async function showConversationDetails(conversationId) {
         const replyBtn = document.getElementById('replyConversationBtn');
         const closeConvBtn = document.getElementById('closeConversationBtn');
         const reopenConvBtn = document.getElementById('reopenConversationBtn');
+        const archiveConvBtn = document.getElementById('archiveConversationBtn');
+        const unarchiveConvBtn = document.getElementById('unarchiveConversationBtn');
 
         if (conversation.status === 'open') {
             if (replyBtn) replyBtn.style.display = 'inline-flex';
@@ -934,6 +954,14 @@ async function showConversationDetails(conversationId) {
             if (replyBtn) replyBtn.style.display = 'none';
             if (closeConvBtn) closeConvBtn.style.display = 'none';
             if (reopenConvBtn) reopenConvBtn.style.display = 'inline-flex';
+        }
+
+        if (conversation.archived) {
+            if (archiveConvBtn) archiveConvBtn.style.display = 'none';
+            if (unarchiveConvBtn) unarchiveConvBtn.style.display = 'inline-flex';
+        } else {
+            if (archiveConvBtn) archiveConvBtn.style.display = 'inline-flex';
+            if (unarchiveConvBtn) unarchiveConvBtn.style.display = 'none';
         }
 
         await ConversationsManager.markAsRead(conversationId);
@@ -1104,6 +1132,40 @@ async function reopenConversation() {
     } catch (error) {
         console.error('Erreur:', error);
         toast.error('Erreur lors de la réouverture de la conversation');
+    }
+}
+
+async function archiveConversation() {
+    if (!currentConversationId) {
+        toast.error('Aucune conversation sélectionnée');
+        return;
+    }
+    
+    try {
+        await ConversationsManager.archiveConversation(currentConversationId);
+        toast.success('Conversation archivée avec succès');
+        await showConversationDetails(currentConversationId);
+        await loadConversationsAdmin(currentConversationFilter);
+    } catch (error) {
+        console.error('Erreur:', error);
+        toast.error('Erreur lors de l\'archivage de la conversation');
+    }
+}
+
+async function unarchiveConversation() {
+    if (!currentConversationId) {
+        toast.error('Aucune conversation sélectionnée');
+        return;
+    }
+    
+    try {
+        await ConversationsManager.unarchiveConversation(currentConversationId);
+        toast.success('Conversation désarchivée avec succès');
+        await showConversationDetails(currentConversationId);
+        await loadConversationsAdmin(currentConversationFilter);
+    } catch (error) {
+        console.error('Erreur:', error);
+        toast.error('Erreur lors du désarchivage de la conversation');
     }
 }
 
