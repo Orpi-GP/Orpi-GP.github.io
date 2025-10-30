@@ -66,6 +66,18 @@ async function loadDashboardMessaging(userId) {
                     navBadge.style.display = 'none';
                 }
             }
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const convId = urlParams.get('conv');
+            if (convId && conversations.find(c => c.id === convId)) {
+                setTimeout(() => {
+                    const messagingSection = document.querySelector('.dashboard-section:nth-child(2)');
+                    if (messagingSection) {
+                        messagingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                    selectConversation(convId);
+                }, 800);
+            }
         }
         
         if (conversationsUnsubscribe) {

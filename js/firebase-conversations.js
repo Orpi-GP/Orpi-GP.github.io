@@ -48,14 +48,22 @@ const ConversationsManager = {
                         const data = doc.data();
                         const discordId = data && data.data ? data.data.discordId : null;
                         if (discordId) {
-                            const link = `${window.location.origin}/mes-conversations.html?conv=${encodeURIComponent(conversationId)}`;
-                            const preview = (message || '').toString().slice(0, 300);
-                            const formatted = `📬 Vous avez reçu une réponse à votre conversation chez ORPI.\n\n${preview}\n\n🔗 Ouvrir la conversation: ${link}`;
+                            const dashboardLink = `${window.location.origin}/dashboard-client.html?conv=${encodeURIComponent(conversationId)}`;
+                            
                             const payload = {
                                 discordId: discordId,
-                                message: formatted,
+                                embed: {
+                                    title: '📬 Nouvelle réponse de ORPI',
+                                    description: 'Vous avez reçu une nouvelle réponse à votre conversation.\n\n[🔗 **Ouvrir la conversation**]('+dashboardLink+')',
+                                    color: 0x0099ff,
+                                    footer: {
+                                        text: `ID: ${conversationId}`
+                                    },
+                                    timestamp: new Date().toISOString()
+                                },
                                 attachments: Array.isArray(attachments) ? attachments.map(a => ({ name: a.name, url: a.url })) : []
                             };
+                            
                             const headers = { 'Content-Type': 'application/json' };
                             if (window.DISCORD_BOT_DM_TOKEN) {
                                 headers['Authorization'] = `Bearer ${window.DISCORD_BOT_DM_TOKEN}`;
