@@ -114,9 +114,7 @@ function updateUI() {
         }
         
         if (discordAuth.isAuthorized()) {
-            const guidePrixLink = document.getElementById('guidePrixLink');
             const tableauGeneralLink = document.getElementById('tableauGeneralLink');
-            if (guidePrixLink) guidePrixLink.style.display = 'block';
             if (tableauGeneralLink) tableauGeneralLink.style.display = 'block';
         }
     } else {
@@ -126,9 +124,7 @@ function updateUI() {
         if (adminPanel) adminPanel.style.display = 'none';
         if (dashboardLink) dashboardLink.style.display = 'none';
         
-        const guidePrixLink = document.getElementById('guidePrixLink');
         const tableauGeneralLink = document.getElementById('tableauGeneralLink');
-        if (guidePrixLink) guidePrixLink.style.display = 'none';
         if (tableauGeneralLink) tableauGeneralLink.style.display = 'none';
     }
 }

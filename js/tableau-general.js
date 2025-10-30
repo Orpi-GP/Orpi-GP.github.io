@@ -1,26 +1,74 @@
 let employeesData = [];
 let salesData = [];
+let statsCache = new Map();
+let cacheTimestamp = 0;
+const CACHE_TTL = 180000;
+
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Début chargement tableau général...');
     
+    const cachedData = loadFromCache();
+    if (cachedData) {
+        employeesData = cachedData.employees;
+        salesData = cachedData.sales;
+        statsCache = new Map(cachedData.stats);
+        displayTableau();
+    }
+    
     await loadTableauData();
     setupRealtimeListeners();
-    document.getElementById('refreshBtn')?.addEventListener('click', loadTableauData);
+    document.getElementById('refreshBtn')?.addEventListener('click', () => {
+        clearCache();
+        loadTableauData();
+    });
 });
+
+function loadFromCache() {
+    const cached = localStorage.getItem('orpi_tableau_cache');
+    const time = localStorage.getItem('orpi_tableau_cache_time');
+    if (!cached || !time) return null;
+    if (Date.now() - parseInt(time) > CACHE_TTL) return null;
+    try {
+        return JSON.parse(cached);
+    } catch (e) {
+        return null;
+    }
+}
+
+function saveToCache() {
+    const data = {
+        employees: employeesData,
+        sales: salesData,
+        stats: Array.from(statsCache.entries())
+    };
+    localStorage.setItem('orpi_tableau_cache', JSON.stringify(data));
+    localStorage.setItem('orpi_tableau_cache_time', Date.now().toString());
+}
+
+function clearCache() {
+    statsCache.clear();
+    localStorage.removeItem('orpi_tableau_cache');
+    localStorage.removeItem('orpi_tableau_cache_time');
+}
+
 function setupRealtimeListeners() {
     employeesDB.onSnapshot(async (employees) => {
         employeesData = employees;
+        clearCache();
         await loadTableauData();
     });
     firebase.firestore().collection('sales').onSnapshot(async () => {
+        clearCache();
         await loadTableauData();
     });
 }
+
 async function loadTableauData() {
     try {
         employeesData = await employeesDB.getAll();
         salesData = await salesDB.getAll();
         await displayTableau();
+        saveToCache();
     } catch (error) {
         console.error('Erreur lors du chargement des données:', error);
         showError('Erreur lors du chargement des données');
@@ -51,7 +99,13 @@ async function displayTableau() {
         salaireAVerser: 0
     };
     for (const employee of employeesData) {
-        const stats = await employeesDB.getStats(employee.id);
+        let stats;
+        if (statsCache.has(employee.id)) {
+            stats = statsCache.get(employee.id);
+        } else {
+            stats = await employeesDB.getStats(employee.id);
+            statsCache.set(employee.id, stats);
+        }
         const totalBenefices = stats.totalBenefice; 
         const totalVente = stats.totalCA; 
         const nbVente = stats.nombreVentes;

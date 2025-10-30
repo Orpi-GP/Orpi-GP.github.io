@@ -32,12 +32,11 @@
             min-height: 100vh;
             padding-top: 100px;
             padding-bottom: 60px;
-            background: var(--light-bg);
+            background: #f5f5f5;
         }
 
         .properties-header {
-            background: linear-gradient(135deg, var(--primary-color), #c20510);
-            color: white;
+            background: white;
             padding: 3rem 0;
             text-align: center;
             margin-bottom: 3rem;
@@ -46,24 +45,26 @@
         .properties-header h1 {
             font-size: 2.5rem;
             margin-bottom: 0.5rem;
+            color: #1a1a1a;
+            font-weight: 700;
         }
 
         .properties-header p {
             font-size: 1.2rem;
-            opacity: 0.95;
+            color: #666;
         }
 
         .properties-content {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 40px;
         }
 
         .properties-filters {
             background: white;
             padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: var(--shadow);
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
             margin-bottom: 2rem;
             display: flex;
             gap: 1rem;
@@ -80,15 +81,15 @@
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 600;
-            color: var(--secondary-color);
+            color: #1a1a1a;
         }
 
         .filter-group select,
         .filter-group input {
             width: 100%;
             padding: 0.75rem;
-            border: 2px solid var(--light-bg);
-            border-radius: 5px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
             font-size: 1rem;
         }
 
@@ -96,7 +97,7 @@
             text-align: center;
             margin-bottom: 2rem;
             font-size: 1.2rem;
-            color: var(--text-color);
+            color: #666;
         }
 
         .properties-count strong {
@@ -106,146 +107,281 @@
 
         .properties-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 2.5rem;
             margin-bottom: 2rem;
         }
 
         .property-card {
             background: white;
-            border-radius: 10px;
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
             cursor: pointer;
+            position: relative;
         }
 
         .property-card:hover {
-            transform: translateY(-10px);
-            box-shadow: var(--shadow-hover);
+            transform: translateY(-8px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .property-image-container {
+            position: relative;
+            width: 100%;
+            height: 280px;
+            overflow: hidden;
         }
 
         .property-image {
             width: 100%;
-            height: 250px;
+            height: 100%;
             object-fit: cover;
-            background: var(--light-bg);
+            transition: transform 0.3s ease;
+            background: #f0f0f0;
         }
 
-        .property-badge {
+        .property-card:hover .property-image {
+            transform: scale(1.05);
+        }
+
+        .property-image-overlay {
             position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: var(--primary-color);
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.1) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .property-image-overlay img {
+            width: 200px;
+            opacity: 0.15;
+        }
+
+        .property-exclusive-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: #E30613;
             color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            font-weight: 600;
-            font-size: 0.9rem;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            z-index: 2;
+        }
+
+        .property-favorite-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 45px;
+            height: 45px;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 2;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .property-favorite-btn:hover {
+            transform: scale(1.1);
+            background: #ffe6e6;
+        }
+
+        .property-favorite-btn i {
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .property-favorite-btn.active i {
+            color: #E30613;
         }
 
         .property-content {
-            padding: 1.5rem;
+            padding: 25px;
+            padding-bottom: 80px;
         }
 
-        .property-type {
-            color: var(--primary-color);
-            font-weight: 600;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .property-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--secondary-color);
-            margin-bottom: 0.5rem;
-        }
-
-        .property-location {
-            color: var(--text-color);
-            margin-bottom: 1rem;
+        .property-price-container {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            right: 15px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 12px;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 0.5rem;
-        }
-
-        .property-location i {
-            color: var(--primary-color);
-        }
-
-        .property-details {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--light-bg);
-        }
-
-        .property-detail {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-color);
-        }
-
-        .property-detail i {
-            color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 2;
         }
 
         .property-price {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #1a1a1a;
+            line-height: 1.2;
+        }
+
+        .property-price-detail {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .property-status-badge {
+            background: #4caf50;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 6px;
             font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 1rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
         }
 
-        .property-footer {
-            display: flex;
-            gap: 0.5rem;
+        .property-info {
+            margin-bottom: 15px;
         }
 
-        .property-btn {
-            flex: 1;
-            padding: 0.75rem;
-            border: none;
-            border-radius: 5px;
+        .property-type-text {
+            font-size: 0.95rem;
+            color: #1a1a1a;
             font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .property-location {
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .property-location i {
+            color: #E30613;
+            font-size: 1rem;
+        }
+
+        .property-contact-btn {
+            position: absolute;
+            bottom: 25px;
+            right: 25px;
+            width: 50px;
+            height: 50px;
+            background: #E30613;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            transition: var(--transition);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(227,6,19,0.3);
         }
 
-        .btn-view {
-            background: var(--primary-color);
+        .property-contact-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 18px rgba(227,6,19,0.4);
+        }
+
+        .property-contact-btn i {
             color: white;
+            font-size: 1.2rem;
         }
 
-        .btn-view:hover {
-            background: #c20510;
-        }
-
-        .btn-contact {
-            background: var(--light-bg);
-            color: var(--text-color);
-        }
-
-        .btn-contact:hover {
-            background: #5865F2;
+        .property-view-more {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(227, 6, 19, 0.95);
             color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(227, 6, 19, 0.4);
+        }
+
+        .property-card:hover .property-view-more {
+            opacity: 1;
+        }
+
+        .property-view-more i {
+            font-size: 1.2rem;
         }
 
         .no-properties {
             text-align: center;
             padding: 4rem 2rem;
             background: white;
-            border-radius: 10px;
-            box-shadow: var(--shadow);
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
         .no-properties i {
             font-size: 4rem;
             color: var(--primary-color);
             margin-bottom: 1rem;
+        }
+
+        .properties-loading {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #E30613;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1.2rem;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .loading-subtext {
+            font-size: 0.95rem;
+            color: #999;
+            margin-top: 0.5rem;
         }
 
         .no-properties h2 {
@@ -523,8 +659,55 @@
         }
 
         .property-modal-actions {
-            display: flex;
-            gap: 1rem;
+            margin-top: 2.5rem;
+        }
+
+        .property-modal-actions .property-btn {
+            width: 100%;
+            padding: 1.2rem 2.5rem;
+            font-size: 1.15rem;
+            border-radius: 12px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            background: #E30613;
+            border: none;
+            color: white;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.5px;
+            text-transform: none;
+        }
+
+        .property-modal-actions .property-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .property-modal-actions .property-btn:hover::before {
+            left: 100%;
+        }
+
+        .property-modal-actions .property-btn:hover {
+            background: #c20510;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(227, 6, 19, 0.4);
+        }
+
+        .property-modal-actions .property-btn:active {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(227, 6, 19, 0.3);
+        }
+
+        .property-modal-actions .property-btn i {
+            margin-right: 10px;
+            font-size: 1.3rem;
         }
 
         @media (max-width: 768px) {
@@ -598,9 +781,6 @@
                 <li class="nav-item">
                     <a href="contact.html" class="nav-link">Contact</a>
                 </li>
-                <li class="nav-item" id="guidePrixLink" style="display: none;">
-                    <a href="guide-prix.html" class="nav-link">Guide Prix</a>
-                </li>
                 <li class="nav-item" id="tableauGeneralLink" style="display: none;">
                     <a href="tableau-general.html" class="nav-link">Tableau</a>
                 </li>
@@ -670,7 +850,13 @@
                 <strong id="propertiesCount">0</strong> bien(s) disponible(s)
             </div>
 
-                        <div id="propertiesGrid" class="properties-grid">
+                        <div id="propertiesLoading" class="properties-loading">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Chargement des biens...</div>
+                <div class="loading-subtext">Veuillez patienter</div>
+            </div>
+
+                        <div id="propertiesGrid" class="properties-grid" style="display: none;">
                             </div>
 
                         <div id="noProperties" class="no-properties" style="display: none;">
@@ -761,7 +947,7 @@
                 <p class="property-modal-description" id="modalDescription"></p>
                 
                 <div class="property-modal-actions">
-                    <button class="property-btn btn-view" style="flex: 1;" onclick="contacterAgence()">
+                    <button class="property-btn btn-view" onclick="contacterAgence()">
                         <i class="fas fa-envelope"></i> Contacter l'agence
                     </button>
                 </div>

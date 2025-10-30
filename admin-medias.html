@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Médias - ORPI Paris</title>
+    <link rel="icon" type="image/png" href="images.png">
+    <script src="js/suppress-warnings.js"></script>
+    <script>
+        window.BUILD_V = Math.floor(Date.now() / 3600000);
+        document.write('<link rel="stylesheet" href="css/styles.css?v=' + window.BUILD_V + '">');
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <script>
+        document.write('<script src="js/config.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/cloudinary-config.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/theme.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/auth.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-config.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-theme.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-properties.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/firebase-interieurs.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/toast-notifications.js?v=' + window.BUILD_V + '"><\/script>');
+        document.write('<script src="js/page-loader.js?v=' + window.BUILD_V + '"><\/script>');
+    </script>
+    <style>
+        .admin-container {
+            min-height: 100vh;
+            padding-top: 100px;
+            background: var(--light-bg);
+        }
+        .admin-header {
+            background: linear-gradient(135deg, var(--primary-color), #c20510);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .admin-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .admin-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 2rem 2rem;
+        }
+        .media-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .stat-card h3 {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        .filters-bar {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        .filter-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+        .media-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .media-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .media-image-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background: #f0f0f0;
+            overflow: hidden;
+        }
+        .media-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .media-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #4caf50;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .media-badge.used {
+            background: #2196f3;
+        }
+        .media-badge.unused {
+            background: #ff9800;
+        }
+        .media-info {
+            padding: 1rem;
+        }
+        .media-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .media-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+        .media-usage {
+            font-size: 0.85rem;
+            color: #333;
+            margin-bottom: 1rem;
+            min-height: 40px;
+        }
+        .media-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        .btn-view {
+            background: #2196f3;
+            color: white;
+        }
+        .btn-view:hover {
+            background: #1976d2;
+        }
+        .btn-delete {
+            background: #f44336;
+            color: white;
+        }
+        .btn-delete:hover {
+            background: #d32f2f;
+        }
+        .loading-state {
+            text-align: center;
+            padding: 4rem;
+            color: #666;
+        }
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .empty-state {
+            text-align: center;
+            padding: 4rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .empty-state i {
+            font-size: 4rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="pageLoader" class="page-loader">
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <div class="loader-text">ORPI Admin</div>
+        </div>
+    </div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="images/logo-orpi-mandelieu.png" alt="ORPI Logo">
+                <span>ORPI Paris</span>
+            </div>
+            <button class="nav-toggle" id="navToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">Accueil</a>
+                </li>
+                <li class="nav-item">
+                    <a href="admin.html" class="nav-link">Panel Admin</a>
+                </li>
+            </ul>
+            <div class="user-profile" id="userProfile" style="display: none;">
+                <img id="userAvatar" src="" alt="Avatar" class="user-avatar">
+                <span id="userName" class="user-name"></span>
+                <button onclick="logout()" class="logout-btn" title="Déconnexion">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1><i class="fas fa-images"></i> Gestion des Médias</h1>
+            <p>Gérez toutes vos images du site</p>
+        </div>
+
+        <div class="admin-content">
+            <div class="media-stats">
+                <div class="stat-card">
+                    <h3>Total Images</h3>
+                    <div class="value" id="totalImages">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Images Utilisées</h3>
+                    <div class="value" id="usedImages">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Images Non Utilisées</h3>
+                    <div class="value" id="unusedImages">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Stockage Total</h3>
+                    <div class="value" id="totalStorage">0 MB</div>
+                </div>
+            </div>
+
+            <div class="filters-bar">
+                <div class="filter-group">
+                    <label for="filterStatus">Statut</label>
+                    <select id="filterStatus" onchange="applyFilters()">
+                        <option value="all">Toutes</option>
+                        <option value="used">Utilisées</option>
+                        <option value="unused">Non utilisées</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterSearch">Recherche</label>
+                    <input type="text" id="filterSearch" placeholder="Nom de fichier..." oninput="applyFilters()">
+                </div>
+                <div class="filter-group">
+                    <label>&nbsp;</label>
+                    <button class="btn btn-view" onclick="refreshMedias()" style="height: 48px;">
+                        <i class="fas fa-sync"></i> Actualiser
+                    </button>
+                </div>
+                <div class="filter-group" style="min-width: 280px;">
+                    <label>Actions groupées</label>
+                    <div style="display:flex; gap: .5rem; align-items:center;">
+                        <button class="btn" onclick="toggleSelectAll()" style="background:#eee;">Tout sélectionner</button>
+                        <button class="btn btn-delete" onclick="bulkDelete()"><i class="fas fa-trash"></i> Supprimer la sélection</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="loadingState" class="loading-state">
+                <div class="loading-spinner"></div>
+                <p>Chargement des médias...</p>
+            </div>
+
+            <div id="mediaGrid" class="media-grid" style="display: none;"></div>
+
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <i class="fas fa-images"></i>
+                <h2>Aucune image</h2>
+                <p>Aucune image n'a été trouvée</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const v2 = Date.now();
+        document.write('<script src="js/admin-medias.js?v=' + v2 + '"><\/script>');
+    </script>
+</body>
+</html>
+

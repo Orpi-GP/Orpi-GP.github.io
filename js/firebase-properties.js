@@ -2,8 +2,59 @@ class FirebasePropertyManager {
     constructor() {
         this.collection = COLLECTIONS.PROPERTIES;
         this.listeners = [];
+        this.cache = {
+            data: null,
+            timestamp: null,
+            ttl: 5 * 60 * 1000
+        };
     }
+    
     async getAll() {
+        try {
+            const cachedData = this.getCachedData();
+            if (cachedData) {
+                this.updateCacheInBackground();
+                return cachedData;
+            }
+            
+            const snapshot = await db.collection(this.collection)
+                .orderBy('createdAt', 'desc')
+                .get();
+            const properties = [];
+            snapshot.forEach(doc => {
+                properties.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
+            });
+            
+            this.setCacheData(properties);
+            return properties;
+        } catch (error) {
+            console.error('Erreur lors de la récupération des biens:', error);
+            return this.cache.data || [];
+        }
+    }
+    
+    getCachedData() {
+        if (!this.cache.data || !this.cache.timestamp) {
+            return null;
+        }
+        
+        const now = Date.now();
+        if (now - this.cache.timestamp < this.cache.ttl) {
+            return this.cache.data;
+        }
+        
+        return null;
+    }
+    
+    setCacheData(data) {
+        this.cache.data = data;
+        this.cache.timestamp = Date.now();
+    }
+    
+    async updateCacheInBackground() {
         try {
             const snapshot = await db.collection(this.collection)
                 .orderBy('createdAt', 'desc')
@@ -15,11 +66,15 @@ class FirebasePropertyManager {
                     ...doc.data()
                 });
             });
-            return properties;
+            this.setCacheData(properties);
         } catch (error) {
-            console.error('Erreur lors de la récupération des biens:', error);
-            return [];
+            console.error('Erreur mise à jour cache:', error);
         }
+    }
+    
+    clearCache() {
+        this.cache.data = null;
+        this.cache.timestamp = null;
     }
     async getById(id) {
         try {
@@ -44,6 +99,7 @@ class FirebasePropertyManager {
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             const docRef = await db.collection(this.collection).add(newProperty);
+            this.clearCache();
             return {
                 id: docRef.id,
                 ...newProperty,
@@ -61,6 +117,7 @@ class FirebasePropertyManager {
                 ...updatedProperty,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
+            this.clearCache();
             return await this.getById(id);
         } catch (error) {
             console.error('Erreur lors de la modification du bien:', error);
@@ -70,6 +127,7 @@ class FirebasePropertyManager {
     async delete(id) {
         try {
             await db.collection(this.collection).doc(id).delete();
+            this.clearCache();
             return true;
         } catch (error) {
             console.error('Erreur lors de la suppression du bien:', error);

@@ -1,0 +1,2 @@
+(function(){const w=console.warn;const e=console.error;console.warn=function(...a){const m=a.join(' ');if(m.includes('DOMNodeInserted')||m.includes('DOMContentLoaded')||m.includes('mutation')||m.includes('scroll.js')||m.includes('5083947249')){return;}w.apply(console,a);};console.error=function(...a){const m=a.join(' ');if(m.includes('DOMNodeInserted')||m.includes('DOMContentLoaded')||m.includes('mutation')||m.includes('scroll.js')||m.includes('5083947249')){return;}e.apply(console,a);};})();
+

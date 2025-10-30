@@ -2,15 +2,41 @@ let tousLesBiens = [];
 let biensFiltres = [];
 
 async function chargerBiens() {
-    tousLesBiens = await propertyManager.getAll();
-    biensFiltres = tousLesBiens;
-    afficherBiens(biensFiltres);
-    mettreAJourCompteurBiens();
+    const cached = localStorage.getItem('orpi_biens_cache');
+    const cacheTime = localStorage.getItem('orpi_biens_cache_time');
+    const now = Date.now();
+    
+    if (cached && cacheTime && (now - parseInt(cacheTime)) < 300000) {
+        tousLesBiens = JSON.parse(cached);
+        biensFiltres = tousLesBiens;
+        afficherBiens(biensFiltres);
+        mettreAJourCompteurBiens();
+        
+        propertyManager.getAll().then(biens => {
+            if (JSON.stringify(biens) !== cached) {
+                tousLesBiens = biens;
+                biensFiltres = biens;
+                localStorage.setItem('orpi_biens_cache', JSON.stringify(biens));
+                localStorage.setItem('orpi_biens_cache_time', now.toString());
+                afficherBiens(biensFiltres);
+                mettreAJourCompteurBiens();
+            }
+        });
+    } else {
+        tousLesBiens = await propertyManager.getAll();
+        biensFiltres = tousLesBiens;
+        localStorage.setItem('orpi_biens_cache', JSON.stringify(tousLesBiens));
+        localStorage.setItem('orpi_biens_cache_time', now.toString());
+        afficherBiens(biensFiltres);
+        mettreAJourCompteurBiens();
+    }
 }
 
 function configurerEcouteTempsReel() {
     propertyManager.onSnapshot(biens => {
         tousLesBiens = biens;
+        localStorage.setItem('orpi_biens_cache', JSON.stringify(biens));
+        localStorage.setItem('orpi_biens_cache_time', Date.now().toString());
         filtrerBiens();
     });
 }
@@ -18,6 +44,9 @@ function configurerEcouteTempsReel() {
 function afficherBiens(biens) {
     const grille = document.getElementById('propertiesGrid');
     const aucunBien = document.getElementById('noProperties');
+    const chargement = document.getElementById('propertiesLoading');
+
+    if (chargement) chargement.style.display = 'none';
 
     if (biens.length === 0) {
         grille.style.display = 'none';
@@ -40,61 +69,59 @@ function creerCarteBien(bien) {
     carte.className = 'property-card';
     carte.onclick = () => voirBien(bien.id);
 
-    const detailsHTML = [];
-    if (bien.rooms) {
-        detailsHTML.push(`
-            <div class="property-detail">
-                <i class="fas fa-bed"></i>
-                <span>${bien.rooms} pièces</span>
-            </div>
-        `);
-    }
-    if (bien.area) {
-        detailsHTML.push(`
-            <div class="property-detail">
-                <i class="fas fa-ruler-combined"></i>
-                <span>${bien.area} m²</span>
-            </div>
-        `);
-    }
-
     const premiereImage = bien.images ? bien.images[0] : bien.image;
     const nombreImages = bien.images ? bien.images.length : 1;
-    const statut = bien.status || 'Disponible';
+    const statut = bien.status || 'VENTE';
+    const prixM2 = bien.area ? Math.round(bien.price / bien.area) : 0;
     
-    let couleurBadge = '#28a745';
-    if (statut === 'Réservé') couleurBadge = '#ffc107';
-    else if (statut === 'Vendu') couleurBadge = '#dc3545';
-    else if (statut === 'En négociation') couleurBadge = '#17a2b8';
-
+    const estExclusif = bien.exclusive || false;
+    
+    const favoris = JSON.parse(localStorage.getItem('favorites') || '[]');
+    const estFavori = favoris.includes(bien.id);
+    
     carte.innerHTML = `
-        <div style="position: relative;">
-            <img src="${premiereImage}" alt="${bien.title}" class="property-image">
-            <div class="property-badge">${bien.type}</div>
-            <div style="position: absolute; top: 10px; left: 10px; background: ${couleurBadge}; color: white; padding: 0.5rem 1rem; border-radius: 5px; font-weight: 600; font-size: 0.9rem;">
-                ${statut}
+        <div class="property-image-container">
+            <img src="${premiereImage}" alt="${bien.title}" class="property-image" loading="lazy">
+            <div class="property-image-overlay">
+                <img src="images/logo-orpi-mandelieu.png" alt="ORPI" loading="lazy">
             </div>
-            ${nombreImages > 1 ? `<div style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 0.5rem; border-radius: 5px; font-size: 0.9rem;">
-                <i class="fas fa-images"></i> ${nombreImages}
-            </div>` : ''}
+            
+            ${estExclusif ? '<div class="property-exclusive-badge">EXCLUSIVITÉ</div>' : ''}
+            
+            <button class="property-favorite-btn ${estFavori ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite('${bien.id}', this)">
+                <i class="fas fa-heart"></i>
+            </button>
+            
+            <div class="property-view-more">
+                <i class="fas fa-eye"></i>
+                <span>Voir plus</span>
+            </div>
+            
+            <div class="property-price-container">
+                <div>
+                    <div class="property-price">${formatPrice(bien.price)}</div>
+                    ${prixM2 > 0 ? `<div class="property-price-detail">Soit ${formatPrice(prixM2)}/m²</div>` : ''}
+                </div>
+                <div class="property-status-badge">${statut}</div>
+            </div>
         </div>
+        
         <div class="property-content">
-            <div class="property-type">${bien.type}</div>
-            <h3 class="property-title">${bien.title}</h3>
-            <div class="property-location">
-                <i class="fas fa-map-marker-alt"></i>
-                <span>${bien.location}</span>
+            <div class="property-info">
+                <div class="property-type-text">
+                    Achat ${bien.type} 
+                    ${bien.rooms ? `<strong>${bien.rooms} pièces</strong>` : ''} 
+                    ${bien.area ? `<strong>${bien.area} m²</strong>` : ''}
+                </div>
+                <div class="property-location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>${bien.location}</span>
+                </div>
             </div>
-            ${detailsHTML.length > 0 ? `<div class="property-details">${detailsHTML.join('')}</div>` : ''}
-            <div class="property-price">${formatPrice(bien.price)}</div>
-            <div class="property-footer">
-                <button class="property-btn btn-view" onclick="event.stopPropagation(); voirBien('${bien.id}')">
-                    <i class="fas fa-eye"></i> Voir
-                </button>
-                <button class="property-btn btn-contact" onclick="event.stopPropagation(); contacterAgence()">
-                    <i class="fas fa-envelope"></i> Contact
-                </button>
-            </div>
+            
+            <button class="property-contact-btn" onclick="event.stopPropagation(); contacterAgence()">
+                <i class="fas fa-envelope"></i>
+            </button>
         </div>
     `;
 
@@ -258,7 +285,23 @@ function contacterAgence() {
     window.location.href = 'contact.html';
 }
 
+function toggleFavorite(bienId, bouton) {
+    let favoris = JSON.parse(localStorage.getItem('favorites') || '[]');
+    const index = favoris.indexOf(bienId);
+    
+    if (index === -1) {
+        favoris.push(bienId);
+        bouton.classList.add('active');
+    } else {
+        favoris.splice(index, 1);
+        bouton.classList.remove('active');
+    }
+    
+    localStorage.setItem('favorites', JSON.stringify(favoris));
+}
+
 window.contacterAgence = contacterAgence;
+window.toggleFavorite = toggleFavorite;
 
 document.addEventListener('DOMContentLoaded', () => {
     updateUI();

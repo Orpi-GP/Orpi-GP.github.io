@@ -49,7 +49,7 @@ const themeManager = {
     },
 
     addHalloweenEffects() {
-        if (document.getElementById('halloween-decorations')) return;
+        if (!document.body || document.getElementById('halloween-decorations')) return;
         
         const container = document.createElement('div');
         container.id = 'halloween-decorations';
@@ -100,7 +100,7 @@ const themeManager = {
     },
 
     addChristmasEffects() {
-        if (document.getElementById('christmas-decorations')) return;
+        if (!document.body || document.getElementById('christmas-decorations')) return;
         
         const container = document.createElement('div');
         container.id = 'christmas-decorations';
@@ -239,18 +239,27 @@ const themeManager = {
     async init() {
         this.removeThemeEffects();
         
+        const cachedTheme = localStorage.getItem('orpi_theme') || 'default';
+        this.applyTheme(cachedTheme);
+        THEME_CONFIG.activeTheme = cachedTheme;
+        
         if (typeof getActiveTheme === 'function') {
             const activeTheme = await getActiveTheme();
-            THEME_CONFIG.activeTheme = activeTheme;
-            this.applyTheme(activeTheme);
+            
+            if (activeTheme !== cachedTheme) {
+                localStorage.setItem('orpi_theme', activeTheme);
+                this.removeThemeEffects();
+                THEME_CONFIG.activeTheme = activeTheme;
+                this.applyTheme(activeTheme);
+            }
             
             if (typeof listenToThemeChanges === 'function') {
                 listenToThemeChanges((newTheme) => {
                     if (newTheme !== THEME_CONFIG.activeTheme) {
+                        localStorage.setItem('orpi_theme', newTheme);
                         this.removeThemeEffects();
                         THEME_CONFIG.activeTheme = newTheme;
                         this.applyTheme(newTheme);
-                        console.log('Thème mis à jour en temps réel :', newTheme);
                     }
                 });
             }
@@ -259,6 +268,14 @@ const themeManager = {
         }
     }
 };
+
+const cachedTheme = localStorage.getItem('orpi_theme') || 'default';
+const theme = themeManager.themes[cachedTheme] || themeManager.themes.default;
+const root = document.documentElement;
+root.style.setProperty('--primary-color', theme.primaryColor);
+root.style.setProperty('--secondary-color', theme.secondaryColor);
+root.style.setProperty('--light-bg', theme.lightBg);
+root.style.setProperty('--text-color', theme.textColor);
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => themeManager.init());
