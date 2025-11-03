@@ -322,8 +322,34 @@ function closeDeclarationDetailsModal() {
 }
 
 function shareDeclaration(declarationId) {
-    // Générer l'URL de partage
-    const declarationUrl = declarationsDB.getDeclarationUrl(declarationId);
+    let declarationUrl;
+    
+    // Vérifier que la méthode existe (protection contre le cache)
+    if (!declarationsDB || typeof declarationsDB.getDeclarationUrl !== 'function') {
+        // Fallback: générer l'URL manuellement
+        const hostname = window.location.hostname;
+        const origin = window.location.origin;
+        
+        if (hostname.includes('github.io')) {
+            const parts = hostname.split('.');
+            if (parts.length === 3 && parts[0] !== 'www') {
+                declarationUrl = `${origin}/declaration-partage.html?id=${declarationId}`;
+            } else {
+                const pathname = window.location.pathname;
+                const pathParts = pathname.split('/').filter(p => p && !p.includes('.'));
+                const repoName = pathParts[0] || '';
+                const baseUrl = repoName ? `${origin}/${repoName}` : origin;
+                declarationUrl = `${baseUrl}/declaration-partage.html?id=${declarationId}`;
+            }
+        } else {
+            declarationUrl = `${origin}/declaration-partage.html?id=${declarationId}`;
+        }
+        
+        console.warn('getDeclarationUrl non disponible, utilisation du fallback. Rechargez la page (F5) pour la dernière version.');
+    } else {
+        // Générer l'URL de partage
+        declarationUrl = declarationsDB.getDeclarationUrl(declarationId);
+    }
     
     // Créer un modal pour afficher le lien
     const modal = document.createElement('div');
@@ -413,4 +439,9 @@ function formatCurrency(amount) {
 document.addEventListener('DOMContentLoaded', () => {
     updateEmployeeCount();
     updateDeclarationCount();
+    
+    // Vérifier que firebase-declarations.js est bien chargé avec la nouvelle méthode
+    if (typeof declarationsDB !== 'undefined' && typeof declarationsDB.getDeclarationUrl !== 'function') {
+        console.warn('⚠️ firebase-declarations.js semble être en cache. Rechargez la page (Ctrl+F5) pour obtenir la dernière version.');
+    }
 });
