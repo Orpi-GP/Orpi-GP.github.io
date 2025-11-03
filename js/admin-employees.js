@@ -255,7 +255,12 @@ async function showDeclarationDetails(declarationId) {
         }) : 'N/A';
         let html = `
             <div style="margin-bottom: 2rem;">
-                <h2 style="color: var(--primary-color); margin-bottom: 1rem;">${declaration.periodeName}</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2 style="color: var(--primary-color); margin: 0;">${declaration.periodeName}</h2>
+                    <button onclick="shareDeclaration('${declaration.id}')" class="btn btn-primary" style="padding: 0.5rem 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-share-alt"></i> Partager
+                    </button>
+                </div>
                 <p style="color: var(--text-color); margin-bottom: 0.5rem;"><strong>Date de clôture:</strong> ${date}</p>
                 <p style="color: var(--text-color); margin-bottom: 0.5rem;"><strong>Nombre d'employés:</strong> ${declaration.totalEmployees}</p>
                 <p style="color: var(--text-color); margin-bottom: 0.5rem;"><strong>Total ventes:</strong> ${declaration.totalVentes}</p>
@@ -314,6 +319,74 @@ async function showDeclarationDetails(declarationId) {
 function closeDeclarationDetailsModal() {
     document.getElementById('declarationDetailsModal').classList.remove('active');
     document.body.style.overflow = '';
+}
+
+function shareDeclaration(declarationId) {
+    // Générer l'URL de partage
+    const declarationUrl = declarationsDB.getDeclarationUrl(declarationId);
+    
+    // Créer un modal pour afficher le lien
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 2rem;';
+    modal.innerHTML = `
+        <div style="background: white; padding: 2rem; border-radius: 10px; max-width: 600px; width: 100%;">
+            <h2 style="color: var(--primary-color); margin-bottom: 1rem;">
+                <i class="fas fa-share-alt"></i> Partager la déclaration
+            </h2>
+            <p style="margin-bottom: 1rem;">Partagez ce lien avec n'importe qui pour afficher le récapitulatif :</p>
+            <div style="background: #f3f4f6; padding: 1rem; border-radius: 5px; margin-bottom: 1rem; word-break: break-all;">
+                <code id="declarationUrlText">${declarationUrl}</code>
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <button id="copyDeclarationBtn" class="btn btn-primary">
+                    <i class="fas fa-copy"></i> Copier le lien
+                </button>
+                <button id="openDeclarationBtn" class="btn btn-secondary">
+                    <i class="fas fa-external-link-alt"></i> Ouvrir
+                </button>
+                <button id="closeDeclarationModalBtn" class="btn btn-secondary">
+                    Fermer
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    // Ajouter les event listeners
+    document.getElementById('copyDeclarationBtn').addEventListener('click', () => {
+        copyDeclarationUrl(declarationUrl);
+    });
+    document.getElementById('openDeclarationBtn').addEventListener('click', () => {
+        openDeclarationPage(declarationUrl);
+    });
+    document.getElementById('closeDeclarationModalBtn').addEventListener('click', () => {
+        modal.remove();
+    });
+}
+
+function copyDeclarationUrl(url) {
+    navigator.clipboard.writeText(url).then(() => {
+        toast.success('Lien copié dans le presse-papiers !');
+    }).catch(() => {
+        // Fallback pour les navigateurs qui ne supportent pas l'API Clipboard
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            toast.success('Lien copié dans le presse-papiers !');
+        } catch (err) {
+            toast.error('Impossible de copier le lien');
+        }
+        document.body.removeChild(textArea);
+    });
+}
+
+function openDeclarationPage(url) {
+    window.open(url, '_blank');
 }
 async function deleteDeclaration(declarationId) {
     if (!confirm('⚠️ Êtes-vous sûr de vouloir supprimer cette déclaration de l\'historique ?')) {

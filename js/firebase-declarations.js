@@ -156,5 +156,24 @@ const declarationsDB = {
                 }));
                 callback(declarations);
             });
+    },
+    getDeclarationUrl(declarationId) {
+        const hostname = window.location.hostname;
+        const origin = window.location.origin;
+        
+        if (hostname.includes('github.io')) {
+            const parts = hostname.split('.');
+            if (parts.length === 3 && parts[0] !== 'www') {
+                return `${origin}/declaration-partage.html?id=${declarationId}`;
+            }
+            
+            const pathname = window.location.pathname;
+            const pathParts = pathname.split('/').filter(p => p && !p.includes('.'));
+            const repoName = pathParts[0] || '';
+            const baseUrl = repoName ? `${origin}/${repoName}` : origin;
+            return `${baseUrl}/declaration-partage.html?id=${declarationId}`;
+        }
+        
+        return `${origin}/declaration-partage.html?id=${declarationId}`;
     }
 };
