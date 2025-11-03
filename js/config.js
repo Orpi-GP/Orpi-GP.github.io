@@ -23,10 +23,10 @@ window.DISCORD_CONFIG = {
     redirectUri: getRedirectUri(),
     scope: 'identify',
     authorizedIds: [
-        '317665879443767306',
-        '1344790136629493832',
-        '1146744331244412950',
-        '375964979540525058',
+        '317665879443767306', // Lucas Wright
+        '1344790136629493832', // Emily Wright
+        '1146744331244412950', // Tom Wright
+        '375964979540525058', // Lenny Guivarsh
         '335853228736380938'
     ]
 };
@@ -36,7 +36,7 @@ const DISCORD_CONFIG = window.DISCORD_CONFIG;
 const DISCORD_API = 'https://discord.com/api/v10';
 
 const THEME_CONFIG = {
-    activeTheme: 'halloween'
+    activeTheme: 'default'
 };
 
 

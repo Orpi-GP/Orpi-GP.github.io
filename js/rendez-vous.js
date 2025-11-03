@@ -195,6 +195,7 @@ async function handleAppointmentSubmit(e) {
         date: formData.get('selectedDate'),
         time: formData.get('selectedTime'),
         employeeId: formData.get('selectedEmployee'),
+        employeeName: selectedTimeSlot?.employeeName || null,
         clientName: formData.get('clientName'),
         clientPhone: formData.get('clientPhone'),
         type: formData.get('appointmentType'),

@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const user = discordAuth.getUser();
             const formData = {
                 discordId: user.id,
+                email: document.getElementById('email').value,
                 phone: document.getElementById('phone').value,
                 message: document.getElementById('message').value || 'Aucun message'
             };

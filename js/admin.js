@@ -8,6 +8,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+
 document.addEventListener('DOMContentLoaded', () => {
     updateUI();
     
@@ -24,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             showAppointmentsCard();
             loadReviewsCount();
+            updateUserNamesFromConfig();
         }, 500);
         
         if (window.location.hash === '#conversations') {
@@ -852,6 +854,7 @@ async function showConversationDetails(conversationId) {
             <div style="background: var(--light-bg); padding: 1rem; border-radius: 5px; margin: 1rem 1.5rem;">
                 <h3 style="margin-bottom: 0.75rem; color: var(--secondary-color); font-size: 1rem;">Informations du contact</h3>
                 <p style="margin: 0.25rem 0;"><strong>ID Discord:</strong> ${escapeHtml(conversation.data?.discordId || 'Non renseigné')}</p>
+                <p style="margin: 0.25rem 0;"><strong>Email:</strong> ${escapeHtml(conversation.data?.email || 'Non renseigné')}</p>
                 <p style="margin: 0.25rem 0;"><strong>Téléphone:</strong> ${escapeHtml(conversation.data?.phone || 'Non renseigné')}</p>
             </div>
         `;
@@ -1154,7 +1157,19 @@ async function handleReplyConversation(event) {
             processedMessage = ConversationEnhancer.processKeywords(replyMessage || '');
         }
         
+        const conversations = await ConversationsManager.getAll();
+        const conversation = conversations.find(c => c.id === currentConversationId);
+        const clientEmail = conversation?.data?.email;
+        
         await ConversationsManager.addMessage(currentConversationId, 'admin', processedMessage, attachments);
+        
+        if (clientEmail && typeof EmailService !== 'undefined') {
+            try {
+                await EmailService.sendReplyNotification(clientEmail, processedMessage, conversation?.type || 'contact');
+            } catch (emailError) {
+                console.warn('Email non envoyé (non critique):', emailError);
+            }
+        }
         
         toast.success('Message envoyé avec succès !');
         closeReplyModal();

@@ -8,6 +8,33 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+async function sendPendingAppointmentsNotifications() {
+    if (!confirm('Voulez-vous envoyer des notifications Discord pour tous les rendez-vous en attente ?')) {
+        return;
+    }
+    
+    const btn = document.querySelector('button[onclick*="sendPendingAppointmentsNotifications"]');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
+    
+    try {
+        const result = await AppointmentsManager.sendNotificationsForPendingAppointments();
+        
+        if (result.success) {
+            toast.success(`Notifications envoyées avec succès ! ${result.count} notification(s) envoyée(s).`);
+        } else {
+            toast.error(`Erreur: ${result.error || 'Impossible d\'envoyer les notifications'}`);
+        }
+    } catch (error) {
+        console.error('Erreur lors de l\'envoi des notifications:', error);
+        toast.error('Erreur lors de l\'envoi des notifications');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     checkAdminAuth();
     loadAppointments();

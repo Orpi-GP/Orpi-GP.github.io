@@ -75,69 +75,13 @@
                 </button>
             </div>
 
-            <div class="availability-grid">
-                <div class="day-column" data-day="1">
-                    <div class="day-header">
-                        <h3>Lundi</h3>
-                    </div>
-                    <div class="slots-container" id="slots-1">
-                        <div class="loading">Chargement...</div>
-                    </div>
-                </div>
+            <div class="availability-filter">
+                <label for="availabilityMonthFilter">Filtrer par mois :</label>
+                <input type="month" id="availabilityMonthFilter" class="month-filter">
+            </div>
 
-                <div class="day-column" data-day="2">
-                    <div class="day-header">
-                        <h3>Mardi</h3>
-                    </div>
-                    <div class="slots-container" id="slots-2">
-                        <div class="loading">Chargement...</div>
-                    </div>
-                </div>
-
-                <div class="day-column" data-day="3">
-                    <div class="day-header">
-                        <h3>Mercredi</h3>
-                    </div>
-                    <div class="slots-container" id="slots-3">
-                        <div class="loading">Chargement...</div>
-                    </div>
-                </div>
-
-                <div class="day-column" data-day="4">
-                    <div class="day-header">
-                        <h3>Jeudi</h3>
-                    </div>
-                    <div class="slots-container" id="slots-4">
-                        <div class="loading">Chargement...</div>
-                    </div>
-                </div>
-
-                <div class="day-column" data-day="5">
-                    <div class="day-header">
-                        <h3>Vendredi</h3>
-                    </div>
-                    <div class="slots-container" id="slots-5">
-                        <div class="loading">Chargement...</div>
-                    </div>
-                </div>
-
-                <div class="day-column" data-day="6">
-                    <div class="day-header">
-                        <h3>Samedi</h3>
-                    </div>
-                    <div class="slots-container" id="slots-6">
-                        <div class="loading">Chargement...</div>
-                    </div>
-                </div>
-
-                <div class="day-column" data-day="0">
-                    <div class="day-header">
-                        <h3>Dimanche</h3>
-                    </div>
-                    <div class="slots-container" id="slots-0">
-                        <div class="loading">Chargement...</div>
-                    </div>
-                </div>
+            <div class="availability-list" id="availabilitiesList">
+                <div class="loading">Chargement des disponibilités...</div>
             </div>
         </div>
     </section>
@@ -151,30 +95,8 @@
             <div class="modal-body">
                 <form id="availabilityForm">
                     <div class="form-group">
-                        <label>Jours de la semaine</label>
-                        <div class="days-checkbox-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="days" value="1"> Lundi
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="days" value="2"> Mardi
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="days" value="3"> Mercredi
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="days" value="4"> Jeudi
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="days" value="5"> Vendredi
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="days" value="6"> Samedi
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="days" value="0"> Dimanche
-                            </label>
-                        </div>
+                        <label for="availabilityDate">Date *</label>
+                        <input type="date" id="availabilityDate" name="availabilityDate" required min="">
                     </div>
 
                     <div class="form-row">
@@ -196,6 +118,14 @@
                             <option value="90">1h30</option>
                             <option value="120">2 heures</option>
                         </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="repeatWeekly" name="repeatWeekly">
+                            Répéter chaque semaine jusqu'à :
+                        </label>
+                        <input type="date" id="repeatUntil" name="repeatUntil" disabled style="margin-top: 0.5rem; width: 100%; padding: 0.75rem; border: 2px solid #ddd; border-radius: 8px;">
                     </div>
 
                     <div class="form-actions">
@@ -235,34 +165,76 @@
             gap: 0.75rem;
         }
 
-        .availability-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
+        .availability-filter {
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
 
-        .day-column {
+        .availability-filter label {
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .month-filter {
+            padding: 0.75rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .admin-btn-secondary {
+            background: #6c757d;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .admin-btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .availability-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .availability-date-group {
             background: white;
             border-radius: 10px;
             overflow: hidden;
             box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
         }
 
-        .day-header {
+        .availability-date-header {
             background: linear-gradient(135deg, var(--primary-color), #c20510);
             color: white;
-            padding: 1rem;
-            text-align: center;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .day-header h3 {
+        .availability-date-header h3 {
             margin: 0;
             font-size: 1.1rem;
         }
 
-        .slots-container {
-            padding: 1rem;
-            min-height: 200px;
+        .availability-date-slots {
+            padding: 1rem 1.5rem;
         }
 
         .availability-slot {
@@ -280,9 +252,14 @@
             background: #e0e0e0;
         }
 
+        .slot-info {
+            flex: 1;
+        }
+
         .slot-time {
             font-weight: 600;
             color: var(--secondary-color);
+            margin-bottom: 0.25rem;
         }
 
         .slot-actions {
@@ -449,10 +426,6 @@
             .availability-header {
                 flex-direction: column;
                 align-items: flex-start;
-            }
-
-            .days-checkbox-group {
-                grid-template-columns: 1fr;
             }
 
             .form-row {

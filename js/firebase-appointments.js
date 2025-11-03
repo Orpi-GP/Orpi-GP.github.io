@@ -4,8 +4,19 @@ const AppointmentsManager = {
 
     async createAppointment(appointmentData) {
         try {
+            let employeeName = appointmentData.employeeName || 'Employé non trouvé';
+            const employeeDiscordId = appointmentData.employeeId;
+            
+            if (!appointmentData.employeeName && appointmentData.employeeId) {
+                const employee = await this.getEmployeeById(appointmentData.employeeId);
+                if (employee) {
+                    employeeName = employee.name || employee.displayName || employeeName;
+                }
+            }
+            
             const appointment = {
                 ...appointmentData,
+                employeeName: employeeName,
                 status: 'pending',
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 createdBy: window.currentUser?.uid || 'anonymous'
@@ -15,10 +26,49 @@ const AppointmentsManager = {
 
             await this.createNotification(appointment, docRef.id);
 
+            if (typeof sendDiscordNotification === 'function') {
+                try {
+                    await sendDiscordNotification('appointment', {
+                        ...appointment,
+                        employeeName: employeeName,
+                        employeeDiscordId: employeeDiscordId,
+                        appointmentId: docRef.id
+                    });
+                } catch (discordError) {
+                    console.warn('Notification Discord non envoyée (non critique):', discordError);
+                }
+            }
+
             return { success: true, id: docRef.id };
         } catch (error) {
             console.error('Error creating appointment:', error);
             return { success: false, error: error.message };
+        }
+    },
+
+    async getEmployeeById(employeeId) {
+        try {
+            if (typeof employeesDB !== 'undefined' && employeesDB.getById) {
+                const employee = await employeesDB.getById(employeeId);
+                if (employee) return employee;
+            }
+            if (typeof db !== 'undefined') {
+                const doc = await db.collection(this.employeesCollection).doc(employeeId).get();
+                if (doc.exists) {
+                    return { id: doc.id, ...doc.data() };
+                }
+            }
+            if (typeof firebase !== 'undefined' && firebase.firestore) {
+                const doc = await firebase.firestore().collection(this.employeesCollection).doc(employeeId).get();
+                if (doc.exists) {
+                    return { id: doc.id, ...doc.data() };
+                }
+            }
+            return null;
+        } catch (error) {
+            console.error('Error getting employee:', error);
+            console.error('EmployeeId:', employeeId);
+            return null;
         }
     },
 
@@ -46,15 +96,32 @@ const AppointmentsManager = {
             const dayOfWeek = dateObj.getDay();
             const appointments = await this.getAppointmentsByDate(date);
             
-            const availabilitiesSnapshot = await db.collection('availability')
+            const dateSnapshot = await db.collection('availability')
+                .where('date', '==', date)
+                .where('active', '==', true)
+                .get();
+            
+            const dayOfWeekSnapshot = await db.collection('availability')
                 .where('dayOfWeek', '==', dayOfWeek)
                 .where('active', '==', true)
                 .get();
             
-            const availabilities = availabilitiesSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            const availabilities = [];
+            
+            dateSnapshot.docs.forEach(doc => {
+                const data = doc.data();
+                if (!data.date) return;
+                availabilities.push({ id: doc.id, ...data });
+            });
+            
+            dayOfWeekSnapshot.docs.forEach(doc => {
+                const data = doc.data();
+                if (data.dayOfWeek !== undefined && !data.date) {
+                    if (!availabilities.find(a => a.id === doc.id)) {
+                        availabilities.push({ id: doc.id, ...data });
+                    }
+                }
+            });
             
             const slots = [];
             
@@ -205,6 +272,53 @@ const AppointmentsManager = {
                     });
                 callback(appointments);
             });
+    },
+
+    async sendNotificationsForPendingAppointments() {
+        try {
+            const snapshot = await db.collection(this.collection)
+                .where('status', '==', 'pending')
+                .get();
+
+            const appointments = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+
+            if (appointments.length === 0) {
+                console.log('Aucun rendez-vous en attente trouvé');
+                return { success: true, count: 0 };
+            }
+
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (const appointment of appointments) {
+                try {
+                    const employeeName = appointment.employeeName || 'Employé non trouvé';
+                    const employeeDiscordId = appointment.employeeId;
+                    
+                    if (typeof sendDiscordNotification === 'function') {
+                        await sendDiscordNotification('appointment', {
+                            ...appointment,
+                            employeeName: employeeName,
+                            employeeDiscordId: employeeDiscordId,
+                            appointmentId: appointment.id
+                        });
+                        successCount++;
+                    }
+                } catch (error) {
+                    console.error(`Erreur lors de l'envoi de la notification pour le rendez-vous ${appointment.id}:`, error);
+                    errorCount++;
+                }
+            }
+
+            console.log(`Notifications envoyées: ${successCount} réussies, ${errorCount} échouées`);
+            return { success: true, count: successCount, errors: errorCount };
+        } catch (error) {
+            console.error('Erreur lors de l\'envoi des notifications pour les rendez-vous en attente:', error);
+            return { success: false, error: error.message };
+        }
     }
 };
 
