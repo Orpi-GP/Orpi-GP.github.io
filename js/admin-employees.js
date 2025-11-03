@@ -324,9 +324,7 @@ function closeDeclarationDetailsModal() {
 function shareDeclaration(declarationId) {
     let declarationUrl;
     
-    // Vérifier que la méthode existe (protection contre le cache)
     if (!declarationsDB || typeof declarationsDB.getDeclarationUrl !== 'function') {
-        // Fallback: générer l'URL manuellement
         const hostname = window.location.hostname;
         const origin = window.location.origin;
         
@@ -347,11 +345,9 @@ function shareDeclaration(declarationId) {
         
         console.warn('getDeclarationUrl non disponible, utilisation du fallback. Rechargez la page (F5) pour la dernière version.');
     } else {
-        // Générer l'URL de partage
         declarationUrl = declarationsDB.getDeclarationUrl(declarationId);
     }
     
-    // Créer un modal pour afficher le lien
     const modal = document.createElement('div');
     modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 2rem;';
     modal.innerHTML = `
@@ -378,7 +374,6 @@ function shareDeclaration(declarationId) {
     `;
     document.body.appendChild(modal);
     
-    // Ajouter les event listeners
     document.getElementById('copyDeclarationBtn').addEventListener('click', () => {
         copyDeclarationUrl(declarationUrl);
     });
@@ -394,7 +389,6 @@ function copyDeclarationUrl(url) {
     navigator.clipboard.writeText(url).then(() => {
         toast.success('Lien copié dans le presse-papiers !');
     }).catch(() => {
-        // Fallback pour les navigateurs qui ne supportent pas l'API Clipboard
         const textArea = document.createElement('textarea');
         textArea.value = url;
         textArea.style.position = 'fixed';
@@ -440,7 +434,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updateEmployeeCount();
     updateDeclarationCount();
     
-    // Vérifier que firebase-declarations.js est bien chargé avec la nouvelle méthode
     if (typeof declarationsDB !== 'undefined' && typeof declarationsDB.getDeclarationUrl !== 'function') {
         console.warn('⚠️ firebase-declarations.js semble être en cache. Rechargez la page (Ctrl+F5) pour obtenir la dernière version.');
     }
