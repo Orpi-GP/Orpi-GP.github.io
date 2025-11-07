@@ -1308,6 +1308,14 @@ function setupContractsListener() {
 }
 
 function showCreateContractModal() {
+    const defaultTerms = `1.1. Le présent bail est consenti aux conditions qui y sont énoncées. Le Bailleur se réserve le droit de mettre en vente le bien loué pendant la durée du bail.
+1.2. Si, à la suite d'une vente du bien, l'Acquéreur souhaite occuper personnellement le logement ou le faire occuper par un parent proche, le Locataire s'engage à libérer les lieux à la date indiquée dans le congé régulier délivré par le nouveau propriétaire, sous réserve du respect par le nouveau propriétaire de toutes les formalités et délais légaux applicables.
+1.3. Le Locataire reconnaît être informé que la vente n'annule pas automatiquement le bail en cours et que l'exercice par l'Acquéreur de son droit de reprise ou de vente libératoire s'effectuera conformément aux règles de droit applicables.
+1.4. Le Bailleur s'engage, en cas de mise en vente, à notifier par écrit le Locataire de toute promesse de vente signée et à transmettre au Locataire l'offre d'achat formelle reçue, dans les conditions et délais prévus par la loi applicable.
+1.5. En l'absence d'un congé formel du nouveau propriétaire respectant les dispositions légales, le Locataire reste en place et conserve tous ses droits issus du bail en cours.
+1.6. Toute clause contraire au droit impératif applicable locale sera réputée non écrite et n'affectera pas la validité du reste du contrat.`;
+    
+    document.getElementById('contractTerms').value = defaultTerms;
     document.getElementById('createContractModal').classList.add('active');
     document.body.style.overflow = 'hidden';
 }
