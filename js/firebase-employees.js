@@ -18,7 +18,6 @@ const employeesDB = {
         try {
             const snapshot = await firebase.firestore()
                 .collection(this.collection)
-                .orderBy('createdAt', 'desc')
                 .get();
             return snapshot.docs.map(doc => ({
                 id: doc.id,
@@ -80,12 +79,16 @@ const employeesDB = {
     onSnapshot(callback) {
         return firebase.firestore()
             .collection(this.collection)
-            .orderBy('createdAt', 'desc')
             .onSnapshot(snapshot => {
                 const employees = snapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
                 }));
+                employees.sort((a, b) => {
+                    const orderA = a.order !== undefined && a.order !== null ? a.order : 999;
+                    const orderB = b.order !== undefined && b.order !== null ? b.order : 999;
+                    return orderA - orderB;
+                });
                 callback(employees);
             });
     },

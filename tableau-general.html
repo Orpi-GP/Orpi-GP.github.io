@@ -10,6 +10,30 @@
         document.write('<link rel="stylesheet" href="css/styles.css?v=' + window.BUILD_V + '">');
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .order-btn {
+            background: var(--primary-color, #E30613);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0.4rem 0.6rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            min-width: 32px;
+        }
+        .order-btn:hover:not(:disabled) {
+            background: #c20510;
+            transform: scale(1.1);
+        }
+        .order-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .order-btn i {
+            font-size: 0.75rem;
+        }
+    </style>
 </head>
 <body>
     <div id="pageLoader" class="page-loader">
@@ -126,6 +150,7 @@
                     <table class="data-table">
                         <thead>
                             <tr>
+                                <th style="width: 80px;">Ordre</th>
                                 <th>Nom</th>
                                 <th>Grade</th>
                                 <th>Fiche</th>
@@ -140,14 +165,15 @@
                         </thead>
                         <tbody id="employeesTableBody">
                             <tr>
-                                <td colspan="10" class="text-center">
+                                <td colspan="11" class="text-center">
                                     <div class="loading">Chargement des données...</div>
                                 </td>
                             </tr>
                         </tbody>
                         <tfoot id="tableFooter">
                             <tr class="total-row">
-                                <td colspan="3"><strong>TOTAL</strong></td>
+                                <td></td>
+                                <td colspan="2"><strong>TOTAL</strong></td>
                                 <td id="footerTotalBenefices">0 €</td>
                                 <td id="footerTotalVente">0 €</td>
                                 <td id="footerNbVente">0</td>
