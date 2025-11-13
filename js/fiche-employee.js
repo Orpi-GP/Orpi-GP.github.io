@@ -142,14 +142,28 @@ function updateSummary() {
     if (entrepriseRevenueEl) {
         entrepriseRevenueEl.textContent = '+' + formatCurrency(totalEntrepriseRevenue);
     }
+    const totalCAAfterEl = document.getElementById('totalCAAfter');
+    if (totalCAAfterEl) {
+        totalCAAfterEl.textContent = 'Après 15%: ' + formatCurrency(totalEntrepriseRevenue);
+    }
 }
 function setupEventListeners() {
     document.getElementById('addSaleBtn').addEventListener('click', openAddSaleModal);
+    
+    const saleModal = document.getElementById('saleModal');
+    saleModal.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeSaleModal();
+        }
+    });
+    
     document.querySelectorAll('.close').forEach(closeBtn => {
         closeBtn.addEventListener('click', function() {
-            this.closest('.modal').style.display = 'none';
+            this.closest('.modal').classList.remove('active');
+            document.body.style.overflow = '';
         });
     });
+    
     document.getElementById('saleForm').addEventListener('submit', handleSaleSubmit);
     loadInteriorOptions();
     document.getElementById('saleType').addEventListener('change', function() {
@@ -160,27 +174,42 @@ function setupEventListeners() {
             prixLocationGroup.style.display = 'none';
             document.getElementById('salePrixMaison').required = true;
             document.getElementById('salePrixLocation').required = false;
+            document.getElementById('salePrixLocation').value = '';
         } else if (this.value === 'location') {
             prixMaisonGroup.style.display = 'none';
             prixLocationGroup.style.display = 'flex';
             document.getElementById('salePrixMaison').required = false;
             document.getElementById('salePrixLocation').required = true;
+            document.getElementById('salePrixMaison').value = '';
         } else {
             prixMaisonGroup.style.display = 'none';
             prixLocationGroup.style.display = 'none';
         }
     });
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && saleModal.classList.contains('active')) {
+            closeSaleModal();
+        }
+    });
 }
-function openAddSaleModal() {
+
+async function openAddSaleModal() {
     editingSaleId = null;
     document.getElementById('saleModalTitle').innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter une Vente';
     document.getElementById('saleForm').reset();
     document.getElementById('saleId').value = '';
-    loadInteriorOptions();
-    document.getElementById('saleModal').style.display = 'block';
+    document.getElementById('saleModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('prixMaisonGroup').style.display = 'none';
+    document.getElementById('prixLocationGroup').style.display = 'none';
+    document.getElementById('saleType').value = '';
+    await loadInteriorOptions();
 }
+
 function closeSaleModal() {
-    document.getElementById('saleModal').style.display = 'none';
+    document.getElementById('saleModal').classList.remove('active');
+    document.body.style.overflow = '';
     editingSaleId = null;
 }
 async function editSale(saleId) {
@@ -207,7 +236,8 @@ async function editSale(saleId) {
     } else if (sale.type === 'location') {
         document.getElementById('salePrixLocation').value = sale.prixLocation || '';
     }
-    document.getElementById('saleModal').style.display = 'block';
+    document.getElementById('saleModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
 }
 async function deleteSale(saleId) {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette vente ?')) {
@@ -266,6 +296,7 @@ async function handleSaleSubmit(e) {
         showError('Erreur lors de l\'enregistrement de la vente');
     }
 }
+
 function formatCurrency(amount) {
     return new Intl.NumberFormat('fr-FR', {
         style: 'currency',

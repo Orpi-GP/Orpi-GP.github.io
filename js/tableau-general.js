@@ -3,9 +3,39 @@ let salesData = [];
 let statsCache = new Map();
 let cacheTimestamp = 0;
 const CACHE_TTL = 180000;
+let canManagePrimesDividendes = false;
+
+async function hasPermission(permission) {
+    const currentUser = discordAuth.getUser();
+    if (!currentUser) return false;
+    
+    if (DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+        return true;
+    }
+    
+    try {
+        const db = firebase.firestore();
+        const authDoc = await db.collection('admin_authorized_ids').doc(currentUser.id).get();
+        if (!authDoc.exists || !authDoc.data().authorized) {
+            return false;
+        }
+        
+        const permissionsDoc = await db.collection('admin_permissions').doc(currentUser.id).get();
+        if (!permissionsDoc.exists) {
+            return false;
+        }
+        
+        return permissionsDoc.data()[permission] === true;
+    } catch (error) {
+        console.error('Erreur vérification permissions:', error);
+        return false;
+    }
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Début chargement tableau général...');
+    
+    canManagePrimesDividendes = await hasPermission('manage_primes_dividendes');
     
     const cachedData = loadFromCache();
     if (cachedData) {
@@ -65,6 +95,7 @@ function setupRealtimeListeners() {
 
 async function loadTableauData() {
     try {
+        canManagePrimesDividendes = await hasPermission('manage_primes_dividendes');
         employeesData = await employeesDB.getAll();
         await initializeEmployeeOrder();
         employeesData = sortEmployeesByOrder(employeesData);
@@ -110,7 +141,7 @@ async function displayTableau() {
     if (employeesData.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="11" class="text-center">
+                <td colspan="12" class="text-center">
                     <p style="padding: 2rem;">Aucun employé enregistré</p>
                 </td>
             </tr>
@@ -118,10 +149,13 @@ async function displayTableau() {
         updateSummary();
         return;
     }
+    
+    setupDragAndDrop();
     let html = '';
     let totals = {
         benefices: 0,
         vente: 0,
+        entrepriseRevenue: 0,
         nbVente: 0,
         primes: 0,
         dividendes: 0,
@@ -138,7 +172,8 @@ async function displayTableau() {
             statsCache.set(employee.id, stats);
         }
         const totalBenefices = stats.totalBenefice; 
-        const totalVente = stats.totalCA; 
+        const totalVente = stats.totalCA;
+        const totalEntrepriseRevenue = stats.totalEntrepriseRevenue || 0;
         const nbVente = stats.nombreVentes;
         const primes = employee.primes || 0;
         const dividendes = employee.dividendes || 0;
@@ -146,6 +181,7 @@ async function displayTableau() {
         const salaireAVerser = salaire + primes + dividendes;
         totals.benefices += totalBenefices;
         totals.vente += totalVente;
+        totals.entrepriseRevenue += totalEntrepriseRevenue;
         totals.nbVente += nbVente;
         totals.primes += primes;
         totals.dividendes += dividendes;
@@ -156,22 +192,11 @@ async function displayTableau() {
         const currentOrder = employee.order !== undefined && employee.order !== null ? employee.order : index;
         
         html += `
-            <tr data-employee-id="${employee.id}" data-order="${currentOrder}">
-                <td style="text-align: center;">
-                    <div style="display: flex; flex-direction: column; gap: 0.25rem; align-items: center;">
-                        <button onclick="moveEmployeeUp('${employee.id}')" 
-                                class="order-btn" 
-                                ${isFirst ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}
-                                title="Monter">
-                            <i class="fas fa-arrow-up"></i>
-                        </button>
-                        <span style="font-weight: 600; font-size: 0.9rem; min-width: 30px; display: inline-block; text-align: center;">${currentOrder + 1}</span>
-                        <button onclick="moveEmployeeDown('${employee.id}')" 
-                                class="order-btn" 
-                                ${isLast ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}
-                                title="Descendre">
-                            <i class="fas fa-arrow-down"></i>
-                        </button>
+            <tr data-employee-id="${employee.id}" data-order="${currentOrder}" draggable="true" class="draggable-row">
+                <td style="text-align: center; cursor: grab; width: 80px;">
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: center;">
+                        <i class="fas fa-grip-vertical" style="color: #6c757d; font-size: 1.25rem; cursor: grab;"></i>
+                        <span style="font-weight: 600; font-size: 0.9rem; min-width: 30px; display: inline-block; text-align: center; background: linear-gradient(135deg, var(--primary-color, #E30613), #ff2a39); color: white; padding: 0.25rem 0.5rem; border-radius: 8px;">${currentOrder + 1}</span>
                     </div>
                 </td>
                 <td><strong>${employee.name}</strong></td>
@@ -181,29 +206,47 @@ async function displayTableau() {
                         📋 Voir Fiche
                     </a>
                 </td>
-                <td>${formatCurrency(totalBenefices)}</td>
-                <td>${formatCurrency(totalVente)}</td>
-                <td><strong>${nbVente}</strong></td>
+                <td><strong style="color: #495057;">${formatCurrency(totalBenefices)}</strong></td>
+                <td><strong style="color: #212529;">${formatCurrency(totalVente)}</strong></td>
+                <td><strong style="color: #28a745; font-size: 1.05rem;">${formatCurrency(totalEntrepriseRevenue)}</strong></td>
+                <td><strong style="color: var(--primary-color, #E30613);">${nbVente}</strong></td>
                 <td class="editable-cell" data-field="primes">
                     <input type="number" value="${primes}" 
                            class="editable-input" 
-                           onchange="updateEmployeeField('${employee.id}', 'primes', this.value)">
+                           ${canManagePrimesDividendes ? '' : 'disabled'}
+                           onchange="updateEmployeeField('${employee.id}', 'primes', this.value)"
+                           title="${canManagePrimesDividendes ? '' : 'Vous n\'avez pas la permission de modifier les primes'}">
                 </td>
                 <td class="editable-cell" data-field="dividendes">
                     <input type="number" value="${dividendes}" 
                            class="editable-input" 
-                           onchange="updateEmployeeField('${employee.id}', 'dividendes', this.value)">
+                           ${canManagePrimesDividendes ? '' : 'disabled'}
+                           onchange="updateEmployeeField('${employee.id}', 'dividendes', this.value)"
+                           title="${canManagePrimesDividendes ? '' : 'Vous n\'avez pas la permission de modifier les dividendes'}">
                 </td>
-                <td>${formatCurrency(salaire)}</td>
-                <td><strong>${formatCurrency(salaireAVerser)}</strong></td>
+                <td><strong style="color: #495057;">${formatCurrency(salaire)}</strong></td>
+                <td><strong style="color: #28a745; font-size: 1.05rem;">${formatCurrency(salaireAVerser)}</strong></td>
             </tr>
         `;
     }
     tbody.innerHTML = html;
     updateFooter(totals);
     updateSummary();
+    
+    setTimeout(() => {
+        setupDragAndDrop();
+    }, 100);
 }
 async function updateEmployeeField(employeeId, field, value) {
+    if (field === 'primes' || field === 'dividendes') {
+        const hasPermission = await hasPermission('manage_primes_dividendes');
+        if (!hasPermission) {
+            showError('Vous n\'avez pas la permission de modifier les primes et dividendes.');
+            await loadTableauData();
+            return;
+        }
+    }
+    
     try {
         await employeesDB.update(employeeId, {
             [field]: parseFloat(value) || 0
@@ -218,6 +261,10 @@ async function updateEmployeeField(employeeId, field, value) {
 function updateFooter(totals) {
     document.getElementById('footerTotalBenefices').textContent = formatCurrency(totals.benefices);
     document.getElementById('footerTotalVente').textContent = formatCurrency(totals.vente);
+    const footerCAAfter = document.getElementById('footerTotalCAAfter');
+    if (footerCAAfter) {
+        footerCAAfter.textContent = formatCurrency(totals.entrepriseRevenue);
+    }
     document.getElementById('footerNbVente').textContent = totals.nbVente;
     document.getElementById('footerPrimes').textContent = formatCurrency(totals.primes);
     document.getElementById('footerDividendes').textContent = formatCurrency(totals.dividendes);
@@ -247,6 +294,10 @@ function updateSummary() {
     if (entrepriseRevenueEl) {
         entrepriseRevenueEl.textContent = '+' + formatCurrency(totalEntrepriseRevenue);
     }
+    const totalCAAfterEl = document.getElementById('totalCAAfter');
+    if (totalCAAfterEl) {
+        totalCAAfterEl.textContent = 'Après 15%: ' + formatCurrency(totalEntrepriseRevenue);
+    }
 }
 function formatCurrency(amount) {
     return new Intl.NumberFormat('fr-FR', {
@@ -263,52 +314,160 @@ function showError(message) {
     toast.error(message);
 }
 
-async function moveEmployeeUp(employeeId) {
-    const currentIndex = employeesData.findIndex(e => e.id === employeeId);
-    if (currentIndex <= 0) return;
+function setupDragAndDrop() {
+    const tbody = document.getElementById('employeesTableBody');
+    if (!tbody) return;
     
-    const currentEmployee = employeesData[currentIndex];
-    const previousEmployee = employeesData[currentIndex - 1];
+    let draggedRow = null;
+    let draggedIndex = null;
     
-    const tempOrder = currentEmployee.order;
-    currentEmployee.order = previousEmployee.order;
-    previousEmployee.order = tempOrder;
+    const rows = tbody.querySelectorAll('.draggable-row');
     
-    try {
-        const db = firebase.firestore();
-        await db.collection('employees').doc(currentEmployee.id).update({ order: currentEmployee.order });
-        await db.collection('employees').doc(previousEmployee.id).update({ order: previousEmployee.order });
+    rows.forEach((row, index) => {
+        row.addEventListener('dragstart', (e) => {
+            draggedRow = row;
+            draggedIndex = index;
+            row.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', row.getAttribute('data-employee-id'));
+            
+            setTimeout(() => {
+                row.style.opacity = '0.5';
+            }, 0);
+        });
         
-        employeesData = sortEmployeesByOrder(employeesData);
-        await displayTableau();
-        showSuccess('Ordre mis à jour');
-    } catch (error) {
-        console.error('Erreur lors du déplacement:', error);
-        showError('Erreur lors du déplacement');
-    }
+        row.addEventListener('dragend', (e) => {
+            if (draggedRow) {
+                draggedRow.classList.remove('dragging');
+                draggedRow.style.opacity = '';
+            }
+            
+            rows.forEach(r => {
+                r.classList.remove('drag-over');
+                r.classList.remove('drag-over-top');
+                r.classList.remove('drag-over-bottom');
+            });
+            
+            draggedRow = null;
+            draggedIndex = null;
+        });
+        
+        row.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            
+            if (!draggedRow || draggedRow === row) return;
+            
+            const rect = row.getBoundingClientRect();
+            const y = e.clientY - rect.top;
+            const midpoint = rect.height / 2;
+            
+            rows.forEach(r => {
+                r.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+            });
+            
+            if (y < midpoint) {
+                row.classList.add('drag-over-top');
+            } else {
+                row.classList.add('drag-over-bottom');
+            }
+        });
+        
+        row.addEventListener('dragleave', (e) => {
+            if (!draggedRow || draggedRow === row) return;
+            row.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+        });
+        
+        row.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (!draggedRow || draggedRow === row) {
+                rows.forEach(r => {
+                    r.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+                });
+                return;
+            }
+            
+            const allRows = Array.from(tbody.querySelectorAll('.draggable-row'));
+            const currentIndex = allRows.indexOf(row);
+            const draggedRowIndex = allRows.indexOf(draggedRow);
+            
+            if (draggedRowIndex === -1 || currentIndex === -1) return;
+            
+            const rect = row.getBoundingClientRect();
+            const y = e.clientY - rect.top;
+            const midpoint = rect.height / 2;
+            const insertIndex = y < midpoint ? currentIndex : currentIndex + 1;
+            
+            rows.forEach(r => {
+                r.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+            });
+            
+            if (draggedRowIndex < insertIndex) {
+                tbody.insertBefore(draggedRow, allRows[insertIndex] || null);
+            } else {
+                tbody.insertBefore(draggedRow, allRows[insertIndex] || null);
+            }
+            
+            await saveNewOrder();
+        });
+    });
 }
 
-async function moveEmployeeDown(employeeId) {
-    const currentIndex = employeesData.findIndex(e => e.id === employeeId);
-    if (currentIndex < 0 || currentIndex >= employeesData.length - 1) return;
+async function saveNewOrder() {
+    const tbody = document.getElementById('employeesTableBody');
+    if (!tbody) return;
     
-    const currentEmployee = employeesData[currentIndex];
-    const nextEmployee = employeesData[currentIndex + 1];
+    const rows = Array.from(tbody.querySelectorAll('.draggable-row'));
+    const newOrder = [];
     
-    const tempOrder = currentEmployee.order;
-    currentEmployee.order = nextEmployee.order;
-    nextEmployee.order = tempOrder;
+    rows.forEach((row, index) => {
+        const employeeId = row.getAttribute('data-employee-id');
+        const employee = employeesData.find(e => e.id === employeeId);
+        if (employee) {
+            newOrder.push({
+                id: employeeId,
+                newOrder: index
+            });
+        }
+    });
+    
+    if (newOrder.length === 0) return;
     
     try {
         const db = firebase.firestore();
-        await db.collection('employees').doc(currentEmployee.id).update({ order: currentEmployee.order });
-        await db.collection('employees').doc(nextEmployee.id).update({ order: nextEmployee.order });
+        const batch = db.batch();
         
-        employeesData = sortEmployeesByOrder(employeesData);
-        await displayTableau();
-        showSuccess('Ordre mis à jour');
+        let hasChanges = false;
+        
+        for (const item of newOrder) {
+            const employee = employeesData.find(e => e.id === item.id);
+            if (employee && employee.order !== item.newOrder) {
+                const employeeRef = db.collection('employees').doc(item.id);
+                batch.update(employeeRef, { order: item.newOrder });
+                employee.order = item.newOrder;
+                hasChanges = true;
+            }
+        }
+        
+        if (hasChanges) {
+            await batch.commit();
+            employeesData = sortEmployeesByOrder(employeesData);
+            
+            const updatedRows = Array.from(tbody.querySelectorAll('.draggable-row'));
+            updatedRows.forEach((row, index) => {
+                const orderSpan = row.querySelector('td span[style*="background"]');
+                if (orderSpan) {
+                    orderSpan.textContent = index + 1;
+                }
+            });
+            
+            showSuccess('Ordre mis à jour avec succès');
+        }
     } catch (error) {
-        console.error('Erreur lors du déplacement:', error);
-        showError('Erreur lors du déplacement');
+        console.error('Erreur lors de la sauvegarde de l\'ordre:', error);
+        showError('Erreur lors de la sauvegarde de l\'ordre');
+        await displayTableau();
     }
 }

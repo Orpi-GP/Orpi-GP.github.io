@@ -207,6 +207,18 @@ function viewImage(url) {
 }
 
 async function deleteMedia(publicId, isUsed) {
+    const currentUser = discordAuth.getUser();
+    if (!currentUser) return;
+    
+    if (!DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+        const db = firebase.firestore();
+        const permissionsDoc = await db.collection('admin_permissions').doc(currentUser.id).get();
+        if (!permissionsDoc.exists || !permissionsDoc.data().manage_media) {
+            showToast('Vous n\'avez pas la permission de gérer les médias.', 'error');
+            return;
+        }
+    }
+    
     if (isUsed) {
         if (!confirm('⚠️ ATTENTION: Cette image est utilisée dans un ou plusieurs biens!\n\nÊtes-vous sûr de vouloir la supprimer? Cela causera des images manquantes.')) {
             return;
@@ -258,6 +270,18 @@ function toggleSelectAll() {
 }
 
 async function bulkDelete() {
+  const currentUser = discordAuth.getUser();
+  if (!currentUser) return;
+  
+  if (!DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+    const db = firebase.firestore();
+    const permissionsDoc = await db.collection('admin_permissions').doc(currentUser.id).get();
+    if (!permissionsDoc.exists || !permissionsDoc.data().manage_media) {
+      showToast('Vous n\'avez pas la permission de gérer les médias.', 'error');
+      return;
+    }
+  }
+  
   if (selectedIds.size === 0) {
     showToast('Aucune image sélectionnée', 'warning');
     return;

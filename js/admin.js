@@ -24,9 +24,66 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         const currentUser = discordAuth.getUser();
         const addAdminIdBtn = document.getElementById('addAdminIdBtn');
-        if (addAdminIdBtn && currentUser && DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
-            addAdminIdBtn.style.display = 'block';
+        const managePermissionsBtn = document.getElementById('managePermissionsBtn');
+        const viewAuthorizedIdsBtn = document.getElementById('viewAuthorizedIdsBtn');
+        if (currentUser) {
+            if (DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+                if (addAdminIdBtn) addAdminIdBtn.style.display = 'block';
+                if (managePermissionsBtn) managePermissionsBtn.style.display = 'block';
+                if (viewAuthorizedIdsBtn) {
+                    viewAuthorizedIdsBtn.disabled = false;
+                    viewAuthorizedIdsBtn.style.opacity = '1';
+                    viewAuthorizedIdsBtn.style.cursor = 'pointer';
+                }
+            } else {
+                try {
+                    const db = firebase.firestore();
+                    const permissionsDoc = await db.collection('admin_permissions').doc(currentUser.id).get();
+                    if (permissionsDoc.exists && permissionsDoc.data().manage_admin_ids === true) {
+                        if (addAdminIdBtn) addAdminIdBtn.style.display = 'block';
+                    }
+                    if (permissionsDoc.exists && permissionsDoc.data().manage_permissions === true) {
+                        if (managePermissionsBtn) managePermissionsBtn.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Erreur vérification permissions:', error);
+                }
+            }
+        } else {
+            if (managePermissionsBtn) managePermissionsBtn.style.display = 'none';
+            if (addAdminIdBtn) addAdminIdBtn.style.display = 'none';
         }
+        
+        await checkAndUpdatePermissions();
+        await hideCardsWithoutPermissions();
+        
+        window.checkAppointmentPermission = async function(url) {
+            if (!(await hasPermission('manage_appointments'))) {
+                toast.error('Vous n\'avez pas la permission de gérer les rendez-vous.');
+                return;
+            }
+            window.location.href = url;
+        };
+        
+        window.checkTableauGeneralPermission = async function() {
+            const hasEmployeesPermission = await hasPermission('manage_employees');
+            const hasEmployeesFullPermission = await hasPermission('manage_employees_full');
+            
+            if (!hasEmployeesPermission && !hasEmployeesFullPermission) {
+                toast.error('Vous n\'avez pas la permission de voir le tableau général.');
+                return;
+            }
+            
+            window.location.href = 'tableau-general.html';
+        };
+        
+        window.checkReviewsPermission = async function() {
+            if (!(await hasPermission('manage_reviews'))) {
+                toast.error('Vous n\'avez pas la permission de gérer les avis.');
+                return;
+            }
+            window.location.href = 'admin-avis.html';
+        };
         
         setTimeout(() => {
             showAppointmentsCard();
@@ -167,7 +224,12 @@ function setupRealtimeListener() {
     });
 }
 
-function showAddPropertyModal() {
+async function showAddPropertyModal() {
+    if (!(await hasPermission('create_property'))) {
+        toast.error('Vous n\'avez pas la permission de créer un bien.');
+        return;
+    }
+    
     document.getElementById('addPropertyModal').classList.add('active');
     document.body.style.overflow = 'hidden';
 }
@@ -243,6 +305,11 @@ window.removeImage = function(index) {
 
 async function handleAddProperty(event) {
     event.preventDefault();
+    
+    if (!(await hasPermission('create_property'))) {
+        toast.error('Vous n\'avez pas la permission de créer un bien.');
+        return;
+    }
 
     const submitBtn = event.target.querySelector('.btn-submit');
     submitBtn.disabled = true;
@@ -302,6 +369,16 @@ async function handleAddProperty(event) {
 }
 
 async function showAuthorizedIdsModal() {
+    const currentUser = discordAuth.getUser();
+    if (!currentUser) return;
+    
+    if (!DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+        const hasPermission = await hasPermission('view_authorized_ids');
+        if (!hasPermission) {
+            toast.error('Vous n\'avez pas la permission de voir les IDs autorisés.');
+            return;
+        }
+    }
     const modal = document.getElementById('authorizedIdsModal');
     const idsList = document.getElementById('idsList');
     
@@ -369,10 +446,8 @@ function closeAuthorizedIdsModal() {
 }
 
 async function addAuthorizedId() {
-    const currentUser = discordAuth.getUser();
-    
-    if (!currentUser || !DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
-        toast.error('Vous n\'êtes pas autorisé à ajouter des administrateurs. Seuls Emily, Lucas, Tom et Guivarsh peuvent effectuer cette action.');
+    if (!(await hasPermission('manage_admin_ids'))) {
+        toast.error('Vous n\'êtes pas autorisé à ajouter des administrateurs.');
         return;
     }
     
@@ -384,7 +459,15 @@ async function addAuthorizedId() {
         return;
     }
     
-    if (DISCORD_CONFIG.authorizedIds.includes(discordId)) {
+    const isAdminManager = DISCORD_CONFIG.adminManagerIds.includes(discordId);
+    const isInAuthorizedIds = DISCORD_CONFIG.authorizedIds.includes(discordId);
+    
+    if (isAdminManager) {
+        toast.warning('Cet ID est déjà un admin manager dans config.js');
+        return;
+    }
+    
+    if (isInAuthorizedIds) {
         toast.warning('Cet ID est déjà autorisé dans config.js');
         return;
     }
@@ -443,7 +526,362 @@ function closeAddAdminIdModal() {
     document.body.style.overflow = '';
 }
 
+async function hasPermission(permission) {
+    const currentUser = discordAuth.getUser();
+    if (!currentUser) return false;
+    
+    if (DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+        return true;
+    }
+    
+    try {
+        const db = firebase.firestore();
+        const authDoc = await db.collection('admin_authorized_ids').doc(currentUser.id).get();
+        if (!authDoc.exists || !authDoc.data().authorized) {
+            return false;
+        }
+        
+        const permissionsDoc = await db.collection('admin_permissions').doc(currentUser.id).get();
+        if (!permissionsDoc.exists) {
+            return false;
+        }
+        
+        return permissionsDoc.data()[permission] === true;
+    } catch (error) {
+        console.error('Erreur vérification permissions:', error);
+        return false;
+    }
+}
+
+async function hideCardsWithoutPermissions() {
+    const currentUser = discordAuth.getUser();
+    if (!currentUser) {
+        document.querySelectorAll('.admin-card').forEach(card => {
+            card.style.display = 'none';
+        });
+        return;
+    }
+    
+    if (DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+        return;
+    }
+    
+    try {
+        const db = firebase.firestore();
+        const authDoc = await db.collection('admin_authorized_ids').doc(currentUser.id).get();
+        if (!authDoc.exists || !authDoc.data().authorized) {
+            document.querySelectorAll('.admin-card').forEach(card => {
+                card.style.display = 'none';
+            });
+            return;
+        }
+        
+        const permissionsDoc = await db.collection('admin_permissions').doc(currentUser.id).get();
+        if (!permissionsDoc.exists) {
+            document.querySelectorAll('.admin-card').forEach(card => {
+                card.style.display = 'none';
+            });
+            return;
+        }
+        
+        const permissions = permissionsDoc.data();
+        let hasAnyPermission = false;
+        
+        Object.values(permissions).forEach(value => {
+            if (value === true) {
+                hasAnyPermission = true;
+            }
+        });
+        
+        if (!hasAnyPermission) {
+            document.querySelectorAll('.admin-card').forEach(card => {
+                card.style.display = 'none';
+            });
+            return;
+        }
+        
+        document.querySelectorAll('.admin-card[data-permissions]').forEach(card => {
+            const requiredPermissions = card.getAttribute('data-permissions').split(',').map(p => p.trim());
+            const hasAnyRequiredPermission = requiredPermissions.some(perm => permissions[perm] === true);
+            
+            if (!hasAnyRequiredPermission) {
+                card.style.display = 'none';
+            }
+        });
+    } catch (error) {
+        console.error('Erreur lors du masquage des cartes:', error);
+    }
+}
+
+async function checkAndUpdatePermissions() {
+    const currentUser = discordAuth.getUser();
+    if (!currentUser) return;
+    
+    if (DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+        document.querySelectorAll('[data-permission]').forEach(btn => {
+            const permission = btn.getAttribute('data-permission');
+            if (permission === 'manage_employees_full') {
+                btn.style.display = 'block';
+            }
+            if (btn.tagName === 'SELECT') {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            } else {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            }
+        });
+        return;
+    }
+    
+    try {
+        const db = firebase.firestore();
+        const authDoc = await db.collection('admin_authorized_ids').doc(currentUser.id).get();
+        if (!authDoc.exists || !authDoc.data().authorized) {
+            document.querySelectorAll('[data-permission]').forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+                btn.title = 'Vous n\'avez pas la permission';
+            });
+            return;
+        }
+        
+        const permissionsDoc = await db.collection('admin_permissions').doc(currentUser.id).get();
+        if (!permissionsDoc.exists) {
+            document.querySelectorAll('[data-permission]').forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+                btn.title = 'Vous n\'avez pas la permission';
+            });
+            return;
+        }
+        
+        const permissions = permissionsDoc.data();
+        
+        document.querySelectorAll('[data-permission]').forEach(btn => {
+            const permission = btn.getAttribute('data-permission');
+            const hasPermission = permissions[permission] === true;
+            
+            if (permission === 'manage_employees' || permission === 'manage_employees_full') {
+                if (permission === 'manage_employees_full' && !hasPermission) {
+                    btn.style.display = 'none';
+                } else if (permission === 'manage_employees' && hasPermission) {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                    btn.style.cursor = 'pointer';
+                    btn.title = '';
+                } else if (permission === 'manage_employees_full' && hasPermission) {
+                    btn.style.display = 'block';
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                    btn.style.cursor = 'pointer';
+                    btn.title = '';
+                } else {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                    btn.style.cursor = 'not-allowed';
+                    btn.title = 'Vous n\'avez pas la permission';
+                }
+            } else if (permission === 'manage_admin_ids') {
+                if (hasPermission) {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                    btn.style.cursor = 'pointer';
+                    btn.title = '';
+                } else {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                    btn.style.cursor = 'not-allowed';
+                    btn.title = 'Vous n\'avez pas la permission';
+                }
+            } else if (permission === 'view_reviews') {
+                if (hasPermission) {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                    btn.style.cursor = 'pointer';
+                    btn.title = '';
+                } else {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                    btn.style.cursor = 'not-allowed';
+                    btn.title = 'Vous n\'avez pas la permission';
+                }
+            } else {
+                if (hasPermission) {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                    btn.style.cursor = 'pointer';
+                    btn.title = '';
+                } else {
+                    if (btn.tagName === 'SELECT') {
+                        btn.disabled = true;
+                        btn.style.opacity = '0.5';
+                        btn.style.cursor = 'not-allowed';
+                        btn.title = 'Vous n\'avez pas la permission: ' + permission;
+                    } else {
+                        btn.disabled = true;
+                        btn.style.opacity = '0.5';
+                        btn.style.cursor = 'not-allowed';
+                        btn.title = 'Vous n\'avez pas la permission: ' + permission;
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Erreur lors de la vérification des permissions:', error);
+    }
+}
+
+async function showManagePermissionsModal() {
+    const currentUser = discordAuth.getUser();
+    
+    if (!currentUser) {
+        toast.error('Vous devez être connecté pour gérer les permissions.');
+        return;
+    }
+    
+    if (!DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+        const hasPermission = await hasPermission('manage_permissions');
+        if (!hasPermission) {
+            toast.error('Vous n\'avez pas la permission de gérer les permissions.');
+            return;
+        }
+    }
+    
+    const modal = document.getElementById('managePermissionsModal');
+    const list = document.getElementById('permissionsList');
+    
+    list.innerHTML = '<p style="text-align: center; color: var(--text-color);">Chargement...</p>';
+    
+    try {
+        const db = firebase.firestore();
+        const allAdminIds = [...DISCORD_CONFIG.authorizedIds];
+        
+        const snapshot = await db.collection('admin_authorized_ids').where('authorized', '==', true).get();
+        snapshot.forEach(doc => {
+            if (!allAdminIds.includes(doc.id)) {
+                allAdminIds.push(doc.id);
+            }
+        });
+        
+        list.innerHTML = '';
+        
+        for (const adminId of allAdminIds) {
+            const isAdminManager = DISCORD_CONFIG.adminManagerIds.includes(adminId);
+            
+            if (isAdminManager) continue;
+            
+            const permissionsDoc = await db.collection('admin_permissions').doc(adminId).get();
+            const permissions = permissionsDoc.exists ? permissionsDoc.data() : {};
+            
+            const permissionsList = [
+                { key: 'create_property', label: 'Créer un bien', icon: 'fa-home' },
+                { key: 'manage_properties', label: 'Gérer les biens', icon: 'fa-edit' },
+                { key: 'create_contract', label: 'Créer un contrat', icon: 'fa-file-contract' },
+                { key: 'manage_contracts', label: 'Gérer les contrats', icon: 'fa-list' },
+                { key: 'manage_employees', label: 'Voir le tableau général', icon: 'fa-table' },
+                { key: 'manage_employees_full', label: 'Gérer les employés (ajout/modification)', icon: 'fa-users' },
+                { key: 'manage_declarations', label: 'Gérer les déclarations', icon: 'fa-file-invoice-dollar' },
+                { key: 'view_declarations', label: 'Voir l\'historique des déclarations', icon: 'fa-history' },
+                { key: 'manage_media', label: 'Gérer les médias', icon: 'fa-images' },
+                { key: 'manage_interieurs', label: 'Gérer les intérieurs', icon: 'fa-couch' },
+                { key: 'manage_encheres', label: 'Gérer les enchères', icon: 'fa-gavel' },
+                { key: 'manage_theme', label: 'Gérer le thème', icon: 'fa-palette' },
+                { key: 'manage_appointments', label: 'Gérer les rendez-vous', icon: 'fa-calendar-check' },
+                { key: 'view_conversations', label: 'Voir les conversations', icon: 'fa-comments' },
+                { key: 'view_reviews', label: 'Voir les avis', icon: 'fa-eye' },
+                { key: 'manage_reviews', label: 'Gérer les avis', icon: 'fa-star' },
+                { key: 'view_authorized_ids', label: 'Voir les IDs autorisés', icon: 'fa-key' },
+                { key: 'manage_admin_ids', label: 'Ajouter des IDs Discord', icon: 'fa-user-plus' },
+                { key: 'manage_permissions', label: 'Gérer les permissions', icon: 'fa-user-cog' },
+                { key: 'manage_primes_dividendes', label: 'Modifier les primes et dividendes', icon: 'fa-money-bill-wave' }
+            ];
+            
+            const div = document.createElement('div');
+            div.className = 'permission-item';
+            div.innerHTML = `
+                <div class="permission-header">
+                    <i class="fas fa-user" style="color: #6c757d;"></i>
+                    <strong>ID Discord:</strong>
+                    <code>${adminId}</code>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0;">
+                    ${permissionsList.map(perm => `
+                        <div class="permission-row">
+                            <label class="permission-label" for="perm_${perm.key}_${adminId}">
+                                <div class="permission-icon">
+                                    <i class="fas ${perm.icon}"></i>
+                                </div>
+                                <span>${perm.label}</span>
+                            </label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" 
+                                       id="perm_${perm.key}_${adminId}" 
+                                       ${permissions[perm.key] ? 'checked' : ''}
+                                       onchange="updatePermission('${adminId}', '${perm.key}', this.checked)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            list.appendChild(div);
+        }
+        
+        if (list.children.length === 0 || list.innerHTML === '') {
+            list.innerHTML = '<p style="text-align: center; color: var(--text-color);">Aucun administrateur à gérer (les admin managers ont toutes les permissions).</p>';
+        }
+    } catch (error) {
+        console.error('Erreur lors du chargement des permissions:', error);
+        list.innerHTML = '<p style="text-align: center; color: var(--primary-color);">Erreur lors du chargement.</p>';
+    }
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeManagePermissionsModal() {
+    document.getElementById('managePermissionsModal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+async function updatePermission(adminId, permission, enabled) {
+    const currentUser = discordAuth.getUser();
+    
+    if (!currentUser || !DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+        toast.error('Vous n\'êtes pas autorisé à modifier les permissions.');
+        return;
+    }
+    
+    try {
+        const db = firebase.firestore();
+        await db.collection('admin_permissions').doc(adminId).set({
+            [permission]: enabled,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedBy: currentUser.id
+        }, { merge: true });
+        
+        toast.success(`Permission ${permission} ${enabled ? 'activée' : 'désactivée'}`);
+        
+        if (currentUser.id === adminId) {
+            await checkAndUpdatePermissions();
+        }
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour de la permission:', error);
+        toast.error('Erreur lors de la mise à jour de la permission');
+    }
+}
+
 async function showManagePropertiesModal() {
+    if (!(await hasPermission('manage_properties'))) {
+        toast.error('Vous n\'avez pas la permission de gérer les biens.');
+        return;
+    }
+    
     const modal = document.getElementById('managePropertiesModal');
     const list = document.getElementById('propertiesList');
     
@@ -493,6 +931,11 @@ function closeManagePropertiesModal() {
 }
 
 async function editProperty(id) {
+    if (!(await hasPermission('manage_properties'))) {
+        toast.error('Vous n\'avez pas la permission de modifier les biens.');
+        return;
+    }
+    
     const property = await propertyManager.getById(id);
     if (!property) return;
     
@@ -528,6 +971,11 @@ function closeEditPropertyModal() {
 async function handleEditProperty(event) {
     event.preventDefault();
     
+    if (!(await hasPermission('manage_properties'))) {
+        toast.error('Vous n\'avez pas la permission de modifier les biens.');
+        return;
+    }
+    
     const submitBtn = event.target.querySelector('.btn-submit');
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
@@ -558,6 +1006,11 @@ async function handleEditProperty(event) {
 }
 
 async function deleteProperty(id, title) {
+    if (!(await hasPermission('manage_properties'))) {
+        toast.error('Vous n\'avez pas la permission de supprimer les biens.');
+        return;
+    }
+    
     if (!confirm(`⚠️ Voulez-vous vraiment supprimer le bien "${title}" ?\n\nCette action est irréversible !`)) {
         return;
     }
@@ -612,6 +1065,11 @@ function setupConversationsListener() {
 }
 
 async function showConversationsModal() {
+    if (!(await hasPermission('view_conversations'))) {
+        toast.error('Vous n\'avez pas la permission de voir les conversations.');
+        return;
+    }
+    
     const modal = document.getElementById('conversationsAdminModal');
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -1428,7 +1886,12 @@ function setupContractsListener() {
     });
 }
 
-function showCreateContractModal() {
+async function showCreateContractModal() {
+    if (!(await hasPermission('create_contract'))) {
+        toast.error('Vous n\'avez pas la permission de créer un contrat.');
+        return;
+    }
+    
     const defaultTerms = `1.1. Le présent bail est consenti aux conditions qui y sont énoncées. Le Bailleur se réserve le droit de mettre en vente le bien loué pendant la durée du bail.
 1.2. Si, à la suite d'une vente du bien, l'Acquéreur souhaite occuper personnellement le logement ou le faire occuper par un parent proche, le Locataire s'engage à libérer les lieux à la date indiquée dans le congé régulier délivré par le nouveau propriétaire, sous réserve du respect par le nouveau propriétaire de toutes les formalités et délais légaux applicables.
 1.3. Le Locataire reconnaît être informé que la vente n'annule pas automatiquement le bail en cours et que l'exercice par l'Acquéreur de son droit de reprise ou de vente libératoire s'effectuera conformément aux règles de droit applicables.
@@ -1449,6 +1912,11 @@ function closeCreateContractModal() {
 
 document.getElementById('createContractForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    
+    if (!(await hasPermission('create_contract'))) {
+        toast.error('Vous n\'avez pas la permission de créer un contrat.');
+        return;
+    }
     
     const contractData = {
         type: document.getElementById('contractTypeSelect').value,
@@ -1514,6 +1982,11 @@ function openContractPage(url) {
 }
 
 async function showManageContractsModal() {
+    if (!(await hasPermission('manage_contracts'))) {
+        toast.error('Vous n\'avez pas la permission de gérer les contrats.');
+        return;
+    }
+    
     document.getElementById('manageContractsModal').classList.add('active');
     document.body.style.overflow = 'hidden';
     await loadAllContracts();
@@ -1745,9 +2218,30 @@ async function deleteContract(contractId) {
     }
 }
 
-function showAppointmentsCard() {
+async function showAppointmentsCard() {
     const user = discordAuth.getUser();
-    if (user && DISCORD_CONFIG.authorizedIds.includes(user.id)) {
+    if (!user) return;
+    
+    let hasPermission = false;
+    
+    if (DISCORD_CONFIG.adminManagerIds.includes(user.id)) {
+        hasPermission = true;
+    } else {
+        try {
+            const db = firebase.firestore();
+            const authDoc = await db.collection('admin_authorized_ids').doc(user.id).get();
+            if (authDoc.exists && authDoc.data().authorized) {
+                const permissionsDoc = await db.collection('admin_permissions').doc(user.id).get();
+                if (permissionsDoc.exists && permissionsDoc.data().manage_appointments === true) {
+                    hasPermission = true;
+                }
+            }
+        } catch (error) {
+            console.error('Erreur vérification permissions:', error);
+        }
+    }
+    
+    if (hasPermission) {
         const card = document.getElementById('appointmentsCard');
         if (card) {
             card.style.display = 'block';
@@ -1798,7 +2292,12 @@ async function loadUserDisplayName(user) {
     }
 }
 
-function showDisplayNameModal() {
+async function showDisplayNameModal() {
+    if (!(await hasPermission('manage_appointments'))) {
+        toast.error('Vous n\'avez pas la permission de gérer les rendez-vous.');
+        return;
+    }
+    
     const modal = document.getElementById('displayNameModal');
     modal.classList.add('active');
     
@@ -1889,6 +2388,18 @@ function updateThemeName(theme) {
 }
 
 window.changeTheme = async function(themeName) {
+    if (!(await hasPermission('manage_theme'))) {
+        if (window.toast) {
+            toast.error('Vous n\'avez pas la permission de changer le thème.');
+        }
+        const selector = document.getElementById('themeSelector');
+        const currentTheme = await getActiveTheme();
+        if (selector) {
+            selector.value = currentTheme || THEME_CONFIG.activeTheme || 'default';
+        }
+        return;
+    }
+    
     try {
         const selector = document.getElementById('themeSelector');
         if (selector) {

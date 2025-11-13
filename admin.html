@@ -663,7 +663,7 @@
 
             <div class="admin-content">
                 <div class="admin-grid" style="grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); max-width: 1200px; margin: 0 auto;">
-                    <div class="admin-card">
+                    <div class="admin-card" id="propertiesCard" data-permissions="create_property,manage_properties">
                         <div class="admin-card-icon">
                             <i class="fas fa-home"></i>
                         </div>
@@ -672,10 +672,10 @@
                         <div class="property-count" id="propertyCount">
                             <i class="fas fa-building"></i> <span>0</span> biens actifs
                         </div>
-                        <button class="admin-btn" onclick="showAddPropertyModal()">
+                        <button class="admin-btn" id="addPropertyBtn" onclick="showAddPropertyModal()" data-permission="create_property">
                             <i class="fas fa-plus"></i> Ajouter un bien
                         </button>
-                        <button class="admin-btn admin-btn-secondary" onclick="showManagePropertiesModal()" style="margin-top: 0.5rem;">
+                        <button class="admin-btn admin-btn-secondary" id="managePropertiesBtn" onclick="showManagePropertiesModal()" style="margin-top: 0.5rem;" data-permission="manage_properties">
                             <i class="fas fa-edit"></i> Gérer les biens
                         </button>
                         <button class="admin-btn admin-btn-secondary" onclick="window.location.href='biens.html'" style="margin-top: 0.5rem;">
@@ -683,13 +683,13 @@
                         </button>
                     </div>
 
-                    <div class="admin-card">
+                    <div class="admin-card" id="interieursCard" data-permissions="manage_interieurs">
                         <div class="admin-card-icon">
                             <i class="fas fa-couch"></i>
                         </div>
                         <h3>Gestion des Intérieurs</h3>
                         <p>Ajouter, modifier ou supprimer des intérieurs disponibles</p>
-                        <button class="admin-btn" onclick="window.location.href='admin-interieurs.html'">
+                        <button class="admin-btn" id="manageInterieursBtn" onclick="checkInterieursPermission()" data-permission="manage_interieurs">
                             <i class="fas fa-cog"></i> Gérer les intérieurs
                         </button>
                         <button class="admin-btn admin-btn-secondary" onclick="window.location.href='interieurs.html'" style="margin-top: 0.5rem;">
@@ -697,24 +697,24 @@
                         </button>
                     </div>
 
-                    <div class="admin-card">
+                    <div class="admin-card" id="mediasCard" data-permissions="manage_media">
                         <div class="admin-card-icon">
                             <i class="fas fa-images"></i>
                         </div>
                         <h3>Galerie Médias</h3>
                         <p>Gérer toutes les images du site</p>
-                        <button class="admin-btn" onclick="window.location.href='admin-medias.html'">
+                        <button class="admin-btn" id="manageMediasBtn" onclick="checkMediaPermission()" data-permission="manage_media">
                             <i class="fas fa-photo-video"></i> Gérer les médias
                         </button>
                     </div>
 
-                    <div class="admin-card">
+                    <div class="admin-card" id="encheresCard" data-permissions="manage_encheres">
                         <div class="admin-card-icon">
                             <i class="fas fa-gavel"></i>
                         </div>
                         <h3>Ventes aux Enchères</h3>
                         <p>Créer et gérer les ventes aux enchères en direct</p>
-                        <button class="admin-btn" onclick="window.location.href='admin-encheres.html'">
+                        <button class="admin-btn" id="manageEncheresBtn" onclick="checkEncheresPermission()" data-permission="manage_encheres">
                             <i class="fas fa-play"></i> Gérer les enchères
                         </button>
                         <button class="admin-btn admin-btn-secondary" onclick="window.location.href='enchere.html'" style="margin-top: 0.5rem;">
@@ -722,7 +722,7 @@
                         </button>
                     </div>
 
-                    <div class="admin-card">
+                    <div class="admin-card" id="themeCard" data-permissions="manage_theme">
                         <div class="admin-card-icon">
                             <i class="fas fa-palette"></i>
                         </div>
@@ -730,7 +730,7 @@
                         <p>Changer l'apparence du site selon les événements</p>
                         <div style="margin-top: 1rem;">
                             <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--secondary-color);">Thème actif :</label>
-                            <select id="themeSelector" onchange="changeTheme(this.value)" style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-bg); border-radius: 8px; font-size: 1rem; margin-bottom: 1rem;">
+                            <select id="themeSelector" onchange="changeTheme(this.value)" data-permission="manage_theme" style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-bg); border-radius: 8px; font-size: 1rem; margin-bottom: 1rem;">
                                 <option value="default">🏠 Par défaut (ORPI)</option>
                                 <option value="halloween">🎃 Halloween</option>
                                 <option value="christmas">🎄 Noël</option>
@@ -741,7 +741,7 @@
                         </div>
                     </div>
 
-                    <div class="admin-card">
+                    <div class="admin-card" id="conversationsCard" data-permissions="view_conversations">
                         <div class="admin-card-icon">
                             <i class="fas fa-comments"></i>
                         </div>
@@ -750,12 +750,12 @@
                         <div class="property-count" id="conversationsCount">
                             <i class="fas fa-comments"></i> <span>0</span> conversations actives
                         </div>
-                        <button class="admin-btn" onclick="showConversationsModal()">
+                        <button class="admin-btn" id="viewConversationsBtn" onclick="showConversationsModal()" data-permission="view_conversations">
                             <i class="fas fa-inbox"></i> Voir les conversations
                         </button>
                     </div>
 
-                    <div class="admin-card">
+                    <div class="admin-card" id="contractsCard" data-permissions="create_contract,manage_contracts">
                         <div class="admin-card-icon">
                             <i class="fas fa-file-contract"></i>
                         </div>
@@ -764,29 +764,32 @@
                         <div class="property-count" id="contractCount">
                             <i class="fas fa-file-signature"></i> <span>0</span> contrats actifs
                         </div>
-                        <button class="admin-btn" onclick="showCreateContractModal()">
+                        <button class="admin-btn" id="createContractBtn" onclick="showCreateContractModal()" data-permission="create_contract">
                             <i class="fas fa-plus"></i> Créer un contrat
                         </button>
-                        <button class="admin-btn admin-btn-secondary" onclick="showManageContractsModal()" style="margin-top: 0.5rem;">
+                        <button class="admin-btn admin-btn-secondary" id="manageContractsBtn" onclick="showManageContractsModal()" style="margin-top: 0.5rem;" data-permission="manage_contracts">
                             <i class="fas fa-list"></i> Gérer les contrats
                         </button>
                     </div>
 
-                    <div class="admin-card">
+                    <div class="admin-card" id="authorizationsCard" data-permissions="view_authorized_ids,manage_admin_ids,manage_permissions">
                         <div class="admin-card-icon">
                             <i class="fas fa-shield-alt"></i>
                         </div>
                         <h3>Autorisations</h3>
                         <p>Gérer les accès administrateurs</p>
-                        <button class="admin-btn" onclick="showAuthorizedIdsModal()">
+                        <button class="admin-btn" id="viewAuthorizedIdsBtn" onclick="showAuthorizedIdsModal()" data-permission="view_authorized_ids">
                             <i class="fas fa-key"></i> Voir les IDs autorisés
                         </button>
-                        <button class="admin-btn admin-btn-secondary" id="addAdminIdBtn" onclick="showAddAdminIdModal()" style="margin-top: 0.5rem; display: none;">
+                        <button class="admin-btn admin-btn-secondary" id="addAdminIdBtn" onclick="showAddAdminIdModal()" style="margin-top: 0.5rem; display: none;" data-permission="manage_admin_ids">
                             <i class="fas fa-user-plus"></i> Ajouter un ID Discord
+                        </button>
+                        <button class="admin-btn admin-btn-secondary" id="managePermissionsBtn" onclick="showManagePermissionsModal()" style="margin-top: 0.5rem;" data-permission="manage_permissions">
+                            <i class="fas fa-user-cog"></i> Gérer les permissions
                         </button>
                     </div>
 
-                    <div class="admin-card">
+                    <div class="admin-card" id="employeesCard" data-permissions="manage_employees,manage_employees_full">
                         <div class="admin-card-icon">
                             <i class="fas fa-users"></i>
                         </div>
@@ -795,18 +798,18 @@
                         <div class="property-count" id="employeeCount">
                             <i class="fas fa-user"></i> <span>0</span> employés
                         </div>
-                        <button class="admin-btn" onclick="showAddEmployeeModal()">
+                        <button class="admin-btn" id="addEmployeeBtn" onclick="showAddEmployeeModal()" data-permission="manage_employees_full" style="display: none;">
                             <i class="fas fa-user-plus"></i> Ajouter un employé
                         </button>
-                        <button class="admin-btn admin-btn-secondary" onclick="showManageEmployeesModal()" style="margin-top: 0.5rem;">
+                        <button class="admin-btn admin-btn-secondary" id="manageEmployeesBtn" onclick="showManageEmployeesModal()" style="margin-top: 0.5rem; display: none;" data-permission="manage_employees_full">
                             <i class="fas fa-edit"></i> Gérer les employés
                         </button>
-                        <button class="admin-btn admin-btn-secondary" onclick="window.location.href='tableau-general.html'" style="margin-top: 0.5rem;">
+                        <button class="admin-btn admin-btn-secondary" id="viewTableauGeneralBtn" onclick="checkTableauGeneralPermission()" style="margin-top: 0.5rem;" data-permission="manage_employees">
                             <i class="fas fa-table"></i> Tableau général
                         </button>
                     </div>
 
-                    <div class="admin-card">
+                    <div class="admin-card" id="declarationsCard" data-permissions="manage_declarations,view_declarations">
                         <div class="admin-card-icon">
                             <i class="fas fa-file-invoice-dollar"></i>
                         </div>
@@ -815,10 +818,10 @@
                         <div class="property-count" id="declarationCount">
                             <i class="fas fa-archive"></i> <span>0</span> déclarations archivées
                         </div>
-                        <button class="admin-btn" onclick="showClotureModal()">
+                        <button class="admin-btn" id="cloturePeriodBtn" onclick="showClotureModal()" data-permission="manage_declarations">
                             <i class="fas fa-check-circle"></i> Clôturer la période
                         </button>
-                        <button class="admin-btn admin-btn-secondary" onclick="showHistoriqueModal()" style="margin-top: 0.5rem;">
+                        <button class="admin-btn admin-btn-secondary" id="viewHistoriqueBtn" onclick="showHistoriqueModal()" style="margin-top: 0.5rem;" data-permission="view_declarations">
                             <i class="fas fa-history"></i> Voir l'historique
                         </button>
                     </div>
@@ -832,18 +835,18 @@
                         <div class="property-count" id="appointmentsCount">
                             <i class="fas fa-clock"></i> Gérer vos créneaux
                         </div>
-                        <button class="admin-btn" onclick="window.location.href='admin-disponibilites.html'">
+                        <button class="admin-btn" id="manageDisponibilitesBtn" onclick="checkAppointmentPermission('admin-disponibilites.html')" data-permission="manage_appointments">
                             <i class="fas fa-clock"></i> Mes Disponibilités
                         </button>
-                        <button class="admin-btn admin-btn-secondary" onclick="window.location.href='admin-rendez-vous.html'" style="margin-top: 0.5rem;">
+                        <button class="admin-btn admin-btn-secondary" id="viewRendezVousBtn" onclick="checkAppointmentPermission('admin-rendez-vous.html')" style="margin-top: 0.5rem;" data-permission="manage_appointments">
                             <i class="fas fa-calendar-alt"></i> Voir les rendez-vous
                         </button>
-                        <button class="admin-btn admin-btn-secondary" onclick="showDisplayNameModal()" style="margin-top: 0.5rem;">
+                        <button class="admin-btn admin-btn-secondary" id="modifyPseudoBtn" onclick="showDisplayNameModal()" style="margin-top: 0.5rem;" data-permission="manage_appointments">
                             <i class="fas fa-user-tag"></i> Modifier mon pseudo
                         </button>
                     </div>
 
-                    <div class="admin-card">
+                    <div class="admin-card" id="reviewsCard" data-permissions="view_reviews,manage_reviews">
                         <div class="admin-card-icon">
                             <i class="fas fa-star"></i>
                         </div>
@@ -852,10 +855,10 @@
                         <div class="property-count" id="reviewsCount">
                             <i class="fas fa-comments"></i> Chargement...
                         </div>
-                        <button class="admin-btn" onclick="window.location.href='avis.html'">
+                        <button class="admin-btn" id="viewReviewsBtn" onclick="window.location.href='avis.html'" data-permission="view_reviews">
                             <i class="fas fa-eye"></i> Voir les Avis
                         </button>
-                        <button class="admin-btn admin-btn-secondary" onclick="window.location.href='admin-avis.html'" style="margin-top: 0.5rem;">
+                        <button class="admin-btn admin-btn-secondary" id="manageReviewsBtn" onclick="checkReviewsPermission()" style="margin-top: 0.5rem;" data-permission="manage_reviews">
                             <i class="fas fa-cog"></i> Gérer les Avis
                         </button>
                     </div>
@@ -1031,6 +1034,162 @@
             </form>
         </div>
     </div>
+
+    <div id="managePermissionsModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-cog"></i> Gérer les Permissions</h2>
+                <button class="modal-close" onclick="closeManagePermissionsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p style="margin-bottom: 1.5rem; color: var(--text-color); padding: 0 1rem;">
+                Configurez les permissions pour chaque administrateur. Seuls les admin principales ont toutes les permissions par défaut.
+            </p>
+            <div id="permissionsList" style="max-height: 550px; overflow-y: auto; padding: 0 1rem;"></div>
+            <div style="margin-top: 1.5rem; padding: 1rem; background: linear-gradient(135deg, #d1ecf1 0%, #e3f2fd 100%); border-left: 4px solid #17a2b8; border-radius: 8px; margin: 1rem 1rem 0 1rem;">
+                <strong><i class="fas fa-info-circle" style="color: #17a2b8;"></i> Information :</strong>
+                <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: #495057;">Les permissions sont vérifiées en temps réel. Si un administrateur n'a pas la permission, le bouton correspondant sera désactivé et non cliquable.</p>
+            </div>
+            <div style="margin-top: 1.5rem; padding: 0 1rem 1rem 1rem; display: flex; gap: 1rem;">
+                <button class="btn-cancel" onclick="closeManagePermissionsModal()" style="flex: 1; padding: 0.75rem; font-size: 1rem; border-radius: 8px;">Fermer</button>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+        .permission-item {
+            background: #fff;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .permission-item:hover {
+            border-color: #dee2e6;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .permission-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #f1f3f5;
+        }
+        
+        .permission-header strong {
+            font-size: 1.1rem;
+            color: #212529;
+        }
+        
+        .permission-header code {
+            background: #f8f9fa;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: #495057;
+            border: 1px solid #e9ecef;
+        }
+        
+        .permission-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.875rem 0;
+            border-bottom: 1px solid #f1f3f5;
+        }
+        
+        .permission-row:last-child {
+            border-bottom: none;
+        }
+        
+        .permission-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .permission-label span {
+            font-size: 0.95rem;
+            color: #495057;
+            font-weight: 500;
+        }
+        
+        .permission-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background: #f8f9fa;
+            color: #6c757d;
+            font-size: 0.85rem;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 52px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.3s;
+            border-radius: 28px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .toggle-switch input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+        
+        .toggle-switch input:disabled + .toggle-slider {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .toggle-switch:hover input:not(:disabled) + .toggle-slider {
+            box-shadow: 0 0 8px rgba(40, 167, 69, 0.3);
+        }
+    </style>
 
         <div id="managePropertiesModal" class="modal">
         <div class="modal-content" style="max-width: 800px;">

@@ -28,7 +28,6 @@ window.DISCORD_CONFIG = {
         '1146744331244412950', // Tom Wright
         '375964979540525058', // Lenny Guivarsh
         '335853228736380938', // Jawad
-        '430712549470633984', // lina
     ],
     adminManagerIds: [
         '317665879443767306', // Lucas Wright

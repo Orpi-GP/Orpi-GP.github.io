@@ -9,7 +9,19 @@ async function updateEmployeeCount() {
         console.error('Erreur:', error);
     }
 }
-function showAddEmployeeModal() {
+async function showAddEmployeeModal() {
+    const currentUser = discordAuth.getUser();
+    if (!currentUser) return;
+    
+    if (!DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+        const db = firebase.firestore();
+        const permissionsDoc = await db.collection('admin_permissions').doc(currentUser.id).get();
+        if (!permissionsDoc.exists || !permissionsDoc.data().manage_employees_full) {
+            toast.error('Vous n\'avez pas la permission de gérer les employés.');
+            return;
+        }
+    }
+    
     document.getElementById('addEmployeeModal').classList.add('active');
     document.body.style.overflow = 'hidden';
 }
@@ -20,6 +32,19 @@ function closeAddEmployeeModal() {
 }
 async function handleAddEmployee(event) {
     event.preventDefault();
+    
+    const currentUser = discordAuth.getUser();
+    if (!currentUser) return;
+    
+    if (!DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+        const db = firebase.firestore();
+        const permissionsDoc = await db.collection('admin_permissions').doc(currentUser.id).get();
+        if (!permissionsDoc.exists || !permissionsDoc.data().manage_employees_full) {
+            toast.error('Vous n\'avez pas la permission de gérer les employés.');
+            return;
+        }
+    }
+    
     const employeeData = {
         name: document.getElementById('employeeName').value,
         grade: document.getElementById('employeeGrade').value,
@@ -38,6 +63,18 @@ async function handleAddEmployee(event) {
     }
 }
 async function showManageEmployeesModal() {
+    const currentUser = discordAuth.getUser();
+    if (!currentUser) return;
+    
+    if (!DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+        const db = firebase.firestore();
+        const permissionsDoc = await db.collection('admin_permissions').doc(currentUser.id).get();
+        if (!permissionsDoc.exists || !permissionsDoc.data().manage_employees_full) {
+            toast.error('Vous n\'avez pas la permission de gérer les employés.');
+            return;
+        }
+    }
+    
     const modal = document.getElementById('manageEmployeesModal');
     const list = document.getElementById('employeesList');
     modal.classList.add('active');
@@ -114,6 +151,18 @@ function closeEditEmployeeModal() {
 }
 async function handleEditEmployee(event) {
     event.preventDefault();
+    
+    const currentUser = discordAuth.getUser();
+    if (!currentUser) return;
+    
+    if (!DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+        const db = firebase.firestore();
+        const permissionsDoc = await db.collection('admin_permissions').doc(currentUser.id).get();
+        if (!permissionsDoc.exists || !permissionsDoc.data().manage_employees_full) {
+            toast.error('Vous n\'avez pas la permission de gérer les employés.');
+            return;
+        }
+    }
     const employeeId = document.getElementById('editEmployeeId').value;
     const employeeData = {
         name: document.getElementById('editEmployeeName').value,
@@ -133,6 +182,18 @@ async function handleEditEmployee(event) {
     }
 }
 async function deleteEmployee(employeeId) {
+    const currentUser = discordAuth.getUser();
+    if (!currentUser) return;
+    
+    if (!DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+        const db = firebase.firestore();
+        const permissionsDoc = await db.collection('admin_permissions').doc(currentUser.id).get();
+        if (!permissionsDoc.exists || !permissionsDoc.data().manage_employees_full) {
+            toast.error('Vous n\'avez pas la permission de gérer les employés.');
+            return;
+        }
+    }
+    
     if (!confirm('⚠️ Êtes-vous sûr de vouloir supprimer cet employé ? Toutes ses ventes seront également supprimées.')) {
         return;
     }
@@ -157,7 +218,19 @@ async function updateDeclarationCount() {
         console.error('Erreur:', error);
     }
 }
-function showClotureModal() {
+async function showClotureModal() {
+    const currentUser = discordAuth.getUser();
+    if (!currentUser) return;
+    
+    if (!DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+        const db = firebase.firestore();
+        const permissionsDoc = await db.collection('admin_permissions').doc(currentUser.id).get();
+        if (!permissionsDoc.exists || !permissionsDoc.data().manage_declarations) {
+            toast.error('Vous n\'avez pas la permission de gérer les déclarations.');
+            return;
+        }
+    }
+    
     const now = new Date();
     const defaultPeriodName = `Déclaration ${now.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`;
     document.getElementById('periodName').value = defaultPeriodName;
@@ -171,6 +244,19 @@ function closeClotureModal() {
 }
 async function handleCloture(event) {
     event.preventDefault();
+    
+    const currentUser = discordAuth.getUser();
+    if (!currentUser) return;
+    
+    if (!DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+        const db = firebase.firestore();
+        const permissionsDoc = await db.collection('admin_permissions').doc(currentUser.id).get();
+        if (!permissionsDoc.exists || !permissionsDoc.data().manage_declarations) {
+            toast.error('Vous n\'avez pas la permission de gérer les déclarations.');
+            return;
+        }
+    }
+    
     const periodName = document.getElementById('periodName').value;
     if (!confirm(`⚠️ Confirmer la clôture de la période "${periodName}" ?\n\nCette action :\n• Sauvegardera toutes les ventes dans l'historique\n• Réinitialisera les fiches de vente de tous les employés\n\nCette action est irréversible.`)) {
         return;
@@ -186,6 +272,18 @@ async function handleCloture(event) {
     }
 }
 async function showHistoriqueModal() {
+    const currentUser = discordAuth.getUser();
+    if (!currentUser) return;
+    
+    if (!DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+        const db = firebase.firestore();
+        const permissionsDoc = await db.collection('admin_permissions').doc(currentUser.id).get();
+        if (!permissionsDoc.exists || (!permissionsDoc.data().view_declarations && !permissionsDoc.data().manage_declarations)) {
+            toast.error('Vous n\'avez pas la permission de voir l\'historique des déclarations.');
+            return;
+        }
+    }
+    
     const modal = document.getElementById('historiqueModal');
     const list = document.getElementById('historiqueList');
     modal.classList.add('active');

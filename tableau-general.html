@@ -11,27 +11,343 @@
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .order-btn {
-            background: var(--primary-color, #E30613);
+        .draggable-row {
+            cursor: move;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .draggable-row.dragging {
+            opacity: 0.5;
+            background: #f0f0f0 !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .draggable-row.drag-over-top {
+            border-top: 3px solid var(--primary-color, #E30613);
+            padding-top: calc(1.25rem - 3px);
+        }
+        
+        .draggable-row.drag-over-bottom {
+            border-bottom: 3px solid var(--primary-color, #E30613);
+            padding-bottom: calc(1.25rem - 3px);
+        }
+        
+        .draggable-row:active {
+            cursor: grabbing;
+        }
+        
+        .draggable-row:hover:not(.dragging) {
+            background: linear-gradient(90deg, rgba(227, 6, 19, 0.04), rgba(227, 6, 19, 0.06)) !important;
+        }
+        
+        .fa-grip-vertical {
+            transition: all 0.2s ease;
+            pointer-events: none;
+        }
+        
+        .draggable-row:hover:not(.dragging) .fa-grip-vertical {
+            color: var(--primary-color, #E30613) !important;
+            transform: scale(1.2);
+        }
+        
+        .draggable-row.dragging .fa-grip-vertical {
+            color: var(--primary-color, #E30613) !important;
+        }
+        
+        .tableau-section {
+            background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+        
+        .summary-card {
+            background: white;
+            padding: 1.75rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color, #E30613), #ff2a39);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+        
+        .summary-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08);
+        }
+        
+        .summary-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .summary-icon {
+            font-size: 2.5rem;
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary-color, #E30613), #ff2a39);
             color: white;
-            border: none;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(227, 6, 19, 0.25);
+        }
+        
+        .summary-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .summary-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            line-height: 1.2;
+            margin-bottom: 0.25rem;
+            letter-spacing: -0.5px;
+        }
+        
+        .summary-label {
+            font-size: 0.875rem;
+            color: #6c757d;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .tableau-container {
+            background: white;
+            padding: 0;
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .tableau-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .tableau-scroll::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .tableau-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .tableau-scroll::-webkit-scrollbar-thumb {
+            background: linear-gradient(90deg, var(--primary-color, #E30613), #ff2a39);
             border-radius: 4px;
-            padding: 0.4rem 0.6rem;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.2s;
-            min-width: 32px;
         }
-        .order-btn:hover:not(:disabled) {
-            background: #c20510;
-            transform: scale(1.1);
+        
+        .tableau-scroll::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(90deg, #c20510, #e31826);
         }
-        .order-btn:disabled {
-            opacity: 0.3;
+        
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 1400px;
+        }
+        
+        .data-table thead {
+            background: linear-gradient(135deg, var(--secondary-color, #1a1a1a), #2d2d2d);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .data-table th {
+            padding: 1.25rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            white-space: nowrap;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .data-table th:last-child {
+            border-right: none;
+        }
+        
+        .data-table tbody tr {
+            transition: all 0.2s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .data-table tbody tr:hover {
+            background: linear-gradient(90deg, rgba(227, 6, 19, 0.03), rgba(227, 6, 19, 0.05));
+            transform: scale(1.001);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        
+        .data-table td {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid #f5f5f5;
+            font-size: 0.9375rem;
+            color: #333;
+        }
+        
+        .data-table .editable-cell {
+            background: linear-gradient(135deg, #f8f9fa, #f0f0f0);
+            border-radius: 8px;
+            padding: 0.5rem;
+        }
+        
+        .editable-input {
+            width: 100%;
+            padding: 0.625rem 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.9375rem;
+            transition: all 0.2s ease;
+            background: white;
+        }
+        
+        .editable-input:focus {
+            outline: none;
+            border-color: var(--primary-color, #E30613);
+            box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.1);
+        }
+        
+        .editable-input:disabled {
+            background: #f5f5f5;
             cursor: not-allowed;
+            opacity: 0.6;
+            color: #6c757d;
         }
-        .order-btn i {
-            font-size: 0.75rem;
+        
+        .editable-input:disabled::placeholder {
+            color: #adb5bd;
+        }
+        
+        .data-table tfoot {
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            color: white;
+            font-weight: 700;
+            position: sticky;
+            bottom: 0;
+        }
+        
+        .data-table tfoot td {
+            padding: 1.5rem 1rem;
+            border: none;
+            border-right: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: 1rem;
+            color: #ffffff;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        
+        .data-table tfoot td:last-child {
+            border-right: none;
+        }
+        
+        .total-row td {
+            font-size: 1.0625rem;
+            color: #ffffff !important;
+            font-weight: 700;
+        }
+        
+        .summary-subvalue {
+            font-size: 0.875rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .salaire-info {
+            background: linear-gradient(135deg, #fff9e6, #fff4d6);
+            border-left: 4px solid #ffc107;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-top: 1.5rem;
+            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.15);
+        }
+        
+        .salaire-info .info-text {
+            margin: 0;
+            color: #856404;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .tableau-header {
+            margin-bottom: 2.5rem;
+        }
+        
+        .tableau-header .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color, #E30613), #ff2a39);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+        
+        .btn-primary, .btn-secondary {
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-primary:hover, .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .text-center .loading {
+            padding: 3rem 2rem;
+            color: #6c757d;
+            font-size: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .summary-card {
+                padding: 1.5rem;
+            }
+            
+            .tableau-container {
+                border-radius: 16px;
+            }
         }
     </style>
 </head>
@@ -127,6 +443,7 @@
                     <div class="summary-content">
                         <div class="summary-value" id="totalCA">0 €</div>
                         <div class="summary-label">Chiffre d'Affaires</div>
+                        <div class="summary-subvalue" id="totalCAAfter" style="margin-top: 0.5rem; font-size: 1rem; color: #28a745; font-weight: 600;">Après 15%: 0 €</div>
                     </div>
                 </div>
                 <div class="summary-card">
@@ -155,7 +472,8 @@
                                 <th>Grade</th>
                                 <th>Fiche</th>
                                 <th>Total Bénéfices</th>
-                                <th>Total Vente</th>
+                                <th>CA Avant 15%</th>
+                                <th>CA Après 15%</th>
                                 <th>NB Vente</th>
                                 <th>Primes</th>
                                 <th>Dividendes</th>
@@ -165,7 +483,7 @@
                         </thead>
                         <tbody id="employeesTableBody">
                             <tr>
-                                <td colspan="11" class="text-center">
+                                <td colspan="12" class="text-center">
                                     <div class="loading">Chargement des données...</div>
                                 </td>
                             </tr>
@@ -176,6 +494,7 @@
                                 <td colspan="3"><strong>TOTAL</strong></td>
                                 <td id="footerTotalBenefices">0 €</td>
                                 <td id="footerTotalVente">0 €</td>
+                                <td id="footerTotalCAAfter">0 €</td>
                                 <td id="footerNbVente">0</td>
                                 <td id="footerPrimes">0 €</td>
                                 <td id="footerDividendes">0 €</td>
