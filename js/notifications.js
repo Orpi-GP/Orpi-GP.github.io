@@ -83,7 +83,7 @@ function initNotifications() {
         }
     }, 100);
 }
-function setupNotificationsUI() {
+async function setupNotificationsUI() {
     const notificationsBtn = document.getElementById('notificationsBtn');
     const notificationsBadge = document.getElementById('notificationsBadge');
     const notificationBell = document.getElementById('notificationBell');
@@ -93,7 +93,7 @@ function setupNotificationsUI() {
         notificationBell.style.display = 'block';
     }
     if (notificationManager) {
-        const isAdmin = discordAuth.isAuthorized();
+        const isAdmin = await discordAuth.isAuthorized();
         const discordId = isAdmin ? null : discordAuth.getUser().id;
         
         notificationManager.onSnapshot(unreadCount => {
@@ -122,8 +122,8 @@ function setupNotificationsUI() {
         }, discordId);
     }
 }
-function toggleNotifications() {
-    if (discordAuth.isAuthorized()) {
+async function toggleNotifications() {
+    if (await discordAuth.isAuthorized()) {
         if (window.location.pathname.includes('admin.html')) {
             showConversationsModal();
         } else {

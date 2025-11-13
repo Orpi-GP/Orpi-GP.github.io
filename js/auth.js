@@ -35,7 +35,31 @@ class DiscordAuth {
         return this.getToken() !== null && this.getUser() !== null;
     }
     
-    isAuthorized() {
+    async isAuthorized() {
+        const user = this.getUser();
+        if (!user) return false;
+        
+        // Vérifier d'abord dans config.js (compatibilité)
+        if (DISCORD_CONFIG.authorizedIds.includes(user.id)) {
+            return true;
+        }
+        
+        // Vérifier aussi dans Firestore
+        try {
+            if (typeof firebase !== 'undefined' && firebase.firestore) {
+                const db = firebase.firestore();
+                const doc = await db.collection('admin_authorized_ids').doc(user.id).get();
+                return doc.exists && doc.data().authorized === true;
+            }
+        } catch (error) {
+            console.error('Erreur lors de la vérification Firestore:', error);
+        }
+        
+        return false;
+    }
+    
+    // Méthode synchrone pour compatibilité (utilise le cache)
+    isAuthorizedSync() {
         const user = this.getUser();
         if (!user) return false;
         return DISCORD_CONFIG.authorizedIds.includes(user.id);
@@ -109,14 +133,17 @@ function updateUI() {
             updateDashboardBadge(user.id);
         }
         
-        if (adminPanel && discordAuth.isAuthorized()) {
-            adminPanel.style.display = 'block';
-        }
-        
-        if (discordAuth.isAuthorized()) {
-            const tableauGeneralLink = document.getElementById('tableauGeneralLink');
-            if (tableauGeneralLink) tableauGeneralLink.style.display = 'block';
-        }
+        // Vérification asynchrone pour Firestore
+        discordAuth.isAuthorized().then(authorized => {
+            if (adminPanel && authorized) {
+                adminPanel.style.display = 'block';
+            }
+            
+            if (authorized) {
+                const tableauGeneralLink = document.getElementById('tableauGeneralLink');
+                if (tableauGeneralLink) tableauGeneralLink.style.display = 'block';
+            }
+        });
     } else {
         if (loginBtn) loginBtn.style.display = 'block';
         if (discordLoginBtn) discordLoginBtn.style.display = 'inline-flex';

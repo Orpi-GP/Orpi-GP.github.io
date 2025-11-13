@@ -1,21 +1,23 @@
-if (discordAuth.isLoggedIn() && discordAuth.isAuthorized()) {
-    const boutonNotifications = document.getElementById('notificationsBtn');
-    const badgeNotifications = document.getElementById('notificationsBadge');
-    
-    if (boutonNotifications && typeof NotificationsManager !== 'undefined') {
-        boutonNotifications.style.display = 'flex';
+(async () => {
+    if (discordAuth.isLoggedIn() && await discordAuth.isAuthorized()) {
+        const boutonNotifications = document.getElementById('notificationsBtn');
+        const badgeNotifications = document.getElementById('notificationsBadge');
         
-        NotificationsManager.onSnapshot(notifications => {
-            const nombreNonLues = notifications.filter(n => !n.read).length;
-            if (nombreNonLues > 0) {
-                badgeNotifications.textContent = nombreNonLues;
-                badgeNotifications.style.display = 'flex';
-            } else {
-                badgeNotifications.style.display = 'none';
-            }
-        });
+        if (boutonNotifications && typeof NotificationsManager !== 'undefined') {
+            boutonNotifications.style.display = 'flex';
+            
+            NotificationsManager.onSnapshot(notifications => {
+                const nombreNonLues = notifications.filter(n => !n.read).length;
+                if (nombreNonLues > 0) {
+                    badgeNotifications.textContent = nombreNonLues;
+                    badgeNotifications.style.display = 'flex';
+                } else {
+                    badgeNotifications.style.display = 'none';
+                }
+            });
+        }
     }
-}
+})();
 
 async function loadFeaturedProperties() {
     try {

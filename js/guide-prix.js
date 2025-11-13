@@ -1,7 +1,7 @@
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
+document.addEventListener('DOMContentLoaded', async () => {
+    setTimeout(async () => {
         const utilisateur = discordAuth.getUser();
-        const estAutorise = utilisateur && discordAuth.isAuthorized();
+        const estAutorise = utilisateur && await discordAuth.isAuthorized();
         const contenuGuidePrix = document.getElementById('guidePrixContent');
         const messageAccesRefuse = document.getElementById('accessDenied');
         if (estAutorise) {

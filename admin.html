@@ -781,6 +781,9 @@
                         <button class="admin-btn" onclick="showAuthorizedIdsModal()">
                             <i class="fas fa-key"></i> Voir les IDs autorisés
                         </button>
+                        <button class="admin-btn admin-btn-secondary" onclick="showAddAdminIdModal()" style="margin-top: 0.5rem;">
+                            <i class="fas fa-user-plus"></i> Ajouter un ID Discord
+                        </button>
                     </div>
 
                     <div class="admin-card">
@@ -986,10 +989,46 @@
                 Seuls les utilisateurs Discord avec ces IDs peuvent accéder au panel d'administration.
             </p>
             <ul class="ids-list" id="idsList"></ul>
-            <div style="margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 5px;">
+            <div style="margin-top: 1.5rem; padding: 1rem; background: #d1ecf1; border-left: 4px solid #17a2b8; border-radius: 5px;">
                 <strong><i class="fas fa-info-circle"></i> Information :</strong>
-                <p style="margin: 0.5rem 0 0 0;">Pour ajouter ou supprimer des IDs, modifiez le fichier <code>config.js</code> dans le tableau <code>authorizedIds</code>.</p>
+                <p style="margin: 0.5rem 0 0 0;">Les IDs marqués "Config.js" sont définis dans le fichier de configuration et ne peuvent être supprimés que depuis le code. Les IDs marqués "Ajouté via site" peuvent être supprimés depuis cette interface.</p>
             </div>
+            <div style="margin-top: 1rem; display: flex; gap: 1rem;">
+                <button class="btn-cancel" onclick="closeAuthorizedIdsModal()" style="flex: 1;">Fermer</button>
+                <button class="admin-btn" onclick="showAddAdminIdModal()" style="flex: 1;">
+                    <i class="fas fa-user-plus"></i> Ajouter un ID
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addAdminIdModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-plus"></i> Ajouter un ID Discord Admin</h2>
+                <button class="modal-close" onclick="closeAddAdminIdModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form onsubmit="event.preventDefault(); addAuthorizedId();">
+                <div class="form-group">
+                    <label for="newDiscordId">ID Discord *</label>
+                    <input type="text" id="newDiscordId" required placeholder="Ex: 123456789012345678" pattern="[0-9]{17,19}">
+                    <small style="color: #666; display: block; margin-top: 0.5rem;">
+                        <i class="fas fa-info-circle"></i> L'ID Discord est un nombre de 17 à 19 chiffres. Vous pouvez le trouver en activant le mode développeur dans Discord (Paramètres > Avancé > Mode développeur), puis en faisant un clic droit sur un utilisateur > Copier l'ID.
+                    </small>
+                </div>
+                <div style="margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 5px;">
+                    <strong><i class="fas fa-exclamation-triangle"></i> Attention :</strong>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">En ajoutant un ID Discord, vous accordez un accès complet au panel d'administration. Assurez-vous de faire confiance à cette personne.</p>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeAddAdminIdModal()">Annuler</button>
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-check"></i> Ajouter l'ID
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

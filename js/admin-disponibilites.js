@@ -2,21 +2,21 @@ let currentEmployeeId = null;
 let availabilities = [];
 let currentMonthFilter = null;
 
-document.addEventListener('DOMContentLoaded', () => {
-    checkAuth();
+document.addEventListener('DOMContentLoaded', async () => {
+    await checkAuth();
     loadAvailabilities();
     setupEventListeners();
     setupDateFilter();
 });
 
-function checkAuth() {
+async function checkAuth() {
     const user = discordAuth.getUser();
     if (!user) {
         window.location.href = 'index.html';
         return;
     }
     
-    if (!DISCORD_CONFIG.authorizedIds.includes(user.id)) {
+    if (!(await discordAuth.isAuthorized())) {
         window.location.href = 'index.html';
         return;
     }

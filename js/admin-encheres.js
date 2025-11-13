@@ -11,8 +11,8 @@ function showToast(message, type = 'info') {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    checkAdminAccess();
+document.addEventListener('DOMContentLoaded', async () => {
+    await checkAdminAccess();
     initImageUpload();
     initQuillEditor();
 });
@@ -35,10 +35,10 @@ function initQuillEditor() {
     });
 }
 
-function checkAdminAccess() {
+async function checkAdminAccess() {
     const user = JSON.parse(localStorage.getItem('discord_user') || 'null');
     
-    if (!user || !DISCORD_CONFIG.authorizedIds.includes(user.id)) {
+    if (!user || !(await discordAuth.isAuthorized())) {
         document.getElementById('adminAccess').style.display = 'none';
         document.getElementById('accessDenied').style.display = 'block';
         return;

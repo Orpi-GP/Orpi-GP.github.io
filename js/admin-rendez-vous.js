@@ -35,20 +35,20 @@ async function sendPendingAppointmentsNotifications() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    checkAdminAuth();
+document.addEventListener('DOMContentLoaded', async () => {
+    await checkAdminAuth();
     loadAppointments();
     setupEventListeners();
 });
 
-function checkAdminAuth() {
+async function checkAdminAuth() {
     const user = discordAuth.getUser();
     if (!user) {
         window.location.href = 'index.html';
         return;
     }
     
-    if (!DISCORD_CONFIG.authorizedIds.includes(user.id)) {
+    if (!(await discordAuth.isAuthorized())) {
         window.location.href = 'index.html';
         return;
     }

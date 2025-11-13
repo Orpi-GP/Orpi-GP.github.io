@@ -32,11 +32,11 @@ function initQuillEditor() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    checkAdminAccess();
+document.addEventListener('DOMContentLoaded', async () => {
+    await checkAdminAccess();
 });
 
-function checkAdminAccess() {
+async function checkAdminAccess() {
     const user = JSON.parse(localStorage.getItem('discord_user') || 'null');
     
     console.log('🔍 Vérification accès admin');
@@ -58,7 +58,8 @@ function checkAdminAccess() {
         return;
     }
     
-    if (!DISCORD_CONFIG.authorizedIds.includes(user.id)) {
+    const isAuthorized = await discordAuth.isAuthorized();
+    if (!isAuthorized) {
         console.log('❌ ID non autorisé:', user.id);
         document.getElementById('adminAccess').style.display = 'none';
         document.getElementById('accessDenied').style.display = 'block';

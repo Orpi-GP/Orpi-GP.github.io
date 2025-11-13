@@ -7,21 +7,21 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    checkAuth();
+document.addEventListener('DOMContentLoaded', async () => {
+    await checkAuth();
     loadReviews();
     setupEventListeners();
     loadStatistics();
 });
 
-function checkAuth() {
+async function checkAuth() {
     const user = discordAuth.getUser();
     if (!user) {
         window.location.href = 'index.html';
         return;
     }
     
-    if (!DISCORD_CONFIG.authorizedIds.includes(user.id)) {
+    if (!(await discordAuth.isAuthorized())) {
         window.location.href = 'index.html';
         return;
     }

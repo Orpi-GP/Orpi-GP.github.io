@@ -295,23 +295,56 @@ async function handleAddProperty(event) {
     }
 }
 
-function showAuthorizedIdsModal() {
+async function showAuthorizedIdsModal() {
     const modal = document.getElementById('authorizedIdsModal');
     const idsList = document.getElementById('idsList');
     
-    idsList.innerHTML = '';
+    idsList.innerHTML = '<p style="text-align: center; color: var(--text-color);">Chargement...</p>';
     
-    DISCORD_CONFIG.authorizedIds.forEach((id, index) => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-            <i class="fas fa-user-shield"></i>
-            <div>
-                <strong>Administrateur ${index + 1}</strong><br>
-                <code>${id}</code>
-            </div>
-        `;
-        idsList.appendChild(li);
-    });
+    try {
+        // Charger les IDs depuis Firestore
+        const db = firebase.firestore();
+        const snapshot = await db.collection('admin_authorized_ids').where('authorized', '==', true).get();
+        
+        const allIds = [...DISCORD_CONFIG.authorizedIds];
+        const firestoreIds = [];
+        
+        snapshot.forEach(doc => {
+            const id = doc.id;
+            if (!allIds.includes(id)) {
+                allIds.push(id);
+                firestoreIds.push(id);
+            }
+        });
+        
+        idsList.innerHTML = '';
+        
+        if (allIds.length === 0) {
+            idsList.innerHTML = '<p style="text-align: center; color: var(--text-color);">Aucun ID autorisé.</p>';
+        } else {
+            allIds.forEach((id, index) => {
+                const isFromFirestore = firestoreIds.includes(id);
+                const li = document.createElement('li');
+                li.style.position = 'relative';
+                li.innerHTML = `
+                    <i class="fas fa-user-shield"></i>
+                    <div style="flex: 1;">
+                        <strong>Administrateur ${index + 1}</strong>
+                        ${isFromFirestore ? '<span style="background: #28a745; color: white; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.75rem; margin-left: 0.5rem;">Ajouté via site</span>' : '<span style="background: #6c757d; color: white; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.75rem; margin-left: 0.5rem;">Config.js</span>'}
+                        <br>
+                        <code>${id}</code>
+                    </div>
+                    ${isFromFirestore ? `<button onclick="removeAuthorizedId('${id}')" class="btn-delete" style="padding: 0.5rem 1rem; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85rem;">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </button>` : ''}
+                `;
+                idsList.appendChild(li);
+            });
+        }
+    } catch (error) {
+        console.error('Erreur lors du chargement des IDs:', error);
+        idsList.innerHTML = '<p style="text-align: center; color: var(--primary-color);">Erreur lors du chargement.</p>';
+    }
     
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -319,6 +352,68 @@ function showAuthorizedIdsModal() {
 
 function closeAuthorizedIdsModal() {
     document.getElementById('authorizedIdsModal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+async function addAuthorizedId() {
+    const idInput = document.getElementById('newDiscordId');
+    const discordId = idInput.value.trim();
+    
+    if (!discordId) {
+        toast.error('Veuillez entrer un ID Discord');
+        return;
+    }
+    
+    // Vérifier que l'ID n'est pas déjà dans config.js
+    if (DISCORD_CONFIG.authorizedIds.includes(discordId)) {
+        toast.warning('Cet ID est déjà autorisé dans config.js');
+        return;
+    }
+    
+    try {
+        const db = firebase.firestore();
+        await db.collection('admin_authorized_ids').doc(discordId).set({
+            authorized: true,
+            addedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            addedBy: discordAuth.getUser()?.id || 'unknown'
+        });
+        
+        toast.success('ID Discord ajouté avec succès !');
+        idInput.value = '';
+        await showAuthorizedIdsModal();
+    } catch (error) {
+        console.error('Erreur lors de l\'ajout de l\'ID:', error);
+        toast.error('Erreur lors de l\'ajout de l\'ID');
+    }
+}
+
+async function removeAuthorizedId(discordId) {
+    if (!confirm(`Voulez-vous vraiment supprimer l'accès admin pour l'ID ${discordId} ?`)) {
+        return;
+    }
+    
+    try {
+        const db = firebase.firestore();
+        await db.collection('admin_authorized_ids').doc(discordId).delete();
+        
+        toast.success('ID Discord supprimé avec succès !');
+        await showAuthorizedIdsModal();
+    } catch (error) {
+        console.error('Erreur lors de la suppression de l\'ID:', error);
+        toast.error('Erreur lors de la suppression de l\'ID');
+    }
+}
+
+function showAddAdminIdModal() {
+    const modal = document.getElementById('addAdminIdModal');
+    document.getElementById('newDiscordId').value = '';
+    closeAuthorizedIdsModal();
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeAddAdminIdModal() {
+    document.getElementById('addAdminIdModal').classList.remove('active');
     document.body.style.overflow = '';
 }
 

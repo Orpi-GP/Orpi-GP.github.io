@@ -6,7 +6,7 @@ const WORKER_BASE = 'https://orpi-cloudinary-proxy.orpigp.workers.dev';
 let selectedIds = new Set();
 
 document.addEventListener('DOMContentLoaded', async () => {
-    if (!discordAuth.isAuthorized()) {
+    if (!(await discordAuth.isAuthorized())) {
         window.location.href = 'index.html';
         return;
     }
