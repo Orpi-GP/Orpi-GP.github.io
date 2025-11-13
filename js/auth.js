@@ -39,12 +39,10 @@ class DiscordAuth {
         const user = this.getUser();
         if (!user) return false;
         
-        // Vérifier d'abord dans config.js (compatibilité)
         if (DISCORD_CONFIG.authorizedIds.includes(user.id)) {
             return true;
         }
         
-        // Vérifier aussi dans Firestore
         try {
             if (typeof firebase !== 'undefined' && firebase.firestore) {
                 const db = firebase.firestore();
@@ -58,7 +56,6 @@ class DiscordAuth {
         return false;
     }
     
-    // Méthode synchrone pour compatibilité (utilise le cache)
     isAuthorizedSync() {
         const user = this.getUser();
         if (!user) return false;

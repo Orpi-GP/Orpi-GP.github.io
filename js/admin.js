@@ -9,10 +9,10 @@ function escapeHtml(text) {
 }
 
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     updateUI();
     
-    if (discordAuth.isLoggedIn() && discordAuth.isAuthorized()) {
+    if (discordAuth.isLoggedIn() && await discordAuth.isAuthorized()) {
         document.getElementById('adminAccess').style.display = 'block';
         document.getElementById('accessDenied').style.display = 'none';
         updatePropertyCount();
@@ -21,6 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
         setupRealtimeListener();
         setupConversationsListener();
         setupContractsListener();
+        
+        const currentUser = discordAuth.getUser();
+        const addAdminIdBtn = document.getElementById('addAdminIdBtn');
+        if (addAdminIdBtn && currentUser && DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+            addAdminIdBtn.style.display = 'block';
+        }
         
         setTimeout(() => {
             showAppointmentsCard();
@@ -302,7 +308,6 @@ async function showAuthorizedIdsModal() {
     idsList.innerHTML = '<p style="text-align: center; color: var(--text-color);">Chargement...</p>';
     
     try {
-        // Charger les IDs depuis Firestore
         const db = firebase.firestore();
         const snapshot = await db.collection('admin_authorized_ids').where('authorized', '==', true).get();
         
@@ -319,6 +324,14 @@ async function showAuthorizedIdsModal() {
         
         idsList.innerHTML = '';
         
+        const currentUser = discordAuth.getUser();
+        const canManageAdmins = currentUser && DISCORD_CONFIG.adminManagerIds.includes(currentUser.id);
+        
+        const addAdminIdBtnModal = document.getElementById('addAdminIdBtnModal');
+        if (addAdminIdBtnModal) {
+            addAdminIdBtnModal.style.display = canManageAdmins ? 'block' : 'none';
+        }
+        
         if (allIds.length === 0) {
             idsList.innerHTML = '<p style="text-align: center; color: var(--text-color);">Aucun ID autorisé.</p>';
         } else {
@@ -334,7 +347,7 @@ async function showAuthorizedIdsModal() {
                         <br>
                         <code>${id}</code>
                     </div>
-                    ${isFromFirestore ? `<button onclick="removeAuthorizedId('${id}')" class="btn-delete" style="padding: 0.5rem 1rem; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85rem;">
+                    ${isFromFirestore && canManageAdmins ? `<button onclick="removeAuthorizedId('${id}')" class="btn-delete" style="padding: 0.5rem 1rem; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85rem;">
                         <i class="fas fa-trash"></i> Supprimer
                     </button>` : ''}
                 `;
@@ -356,6 +369,13 @@ function closeAuthorizedIdsModal() {
 }
 
 async function addAuthorizedId() {
+    const currentUser = discordAuth.getUser();
+    
+    if (!currentUser || !DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+        toast.error('Vous n\'êtes pas autorisé à ajouter des administrateurs. Seuls Emily, Lucas, Tom et Guivarsh peuvent effectuer cette action.');
+        return;
+    }
+    
     const idInput = document.getElementById('newDiscordId');
     const discordId = idInput.value.trim();
     
@@ -364,7 +384,6 @@ async function addAuthorizedId() {
         return;
     }
     
-    // Vérifier que l'ID n'est pas déjà dans config.js
     if (DISCORD_CONFIG.authorizedIds.includes(discordId)) {
         toast.warning('Cet ID est déjà autorisé dans config.js');
         return;
@@ -375,7 +394,7 @@ async function addAuthorizedId() {
         await db.collection('admin_authorized_ids').doc(discordId).set({
             authorized: true,
             addedAt: firebase.firestore.FieldValue.serverTimestamp(),
-            addedBy: discordAuth.getUser()?.id || 'unknown'
+            addedBy: currentUser.id
         });
         
         toast.success('ID Discord ajouté avec succès !');
@@ -388,6 +407,13 @@ async function addAuthorizedId() {
 }
 
 async function removeAuthorizedId(discordId) {
+    const currentUser = discordAuth.getUser();
+    
+    if (!currentUser || !DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+        toast.error('Vous n\'êtes pas autorisé à supprimer des administrateurs. Seuls Emily, Lucas, Tom et Guivarsh peuvent effectuer cette action.');
+        return;
+    }
+    
     if (!confirm(`Voulez-vous vraiment supprimer l'accès admin pour l'ID ${discordId} ?`)) {
         return;
     }

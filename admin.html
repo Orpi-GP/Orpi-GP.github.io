@@ -781,7 +781,7 @@
                         <button class="admin-btn" onclick="showAuthorizedIdsModal()">
                             <i class="fas fa-key"></i> Voir les IDs autorisés
                         </button>
-                        <button class="admin-btn admin-btn-secondary" onclick="showAddAdminIdModal()" style="margin-top: 0.5rem;">
+                        <button class="admin-btn admin-btn-secondary" id="addAdminIdBtn" onclick="showAddAdminIdModal()" style="margin-top: 0.5rem; display: none;">
                             <i class="fas fa-user-plus"></i> Ajouter un ID Discord
                         </button>
                     </div>
@@ -995,7 +995,7 @@
             </div>
             <div style="margin-top: 1rem; display: flex; gap: 1rem;">
                 <button class="btn-cancel" onclick="closeAuthorizedIdsModal()" style="flex: 1;">Fermer</button>
-                <button class="admin-btn" onclick="showAddAdminIdModal()" style="flex: 1;">
+                <button class="admin-btn" id="addAdminIdBtnModal" onclick="showAddAdminIdModal()" style="flex: 1; display: none;">
                     <i class="fas fa-user-plus"></i> Ajouter un ID
                 </button>
             </div>
