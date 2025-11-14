@@ -355,11 +355,15 @@ function displayInterieurs(interieurs) {
             ? new Date(interieur.createdAt.toDate()).toLocaleDateString('fr-FR')
             : 'Date inconnue';
         
+        const hiddenBadge = interieur.hidden 
+            ? '<span style="background: #ffc107; color: #333; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.75rem; font-weight: 600; margin-left: 0.5rem;"><i class="fas fa-eye-slash"></i> Caché</span>'
+            : '';
+        
         card.innerHTML = `
             <img src="${imageUrl}" alt="${interieur.titre}" class="interieur-admin-image">
             <div class="interieur-admin-content">
-                <h3 class="interieur-admin-title">${interieur.titre}</h3>
-                <p class="interieur-admin-description">${interieur.description}</p>
+                <h3 class="interieur-admin-title">${interieur.titre}${hiddenBadge}</h3>
+                <p class="interieur-admin-description">${interieur.description || '<em style="color: #999;">Aucune description</em>'}</p>
                 <div class="interieur-admin-meta">
                     <span><i class="fas fa-calendar"></i> ${date}</span>
                     <span><i class="fas fa-images"></i> ${interieur.images ? interieur.images.length : 0} image(s)</span>
@@ -521,6 +525,7 @@ function openAddModal() {
     currentImages = [];
     document.getElementById('interieurForm').reset();
     document.getElementById('imagesPreview').innerHTML = '';
+    document.getElementById('hiddenFromSite').checked = false;
     
     if (!quillEditor) {
         initQuillEditor();
@@ -529,10 +534,27 @@ function openAddModal() {
     }
     
     updateCategoriesSelect();
+    updateFormFieldsVisibility();
     
     document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus-circle"></i> Ajouter un intérieur';
     document.getElementById('interieurModal').classList.add('active');
     document.body.style.overflow = 'hidden';
+}
+
+function updateFormFieldsVisibility() {
+    const hiddenFromSite = document.getElementById('hiddenFromSite').checked;
+    const descriptionGroup = document.getElementById('descriptionGroup');
+    const imagesGroup = document.getElementById('imagesGroup');
+    const descriptionLabel = descriptionGroup.querySelector('label');
+    const imagesLabel = imagesGroup.querySelector('label');
+    
+    if (hiddenFromSite) {
+        descriptionLabel.innerHTML = 'Description';
+        imagesLabel.innerHTML = 'Images (maximum 5)';
+    } else {
+        descriptionLabel.innerHTML = 'Description *';
+        imagesLabel.innerHTML = 'Images * (maximum 5)';
+    }
 }
 
 async function editInterieur(id) {
@@ -548,6 +570,7 @@ async function editInterieur(id) {
     currentImages = interieur.images || [];
     
     document.getElementById('titre').value = interieur.titre;
+    document.getElementById('hiddenFromSite').checked = interieur.hidden === true;
     
     updateCategoriesSelect();
     if (interieur.categorieId) {
@@ -567,6 +590,7 @@ async function editInterieur(id) {
     }
     
     displayImagesPreviews();
+    updateFormFieldsVisibility();
     
     document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Modifier l\'intérieur';
     document.getElementById('interieurModal').classList.add('active');
@@ -613,6 +637,8 @@ function closeModal() {
     currentImages = [];
     document.getElementById('interieurForm').reset();
     document.getElementById('imagesPreview').innerHTML = '';
+    document.getElementById('hiddenFromSite').checked = false;
+    updateFormFieldsVisibility();
 }
 
 async function handleSubmit(e) {
@@ -621,15 +647,24 @@ async function handleSubmit(e) {
     const titre = document.getElementById('titre').value.trim();
     const categorieId = document.getElementById('categorie').value;
     const description = quillEditor ? quillEditor.root.innerHTML.trim() : '';
+    const hiddenFromSite = document.getElementById('hiddenFromSite').checked;
     
-    if (!titre || !categorieId || !description || description === '<p><br></p>') {
-        showToast('Veuillez remplir tous les champs', 'warning');
+    if (!titre || !categorieId) {
+        showToast('Veuillez remplir le titre et la catégorie', 'warning');
         return;
     }
     
-    if (currentImages.length === 0) {
-        showToast('Veuillez ajouter au moins une image', 'warning');
-        return;
+    // Si l'intérieur n'est pas caché, description et images sont obligatoires
+    if (!hiddenFromSite) {
+        if (!description || description === '<p><br></p>') {
+            showToast('Veuillez remplir la description', 'warning');
+            return;
+        }
+        
+        if (currentImages.length === 0) {
+            showToast('Veuillez ajouter au moins une image', 'warning');
+            return;
+        }
     }
     
     const submitBtn = document.getElementById('submitBtn');
@@ -639,9 +674,17 @@ async function handleSubmit(e) {
     const interieurData = {
         titre,
         categorieId,
-        description,
-        images: currentImages
+        hidden: hiddenFromSite
     };
+    
+    // Ajouter description et images seulement si elles existent
+    if (description && description !== '<p><br></p>') {
+        interieurData.description = description;
+    }
+    
+    if (currentImages.length > 0) {
+        interieurData.images = currentImages;
+    }
     
     try {
         let result;
@@ -683,5 +726,13 @@ document.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         closeModal();
+    }
+});
+
+// Gérer le changement de la checkbox
+document.addEventListener('DOMContentLoaded', () => {
+    const hiddenCheckbox = document.getElementById('hiddenFromSite');
+    if (hiddenCheckbox) {
+        hiddenCheckbox.addEventListener('change', updateFormFieldsVisibility);
     }
 });

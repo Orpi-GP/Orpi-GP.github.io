@@ -85,10 +85,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.location.href = 'admin-avis.html';
         };
         
+        window.checkInterieursPermission = async function() {
+            if (!(await hasPermission('manage_interieurs'))) {
+                toast.error('Vous n\'avez pas la permission de gérer les intérieurs.');
+                return;
+            }
+            window.location.href = 'admin-interieurs.html';
+        };
+        
         setTimeout(() => {
             showAppointmentsCard();
             loadReviewsCount();
-            updateUserNamesFromConfig();
+            if (typeof updateUserNamesFromConfig === 'function') {
+                updateUserNamesFromConfig();
+            }
         }, 500);
         
         if (window.location.hash === '#conversations') {

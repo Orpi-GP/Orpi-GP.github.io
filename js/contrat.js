@@ -234,7 +234,8 @@ async function saveSignature(role) {
     }
 
     const user = JSON.parse(localStorage.getItem('discord_user') || '{}');
-    const isAdmin = DISCORD_CONFIG.authorizedIds.includes(user.id);
+    const isAdmin = (DISCORD_CONFIG.authorizedIds && DISCORD_CONFIG.authorizedIds.includes(user.id)) ||
+                   (DISCORD_CONFIG.adminManagerIds && DISCORD_CONFIG.adminManagerIds.includes(user.id));
     const canCreateContract = await hasPermission('create_contract');
 
     if (role === 'admin' && !isAdmin && !canCreateContract) {

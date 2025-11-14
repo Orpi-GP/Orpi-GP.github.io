@@ -25,7 +25,8 @@ async function loadInterieurs() {
         const result = await getAllInterieurs();
         
         if (result.success && result.data.length > 0) {
-            interieurs = result.data;
+            // Filtrer les intérieurs cachés (hidden: true)
+            interieurs = result.data.filter(interieur => !interieur.hidden);
             displayInterieurs(interieurs);
         } else {
             container.innerHTML = `

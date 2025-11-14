@@ -39,7 +39,13 @@ class DiscordAuth {
         const user = this.getUser();
         if (!user) return false;
         
-        if (DISCORD_CONFIG.authorizedIds.includes(user.id)) {
+        // Vérifier d'abord adminManagerIds (accès complet)
+        if (DISCORD_CONFIG.adminManagerIds && DISCORD_CONFIG.adminManagerIds.includes(user.id)) {
+            return true;
+        }
+        
+        // Vérifier authorizedIds
+        if (DISCORD_CONFIG.authorizedIds && DISCORD_CONFIG.authorizedIds.includes(user.id)) {
             return true;
         }
         
@@ -59,7 +65,14 @@ class DiscordAuth {
     isAuthorizedSync() {
         const user = this.getUser();
         if (!user) return false;
-        return DISCORD_CONFIG.authorizedIds.includes(user.id);
+        
+        // Vérifier d'abord adminManagerIds (accès complet)
+        if (DISCORD_CONFIG.adminManagerIds && DISCORD_CONFIG.adminManagerIds.includes(user.id)) {
+            return true;
+        }
+        
+        // Vérifier authorizedIds
+        return DISCORD_CONFIG.authorizedIds && DISCORD_CONFIG.authorizedIds.includes(user.id);
     }
     
     async fetchUserInfo(token) {
