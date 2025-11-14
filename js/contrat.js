@@ -181,6 +181,33 @@ function clearSignature(role) {
     }
 }
 
+async function hasPermission(permission) {
+    const currentUser = discordAuth.getUser();
+    if (!currentUser) return false;
+    
+    if (DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+        return true;
+    }
+    
+    try {
+        const db = firebase.firestore();
+        const authDoc = await db.collection('admin_authorized_ids').doc(currentUser.id).get();
+        if (!authDoc.exists || !authDoc.data().authorized) {
+            return false;
+        }
+        
+        const permissionsDoc = await db.collection('admin_permissions').doc(currentUser.id).get();
+        if (!permissionsDoc.exists) {
+            return false;
+        }
+        
+        return permissionsDoc.data()[permission] === true;
+    } catch (error) {
+        console.error('Erreur vérification permissions:', error);
+        return false;
+    }
+}
+
 async function saveSignature(role) {
     const canvas = role === 'admin' ? canvasAdmin : canvasClient;
     
@@ -208,9 +235,10 @@ async function saveSignature(role) {
 
     const user = JSON.parse(localStorage.getItem('discord_user') || '{}');
     const isAdmin = DISCORD_CONFIG.authorizedIds.includes(user.id);
+    const canCreateContract = await hasPermission('create_contract');
 
-    if (role === 'admin' && !isAdmin) {
-        toast.error('Seul un administrateur peut signer en tant qu\'admin');
+    if (role === 'admin' && !isAdmin && !canCreateContract) {
+        toast.error('Seul un administrateur ou une personne autorisée à créer des contrats peut signer en tant qu\'admin');
         return;
     }
 
