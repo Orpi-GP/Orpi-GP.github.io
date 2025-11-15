@@ -807,6 +807,9 @@
                         <button class="admin-btn admin-btn-secondary" id="viewTableauGeneralBtn" onclick="checkTableauGeneralPermission()" style="margin-top: 0.5rem;" data-permission="manage_employees">
                             <i class="fas fa-table"></i> Tableau général
                         </button>
+                        <button class="admin-btn admin-btn-secondary" id="advancedEmployeeManagementBtn" onclick="showAdvancedEmployeeManagementModal()" style="margin-top: 0.5rem; display: none;" data-permission="manage_employee_salary">
+                            <i class="fas fa-cog"></i> Gestion avancé
+                        </button>
                     </div>
 
                     <div class="admin-card" id="declarationsCard" data-permissions="manage_declarations,view_declarations">
@@ -1465,8 +1468,11 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="employeeCommission">Commission (%) *</label>
+                        <label for="employeeCommission">Commission Locations (%) *</label>
                         <input type="number" id="employeeCommission" required placeholder="10" min="0" max="100" step="0.01">
+                        <small style="color: #666; display: block; margin-top: 0.5rem;">
+                            <i class="fas fa-info-circle"></i> Pourcentage appliqué sur les locations uniquement
+                        </small>
                     </div>
                 </div>
 
@@ -1527,8 +1533,11 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="editEmployeeCommission">Commission (%) *</label>
+                        <label for="editEmployeeCommission">Commission Locations (%) *</label>
                         <input type="number" id="editEmployeeCommission" required min="0" max="100" step="0.01">
+                        <small style="color: #666; display: block; margin-top: 0.5rem;">
+                            <i class="fas fa-info-circle"></i> Pourcentage appliqué sur les locations uniquement
+                        </small>
                     </div>
                 </div>
 
@@ -1743,6 +1752,30 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div id="advancedEmployeeManagementModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-cog"></i> Gestion Avancée des Employés</h2>
+                <button class="modal-close" onclick="closeAdvancedEmployeeManagementModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p style="margin-bottom: 1.5rem; color: var(--text-color); padding: 0 1rem;">
+                Définissez le montant gagné par vente pour chaque employé. Le salaire sera calculé en multipliant le nombre de ventes par ce montant.
+            </p>
+            <div id="advancedEmployeeList" style="max-height: 500px; overflow-y: auto; padding: 0 1rem;">
+                <div class="loading">Chargement...</div>
+            </div>
+            <div style="margin-top: 1.5rem; padding: 1rem; background: #d1ecf1; border-left: 4px solid #17a2b8; border-radius: 8px; margin: 1rem 1rem 0 1rem;">
+                <strong><i class="fas fa-info-circle" style="color: #17a2b8;"></i> Information :</strong>
+                <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: #495057;">Le montant par défaut est de 3300€ par vente. Le salaire total sera calculé automatiquement : nombre de ventes × montant par vente.</p>
+            </div>
+            <div style="margin-top: 1.5rem; padding: 0 1rem 1rem 1rem; display: flex; gap: 1rem;">
+                <button class="btn-cancel" onclick="closeAdvancedEmployeeManagementModal()" style="flex: 1; padding: 0.75rem; font-size: 1rem; border-radius: 8px;">Fermer</button>
+            </div>
         </div>
     </div>
 

@@ -57,7 +57,7 @@ async function loadEmployeeData() {
             return;
         }
         document.getElementById('employeeName').textContent = currentEmployee.name;
-        document.getElementById('employeeGrade').textContent = `Grade: ${currentEmployee.grade || 'N/A'} | Commission: ${currentEmployee.commission || 0}%`;
+        document.getElementById('employeeGrade').textContent = `Grade: ${currentEmployee.grade || 'N/A'} | Commission Locations: ${currentEmployee.commission || 0}%`;
         await loadSales();
         salesDB.onSnapshotByEmployee(currentEmployeeId, (sales) => {
             employeeSales = sales;
@@ -92,10 +92,33 @@ function displaySales() {
         `;
         return;
     }
+    
+    // Récupérer les paramètres de l'employé
+    const montantParVente = currentEmployee?.montantParVente || 3300;
+    const commissionLocations = currentEmployee?.commission || 0;
+    const ENTREPRISE_PERCENTAGE = 0.15;
+    const SALAIRE_MAX = 150000;
+    
     let html = '';
     employeeSales.forEach(sale => {
         const prixMaison = sale.type === 'vente' ? formatCurrency(sale.prixMaison || 0) : '-';
         const prixLocation = sale.type === 'location' ? formatCurrency(sale.prixLocation || 0) : '-';
+        
+        // Calculer le salaire et le bénéfice selon le type
+        const entrepriseRevenue = parseFloat(sale.entrepriseRevenue || 0);
+        let salaire = 0;
+        if (sale.type === 'vente') {
+            // Pour les ventes : montant fixe par vente
+            salaire = montantParVente;
+        } else if (sale.type === 'location') {
+            // Pour les locations : pourcentage sur le CA après 15%
+            salaire = Math.min(entrepriseRevenue * (commissionLocations / 100), SALAIRE_MAX);
+        }
+        const benefice = entrepriseRevenue - salaire;
+        
+        // Afficher la commission selon le type
+        const commissionDisplay = sale.type === 'location' ? `${commissionLocations}%` : '-';
+        
         html += `
             <tr data-sale-id="${sale.id}">
                 <td>${sale.acheteur || 'N/A'}</td>
@@ -104,10 +127,10 @@ function displaySales() {
                 <td><span class="badge badge-${sale.type === 'vente' ? 'success' : 'info'}">${sale.type === 'vente' ? 'Vente' : 'Location'}</span></td>
                 <td>${prixMaison}</td>
                 <td>${prixLocation}</td>
-                <td style="color: #28a745; font-weight: 600;">+${formatCurrency(sale.entrepriseRevenue || 0)}</td>
-                <td>${formatCurrency(sale.benefice || 0)}</td>
-                <td><strong>${formatCurrency(sale.salaire || 0)}</strong></td>
-                <td>${currentEmployee.commission || 0}%</td>
+                <td style="color: #28a745; font-weight: 600;">+${formatCurrency(entrepriseRevenue)}</td>
+                <td>${formatCurrency(benefice)}</td>
+                <td><strong>${formatCurrency(salaire)}</strong></td>
+                <td>${commissionDisplay}</td>
                 <td class="actions">
                     <button onclick="editSale('${sale.id}')" class="btn btn-sm btn-secondary" title="Modifier">✏️</button>
                     <button onclick="deleteSale('${sale.id}')" class="btn btn-sm btn-danger" title="Supprimer">🗑️</button>
@@ -119,22 +142,43 @@ function displaySales() {
 }
 function updateSummary() {
     let totalVentes = 0;
+    let totalLocations = 0;
     let totalCA = 0;
-    let totalBenefice = 0;
-    let totalSalaire = 0;
     let totalEntrepriseRevenue = 0;
     employeeSales.forEach(sale => {
-        totalVentes++;
         if (sale.type === 'vente') {
+            totalVentes++;
             totalCA += parseFloat(sale.prixMaison || 0);
         } else if (sale.type === 'location') {
+            totalLocations++;
             totalCA += parseFloat(sale.prixLocation || 0);
         }
-        totalBenefice += parseFloat(sale.benefice || 0);
-        totalSalaire += parseFloat(sale.salaire || 0);
         totalEntrepriseRevenue += parseFloat(sale.entrepriseRevenue || 0);
     });
-    document.getElementById('totalSales').textContent = totalVentes;
+    
+    // Calculer le salaire selon le type
+    const montantParVente = currentEmployee?.montantParVente || 3300;
+    const commissionLocations = currentEmployee?.commission || 0;
+    const SALAIRE_MAX = 150000;
+    
+    // Salaire des ventes : nombre de ventes × montant par vente
+    const salaireVentes = totalVentes * montantParVente;
+    
+    // Salaire des locations : pourcentage sur le CA après 15% de chaque location
+    let salaireLocations = 0;
+    employeeSales.forEach(sale => {
+        if (sale.type === 'location') {
+            const entrepriseRevenue = parseFloat(sale.entrepriseRevenue || 0);
+            salaireLocations += Math.min(entrepriseRevenue * (commissionLocations / 100), SALAIRE_MAX);
+        }
+    });
+    
+    const totalSalaire = salaireVentes + salaireLocations;
+    
+    // Recalculer le bénéfice total basé sur le nouveau salaire
+    const totalBenefice = totalEntrepriseRevenue - totalSalaire;
+    
+    document.getElementById('totalSales').textContent = totalVentes + totalLocations;
     document.getElementById('totalCA').textContent = formatCurrency(totalCA);
     document.getElementById('totalBenefice').textContent = formatCurrency(totalBenefice);
     document.getElementById('employeeSalaire').textContent = formatCurrency(totalSalaire);
@@ -257,11 +301,13 @@ async function handleSaleSubmit(e) {
     const type = document.getElementById('saleType').value;
     const prixMaison = parseFloat(document.getElementById('salePrixMaison').value || 0);
     const prixLocation = parseFloat(document.getElementById('salePrixLocation').value || 0);
+    const montantParVente = currentEmployee.montantParVente || 3300;
+    const commissionLocations = currentEmployee.commission || 0;
     const stats = salesDB.calculateSaleStats({
         type,
         prixMaison,
         prixLocation
-    }, currentEmployee.commission || 0);
+    }, montantParVente, commissionLocations);
     const interieurSelect = document.getElementById('saleInterieur');
     const selectedOption = interieurSelect.options[interieurSelect.selectedIndex];
     const selectedInterieurId = selectedOption ? selectedOption.getAttribute('data-id') : null;

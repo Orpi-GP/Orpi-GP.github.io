@@ -94,6 +94,16 @@ const employeesDB = {
     },
     async getStats(employeeId) {
         try {
+            // Récupérer l'employé pour avoir son montant par vente et commission locations
+            const employeeDoc = await firebase.firestore()
+                .collection(this.collection)
+                .doc(employeeId)
+                .get();
+            const employee = employeeDoc.exists ? employeeDoc.data() : null;
+            const montantParVente = employee?.montantParVente || 3300;
+            const commissionLocations = employee?.commission || 0;
+            const SALAIRE_MAX = 150000;
+            
             const salesSnapshot = await firebase.firestore()
                 .collection('sales')
                 .where('employeeId', '==', employeeId)
@@ -102,21 +112,30 @@ const employeesDB = {
             let totalLocations = 0;
             let totalCA = 0;
             let totalBenefice = 0;
-            let totalSalaire = 0;
             let totalEntrepriseRevenue = 0;
+            let totalSalaire = 0;
+            
             salesSnapshot.docs.forEach(doc => {
                 const sale = doc.data();
+                const entrepriseRevenue = parseFloat(sale.entrepriseRevenue || 0);
+                totalEntrepriseRevenue += entrepriseRevenue;
+                
                 if (sale.type === 'vente') {
                     totalVentes++;
                     totalCA += parseFloat(sale.prixMaison || 0);
+                    // Pour les ventes : montant fixe par vente
+                    totalSalaire += montantParVente;
                 } else if (sale.type === 'location') {
                     totalLocations++;
                     totalCA += parseFloat(sale.prixLocation || 0);
+                    // Pour les locations : pourcentage sur le CA après 15%
+                    totalSalaire += Math.min(entrepriseRevenue * (commissionLocations / 100), SALAIRE_MAX);
                 }
-                totalBenefice += parseFloat(sale.benefice || 0);
-                totalSalaire += parseFloat(sale.salaire || 0);
-                totalEntrepriseRevenue += parseFloat(sale.entrepriseRevenue || 0);
             });
+            
+            // Recalculer le bénéfice total basé sur le nouveau salaire
+            totalBenefice = totalEntrepriseRevenue - totalSalaire;
+            
             return {
                 totalVentes,
                 totalLocations,

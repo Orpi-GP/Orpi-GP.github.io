@@ -528,6 +528,160 @@ function formatCurrency(amount) {
         maximumFractionDigits: 0
     }).format(amount || 0);
 }
+async function showAdvancedEmployeeManagementModal() {
+    const currentUser = discordAuth.getUser();
+    if (!currentUser) return;
+    
+    if (!DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+        const db = firebase.firestore();
+        const permissionsDoc = await db.collection('admin_permissions').doc(currentUser.id).get();
+        if (!permissionsDoc.exists || !permissionsDoc.data().manage_employee_salary) {
+            toast.error('Vous n\'avez pas la permission de gérer les salaires par vente.');
+            return;
+        }
+    }
+    
+    const modal = document.getElementById('advancedEmployeeManagementModal');
+    const list = document.getElementById('advancedEmployeeList');
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    try {
+        const employees = await employeesDB.getAll();
+        if (employees.length === 0) {
+            list.innerHTML = '<p style="text-align: center; padding: 2rem; color: var(--text-color);">Aucun employé enregistré.</p>';
+            return;
+        }
+        
+        let html = '';
+        for (const employee of employees) {
+            const stats = await employeesDB.getStats(employee.id);
+            const montantParVente = employee.montantParVente || 3300;
+            html += `
+                <div class="property-item" style="margin-bottom: 1rem;">
+                    <div class="property-item-content" style="flex: 1;">
+                        <h3 style="margin-bottom: 0.5rem;">${employee.name}</h3>
+                        <div class="property-item-details" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <span><i class="fas fa-id-badge"></i> ${employee.grade}</span>
+                            <span><i class="fas fa-chart-line"></i> ${stats.nombreVentes} ventes</span>
+                            <span><i class="fas fa-euro-sign"></i> Salaire actuel: ${formatCurrency(stats.totalSalaire)}</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; min-width: 200px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="montantParVente_${employee.id}" style="font-size: 0.9rem; margin-bottom: 0.25rem;">Montant par vente (€)</label>
+                            <input type="number" 
+                                   id="montantParVente_${employee.id}" 
+                                   value="${montantParVente}" 
+                                   min="0" 
+                                   step="100"
+                                   style="width: 100%; padding: 0.5rem; border: 2px solid var(--light-bg); border-radius: 5px;"
+                                   onchange="updateEmployeeSalaryPerSale('${employee.id}', this.value)">
+                        </div>
+                        <button onclick="updateEmployeeSalaryPerSale('${employee.id}', document.getElementById('montantParVente_${employee.id}').value)" 
+                                class="property-action-btn edit-btn" 
+                                style="width: 100%; padding: 0.5rem;">
+                            <i class="fas fa-save"></i> Enregistrer
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        list.innerHTML = html;
+    } catch (error) {
+        console.error('Erreur:', error);
+        list.innerHTML = '<p style="text-align: center; padding: 2rem; color: red;">Erreur lors du chargement des employés.</p>';
+    }
+}
+
+function closeAdvancedEmployeeManagementModal() {
+    document.getElementById('advancedEmployeeManagementModal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+async function updateEmployeeSalaryPerSale(employeeId, montant) {
+    const currentUser = discordAuth.getUser();
+    if (!currentUser) return;
+    
+    if (!DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+        const db = firebase.firestore();
+        const permissionsDoc = await db.collection('admin_permissions').doc(currentUser.id).get();
+        if (!permissionsDoc.exists || !permissionsDoc.data().manage_employee_salary) {
+            toast.error('Vous n\'avez pas la permission de gérer les salaires par vente.');
+            return;
+        }
+    }
+    
+    const montantNum = parseFloat(montant) || 3300;
+    
+    try {
+        await employeesDB.update(employeeId, {
+            montantParVente: montantNum
+        });
+        toast.success('Montant par vente mis à jour avec succès !');
+        
+        // Recalculer les salaires pour toutes les ventes de cet employé
+        await recalculateEmployeeSales(employeeId);
+        
+        // Rafraîchir l'affichage
+        await showAdvancedEmployeeManagementModal();
+    } catch (error) {
+        console.error('Erreur:', error);
+        toast.error('Erreur lors de la mise à jour');
+    }
+}
+
+async function recalculateEmployeeSales(employeeId) {
+    try {
+        const employee = await employeesDB.getById(employeeId);
+        if (!employee) return;
+        
+        const montantParVente = employee.montantParVente || 3300;
+        const commissionLocations = employee.commission || 0;
+        const salesSnapshot = await firebase.firestore()
+            .collection('sales')
+            .where('employeeId', '==', employeeId)
+            .get();
+        
+        const batch = firebase.firestore().batch();
+        const ENTREPRISE_PERCENTAGE = 0.15;
+        const SALAIRE_MAX = 150000;
+        
+        salesSnapshot.docs.forEach(doc => {
+            const sale = doc.data();
+            const prixMaison = parseFloat(sale.prixMaison || 0);
+            const prixLocation = parseFloat(sale.prixLocation || 0);
+            let entrepriseRevenue = 0;
+            let salaire = 0;
+            let benefice = 0;
+            
+            if (sale.type === 'vente') {
+                // Pour les ventes : montant fixe par vente
+                entrepriseRevenue = prixMaison * ENTREPRISE_PERCENTAGE;
+                salaire = montantParVente;
+                benefice = entrepriseRevenue - salaire;
+            } else if (sale.type === 'location') {
+                // Pour les locations : pourcentage sur le CA après 15%
+                entrepriseRevenue = prixLocation * ENTREPRISE_PERCENTAGE;
+                salaire = Math.min(entrepriseRevenue * (commissionLocations / 100), SALAIRE_MAX);
+                benefice = entrepriseRevenue - salaire;
+            }
+            
+            batch.update(doc.ref, {
+                salaire: salaire,
+                benefice: benefice,
+                entrepriseRevenue: entrepriseRevenue
+            });
+        });
+        
+        await batch.commit();
+        console.log(`Salaires recalculés pour l'employé ${employeeId}`);
+    } catch (error) {
+        console.error('Erreur lors du recalcul des ventes:', error);
+        throw error;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     updateEmployeeCount();
     updateDeclarationCount();

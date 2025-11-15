@@ -271,12 +271,14 @@ function updateFooter(totals) {
     document.getElementById('footerSalaire').textContent = formatCurrency(totals.salaire);
     document.getElementById('footerSalaireAVerser').textContent = formatCurrency(totals.salaireAVerser);
 }
-function updateSummary() {
+async function updateSummary() {
     document.getElementById('totalEmployees').textContent = employeesData.length;
     let totalVentes = 0;
     let totalCA = 0;
-    let totalSalaires = 0;
     let totalEntrepriseRevenue = 0;
+    let totalSalaires = 0;
+    
+    // Calculer le CA et le revenue entreprise depuis les ventes
     salesData.forEach(sale => {
         totalVentes++;
         if (sale.type === 'vente') {
@@ -284,15 +286,25 @@ function updateSummary() {
         } else if (sale.type === 'location') {
             totalCA += parseFloat(sale.prixLocation || 0);
         }
-        totalSalaires += parseFloat(sale.salaire || 0);
         totalEntrepriseRevenue += parseFloat(sale.entrepriseRevenue || 0);
     });
+    
+    // Calculer le salaire total basé sur le nombre de ventes × montant par vente pour chaque employé
+    for (const employee of employeesData) {
+        const stats = await employeesDB.getStats(employee.id);
+        totalSalaires += stats.totalSalaire || 0;
+    }
+    
+    // Calculer le bénéfice net (CA après 15% - salaires)
+    const beneficeNet = totalEntrepriseRevenue - totalSalaires;
+    
     document.getElementById('totalVentes').textContent = totalVentes;
     document.getElementById('totalCA').textContent = formatCurrency(totalCA);
     document.getElementById('totalSalaires').textContent = formatCurrency(totalSalaires);
     const entrepriseRevenueEl = document.getElementById('totalEntrepriseRevenue');
     if (entrepriseRevenueEl) {
-        entrepriseRevenueEl.textContent = '+' + formatCurrency(totalEntrepriseRevenue);
+        // Afficher le bénéfice net (après déduction des salaires) dans le Coffre Entreprise
+        entrepriseRevenueEl.textContent = '+' + formatCurrency(beneficeNet);
     }
     const totalCAAfterEl = document.getElementById('totalCAAfter');
     if (totalCAAfterEl) {

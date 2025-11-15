@@ -630,7 +630,7 @@ async function checkAndUpdatePermissions() {
     if (DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
         document.querySelectorAll('[data-permission]').forEach(btn => {
             const permission = btn.getAttribute('data-permission');
-            if (permission === 'manage_employees_full') {
+            if (permission === 'manage_employees_full' || permission === 'manage_employee_salary') {
                 btn.style.display = 'block';
             }
             if (btn.tagName === 'SELECT') {
@@ -676,15 +676,15 @@ async function checkAndUpdatePermissions() {
             const permission = btn.getAttribute('data-permission');
             const hasPermission = permissions[permission] === true;
             
-            if (permission === 'manage_employees' || permission === 'manage_employees_full') {
-                if (permission === 'manage_employees_full' && !hasPermission) {
+            if (permission === 'manage_employees' || permission === 'manage_employees_full' || permission === 'manage_employee_salary') {
+                if ((permission === 'manage_employees_full' || permission === 'manage_employee_salary') && !hasPermission) {
                     btn.style.display = 'none';
                 } else if (permission === 'manage_employees' && hasPermission) {
                     btn.disabled = false;
                     btn.style.opacity = '1';
                     btn.style.cursor = 'pointer';
                     btn.title = '';
-                } else if (permission === 'manage_employees_full' && hasPermission) {
+                } else if ((permission === 'manage_employees_full' || permission === 'manage_employee_salary') && hasPermission) {
                     btn.style.display = 'block';
                     btn.disabled = false;
                     btn.style.opacity = '1';
@@ -808,7 +808,8 @@ async function showManagePermissionsModal() {
                 { key: 'view_authorized_ids', label: 'Voir les IDs autorisés', icon: 'fa-key' },
                 { key: 'manage_admin_ids', label: 'Ajouter des IDs Discord', icon: 'fa-user-plus' },
                 { key: 'manage_permissions', label: 'Gérer les permissions', icon: 'fa-user-cog' },
-                { key: 'manage_primes_dividendes', label: 'Modifier les primes et dividendes', icon: 'fa-money-bill-wave' }
+                { key: 'manage_primes_dividendes', label: 'Modifier les primes et dividendes', icon: 'fa-money-bill-wave' },
+                { key: 'manage_employee_salary', label: 'Gérer les salaires par vente', icon: 'fa-euro-sign' }
             ];
             
             const div = document.createElement('div');

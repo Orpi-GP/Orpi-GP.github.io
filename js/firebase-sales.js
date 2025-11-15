@@ -92,25 +92,28 @@ const salesDB = {
                 callback(sales);
             });
     },
-    calculateSaleStats(saleData, employeeCommission) {
+    calculateSaleStats(saleData, employeeMontantParVente, employeeCommissionLocations) {
         const prixMaison = parseFloat(saleData.prixMaison || 0);
         const prixLocation = parseFloat(saleData.prixLocation || 0);
-        const commission = parseFloat(employeeCommission || 0);
-        const SALAIRE_MAX = 150000;
+        const montantParVente = parseFloat(employeeMontantParVente || 3300);
+        const commissionLocations = parseFloat(employeeCommissionLocations || 0);
         const ENTREPRISE_PERCENTAGE = 0.15;
+        const SALAIRE_MAX = 150000;
         let totalCA = 0;
         let benefice = 0;
         let salaire = 0;
         let entrepriseRevenue = 0;
         if (saleData.type === 'vente') {
+            // Pour les ventes : montant fixe par vente
             totalCA = prixMaison;
             entrepriseRevenue = prixMaison * ENTREPRISE_PERCENTAGE;
-            salaire = Math.min(entrepriseRevenue * (commission / 100), SALAIRE_MAX);
+            salaire = montantParVente;
             benefice = entrepriseRevenue - salaire;
         } else if (saleData.type === 'location') {
+            // Pour les locations : pourcentage sur le CA après 15%
             totalCA = prixLocation;
             entrepriseRevenue = prixLocation * ENTREPRISE_PERCENTAGE;
-            salaire = Math.min(entrepriseRevenue * (commission / 100), SALAIRE_MAX);
+            salaire = Math.min(entrepriseRevenue * (commissionLocations / 100), SALAIRE_MAX);
             benefice = entrepriseRevenue - salaire;
         }
         return {
@@ -125,13 +128,29 @@ const salesDB = {
             const snapshot = await firebase.firestore()
                 .collection(this.collection)
                 .get();
+            
+            // Récupérer tous les employés pour avoir leurs montants par vente
+            const employeesSnapshot = await firebase.firestore()
+                .collection('employees')
+                .get();
+            const employeesMap = new Map();
+            employeesSnapshot.docs.forEach(doc => {
+                const emp = doc.data();
+                employeesMap.set(doc.id, {
+                    montantParVente: emp.montantParVente || 3300,
+                    commissionLocations: emp.commission || 0
+                });
+            });
+            
             const batch = firebase.firestore().batch();
             let updateCount = 0;
             snapshot.docs.forEach(doc => {
                 const sale = doc.data();
                 const prixMaison = parseFloat(sale.prixMaison || 0);
                 const prixLocation = parseFloat(sale.prixLocation || 0);
-                const commission = parseFloat(sale.commission || 0);
+                const employeeData = employeesMap.get(sale.employeeId) || { montantParVente: 3300, commissionLocations: 0 };
+                const montantParVente = employeeData.montantParVente;
+                const commissionLocations = employeeData.commissionLocations;
                 const ENTREPRISE_PERCENTAGE = 0.15;
                 const SALAIRE_MAX = 150000;
                 let entrepriseRevenue = 0;
@@ -139,11 +158,11 @@ const salesDB = {
                 let salaire = 0;
                 if (sale.type === 'vente') {
                     entrepriseRevenue = prixMaison * ENTREPRISE_PERCENTAGE;
-                    salaire = Math.min(entrepriseRevenue * (commission / 100), SALAIRE_MAX);
+                    salaire = montantParVente;
                     benefice = entrepriseRevenue - salaire;
                 } else if (sale.type === 'location') {
                     entrepriseRevenue = prixLocation * ENTREPRISE_PERCENTAGE;
-                    salaire = Math.min(entrepriseRevenue * (commission / 100), SALAIRE_MAX);
+                    salaire = Math.min(entrepriseRevenue * (commissionLocations / 100), SALAIRE_MAX);
                     benefice = entrepriseRevenue - salaire;
                 }
                 const needsUpdate = 
