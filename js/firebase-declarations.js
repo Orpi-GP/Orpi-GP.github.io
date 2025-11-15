@@ -23,29 +23,50 @@ const declarationsDB = {
             for (const empDoc of employeesSnapshot.docs) {
                 const employee = { id: empDoc.id, ...empDoc.data() };
                 const employeeSales = salesByEmployee[employee.id] || [];
+                const montantParVente = employee.montantParVente || 3300;
+                const commissionLocations = employee.commission || 0;
+                const ENTREPRISE_PERCENTAGE = 0.15;
+                const SALAIRE_MAX = 150000;
+                
                 let totalVentes = 0;
                 let totalLocations = 0;
                 let totalCA = 0;
                 let totalBenefice = 0;
                 let totalSalaire = 0;
                 let totalEntrepriseRevenue = 0;
+                
                 employeeSales.forEach(sale => {
+                    let entrepriseRevenue = 0;
+                    let salaire = 0;
+                    
                     if (sale.type === 'vente') {
                         totalVentes++;
-                        totalCA += parseFloat(sale.prixMaison || 0);
+                        const prixMaison = parseFloat(sale.prixMaison || 0);
+                        totalCA += prixMaison;
+                        entrepriseRevenue = prixMaison * ENTREPRISE_PERCENTAGE;
+                        // Pour les ventes : montant fixe par vente
+                        salaire = montantParVente;
                     } else if (sale.type === 'location') {
                         totalLocations++;
-                        totalCA += parseFloat(sale.prixLocation || 0);
+                        const prixLocation = parseFloat(sale.prixLocation || 0);
+                        totalCA += prixLocation;
+                        entrepriseRevenue = prixLocation * ENTREPRISE_PERCENTAGE;
+                        // Pour les locations : pourcentage sur le CA après 15%
+                        salaire = Math.min(entrepriseRevenue * (commissionLocations / 100), SALAIRE_MAX);
                     }
-                    totalBenefice += parseFloat(sale.benefice || 0);
-                    totalSalaire += parseFloat(sale.salaire || 0);
-                    totalEntrepriseRevenue += parseFloat(sale.entrepriseRevenue || 0);
+                    
+                    const benefice = entrepriseRevenue - salaire;
+                    totalBenefice += benefice;
+                    totalSalaire += salaire;
+                    totalEntrepriseRevenue += entrepriseRevenue;
                 });
+                
                 employeesData.push({
                     employeeId: employee.id,
                     employeeName: employee.name,
                     employeeGrade: employee.grade,
                     commission: employee.commission,
+                    montantParVente: montantParVente,
                     totalVentes,
                     totalLocations,
                     nombreVentes: totalVentes + totalLocations,

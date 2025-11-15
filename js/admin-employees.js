@@ -351,57 +351,110 @@ async function showDeclarationDetails(declarationId) {
             hour: '2-digit',
             minute: '2-digit'
         }) : 'N/A';
+        
+        // Calculer le CA après 15%
+        const totalCAAfter15 = declaration.totalEntrepriseRevenue || 0;
+        const beneficeNet = declaration.totalBenefice || 0;
+        
         let html = `
-            <div style="margin-bottom: 2rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <h2 style="color: var(--primary-color); margin: 0;">${declaration.periodeName}</h2>
-                    <button onclick="shareDeclaration('${declaration.id}')" class="btn btn-primary" style="padding: 0.5rem 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 2rem; border-radius: 12px; margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h2 style="color: var(--primary-color); margin: 0 0 0.5rem 0; font-size: 1.75rem;">${declaration.periodeName}</h2>
+                        <p style="color: #6c757d; margin: 0; font-size: 0.95rem;"><i class="fas fa-calendar"></i> ${date}</p>
+                    </div>
+                    <button onclick="shareDeclaration('${declaration.id}')" class="btn btn-primary" style="padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 0.5rem; white-space: nowrap;">
                         <i class="fas fa-share-alt"></i> Partager
                     </button>
                 </div>
-                <p style="color: var(--text-color); margin-bottom: 0.5rem;"><strong>Date de clôture:</strong> ${date}</p>
-                <p style="color: var(--text-color); margin-bottom: 0.5rem;"><strong>Nombre d'employés:</strong> ${declaration.totalEmployees}</p>
-                <p style="color: var(--text-color); margin-bottom: 0.5rem;"><strong>Total ventes:</strong> ${declaration.totalVentes}</p>
-                <p style="color: var(--text-color); margin-bottom: 0.5rem;"><strong>Total locations:</strong> ${declaration.totalLocations}</p>
-                <p style="color: var(--text-color); margin-bottom: 0.5rem;"><strong>Chiffre d'affaires total:</strong> ${formatCurrency(declaration.totalCA)}</p>
-                <p style="color: var(--text-color); margin-bottom: 0.5rem;"><strong>Bénéfice total:</strong> ${formatCurrency(declaration.totalBenefice)}</p>
-                <p style="color: var(--text-color);"><strong>Salaires versés:</strong> ${formatCurrency(declaration.totalSalaires)}</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="background: white; padding: 1rem; border-radius: 8px; border-left: 4px solid var(--primary-color);">
+                        <div style="font-size: 0.85rem; color: #6c757d; margin-bottom: 0.25rem;">Employés</div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">${declaration.totalEmployees}</div>
+                    </div>
+                    <div style="background: white; padding: 1rem; border-radius: 8px; border-left: 4px solid #28a745;">
+                        <div style="font-size: 0.85rem; color: #6c757d; margin-bottom: 0.25rem;">Ventes</div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #28a745;">${declaration.totalVentes}</div>
+                    </div>
+                    <div style="background: white; padding: 1rem; border-radius: 8px; border-left: 4px solid #17a2b8;">
+                        <div style="font-size: 0.85rem; color: #6c757d; margin-bottom: 0.25rem;">Locations</div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #17a2b8;">${declaration.totalLocations}</div>
+                    </div>
+                    <div style="background: white; padding: 1rem; border-radius: 8px; border-left: 4px solid #ffc107;">
+                        <div style="font-size: 0.85rem; color: #6c757d; margin-bottom: 0.25rem;">Chiffre d'affaires</div>
+                        <div style="font-size: 1.25rem; font-weight: 700; color: #ffc107;">${formatCurrency(declaration.totalCA)}</div>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div style="background: linear-gradient(135deg, #28a745, #20c997); padding: 1.25rem; border-radius: 8px; color: white;">
+                        <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 0.5rem;">CA Après 15%</div>
+                        <div style="font-size: 1.75rem; font-weight: 700;">${formatCurrency(totalCAAfter15)}</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #dc3545, #c82333); padding: 1.25rem; border-radius: 8px; color: white;">
+                        <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 0.5rem;">Salaires Versés</div>
+                        <div style="font-size: 1.75rem; font-weight: 700;">${formatCurrency(declaration.totalSalaires)}</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #17a2b8, #138496); padding: 1.25rem; border-radius: 8px; color: white;">
+                        <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 0.5rem;">Bénéfice Net</div>
+                        <div style="font-size: 1.75rem; font-weight: 700;">${formatCurrency(beneficeNet)}</div>
+                    </div>
+                </div>
             </div>
-            <h3 style="color: var(--secondary-color); margin-bottom: 1rem; border-bottom: 2px solid var(--primary-color); padding-bottom: 0.5rem;">Détails par Employé</h3>
-            <div style="overflow-x: auto;">
-                <table class="data-table">
+            
+            <h3 style="color: var(--secondary-color); margin-bottom: 1.5rem; border-bottom: 3px solid var(--primary-color); padding-bottom: 0.75rem; font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-users"></i> Détails par Employé
+            </h3>
+            <div style="overflow-x: auto; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <table class="data-table" style="margin: 0;">
                     <thead>
                         <tr>
-                            <th>Employé</th>
+                            <th style="position: sticky; left: 0; background: linear-gradient(135deg, var(--secondary-color, #1a1a1a), #2d2d2d); z-index: 10;">Employé</th>
                             <th>Grade</th>
-                            <th>Commission</th>
+                            <th>Commission Locations</th>
+                            <th>Montant/Vente</th>
                             <th>Ventes</th>
                             <th>Locations</th>
-                            <th>Total Ventes</th>
+                            <th>Total</th>
                             <th>CA</th>
                             <th>Bénéfice</th>
-                            <th>Salaire</th>
+                            <th style="background: linear-gradient(135deg, #dc3545, #c82333);">Salaire</th>
                         </tr>
                     </thead>
                     <tbody>
         `;
-        declaration.employeesData.forEach(emp => {
+        declaration.employeesData.forEach((emp, index) => {
+            const montantParVente = emp.montantParVente || 3300;
+            const isEven = index % 2 === 0;
             html += `
-                <tr>
-                    <td><strong>${emp.employeeName}</strong></td>
-                    <td>${emp.employeeGrade}</td>
-                    <td>${emp.commission}%</td>
-                    <td>${emp.totalVentes}</td>
-                    <td>${emp.totalLocations}</td>
-                    <td>${emp.nombreVentes}</td>
-                    <td>${formatCurrency(emp.totalCA)}</td>
-                    <td>${formatCurrency(emp.totalBenefice)}</td>
-                    <td><strong>${formatCurrency(emp.totalSalaire)}</strong></td>
+                <tr style="background: ${isEven ? '#f8f9fa' : 'white'};">
+                    <td style="position: sticky; left: 0; background: ${isEven ? '#f8f9fa' : 'white'}; z-index: 5; font-weight: 600;"><strong>${emp.employeeName}</strong></td>
+                    <td>${emp.employeeGrade || 'N/A'}</td>
+                    <td>${emp.commission || 0}%</td>
+                    <td>${formatCurrency(montantParVente)}</td>
+                    <td style="color: #28a745; font-weight: 600;">${emp.totalVentes || 0}</td>
+                    <td style="color: #17a2b8; font-weight: 600;">${emp.totalLocations || 0}</td>
+                    <td style="font-weight: 600;">${emp.nombreVentes || 0}</td>
+                    <td>${formatCurrency(emp.totalCA || 0)}</td>
+                    <td style="color: #17a2b8; font-weight: 600;">${formatCurrency(emp.totalBenefice || 0)}</td>
+                    <td style="background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(200, 35, 51, 0.1)); font-weight: 700; color: #dc3545;"><strong>${formatCurrency(emp.totalSalaire || 0)}</strong></td>
                 </tr>
             `;
         });
         html += `
                     </tbody>
+                    <tfoot style="background: linear-gradient(135deg, var(--primary-color, #E30613), #ff2a39); color: white; font-weight: 700;">
+                        <tr>
+                            <td colspan="4" style="text-align: right; padding: 1rem;"><strong>TOTAUX</strong></td>
+                            <td style="padding: 1rem;">${declaration.totalVentes}</td>
+                            <td style="padding: 1rem;">${declaration.totalLocations}</td>
+                            <td style="padding: 1rem;">${declaration.totalVentes + declaration.totalLocations}</td>
+                            <td style="padding: 1rem;">${formatCurrency(declaration.totalCA)}</td>
+                            <td style="padding: 1rem;">${formatCurrency(declaration.totalBenefice)}</td>
+                            <td style="padding: 1rem; font-size: 1.1rem;">${formatCurrency(declaration.totalSalaires)}</td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         `;
