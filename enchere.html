@@ -367,17 +367,66 @@
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
-                <a href="index.html">
-                    <img src="images/logo-orpi-mandelieu.png" alt="ORPI Logo">
-                </a>
+                <img src="images/logo-orpi-mandelieu.png" alt="ORPI Paris">
             </div>
             <ul class="nav-menu">
-                <li class="nav-item"><a href="index.html" class="nav-link">Accueil</a></li>
-                <li class="nav-item"><a href="biens.html" class="nav-link">Nos Biens</a></li>
-                <li class="nav-item"><a href="enchere.html" class="nav-link active">Enchères</a></li>
-                <li class="nav-item"><a href="contact.html" class="nav-link">Contact</a></li>
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">Accueil</a>
+                </li>
+                <li class="nav-item nav-dropdown">
+                    <a href="#" class="nav-link active">
+                        Biens <i class="fas fa-chevron-down"></i>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="biens.html"><i class="fas fa-home"></i> Nos Biens</a></li>
+                        <li><a href="enchere.html"><i class="fas fa-gavel"></i> Enchères</a></li>
+                        <li><a href="interieurs.html"><i class="fas fa-couch"></i> Intérieurs</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item nav-dropdown">
+                    <a href="#" class="nav-link">
+                        Services <i class="fas fa-chevron-down"></i>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="estimation.html"><i class="fas fa-calculator"></i> Estimation</a></li>
+                        <li><a href="rendez-vous.html"><i class="fas fa-calendar-alt"></i> Rendez-vous</a></li>
+                        <li><a href="avis.html"><i class="fas fa-star"></i> Avis</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a href="contact.html" class="nav-link">Contact</a>
+                </li>
+                <li class="nav-item" id="tableauGeneralLink" style="display: none;">
+                    <a href="tableau-general.html" class="nav-link">Tableau</a>
+                </li>
+                <li class="nav-item" id="dashboardLink" style="display: none;">
+                    <a href="dashboard-client.html" class="nav-link" style="position: relative;">
+                        <i class="fas fa-chart-line"></i> Dashboard
+                        <span id="dashboardBadge" class="dashboard-notif-badge" style="display: none; position: absolute; top: -5px; right: -10px; background: #E30613; color: white; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.4rem; border-radius: 10px; min-width: 18px; text-align: center;">0</span>
+                    </a>
+                </li>
+                <li class="nav-item" id="adminPanel" style="display: none;">
+                    <a href="admin.html" class="nav-link admin-link">
+                        <i class="fas fa-shield-alt"></i> Admin
+                    </a>
+                </li>
             </ul>
-            <div class="hamburger">
+            <span class="notifications-text" id="notificationsText" style="display: none;"></span>
+            <div class="notifications-btn" id="notificationsBtn" style="display: none;" onclick="toggleNotifications()">
+                <i class="fas fa-bell"></i>
+                <span class="notifications-badge" id="notificationsBadge" style="display: none;">0</span>
+            </div>
+            <div class="user-profile" id="userProfile" style="display: none;">
+                <img id="userAvatar" src="" alt="Avatar" class="user-avatar">
+                <span id="userName" class="user-name"></span>
+                <button onclick="logout()" class="logout-btn" title="Déconnexion">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+            <button id="loginBtn" class="discord-login-btn" onclick="loginWithDiscord()">
+                <i class="fab fa-discord"></i> Connexion
+            </button>
+            <div class="nav-toggle" id="navToggle">
                 <span></span>
                 <span></span>
                 <span></span>

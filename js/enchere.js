@@ -16,7 +16,27 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function checkAuction() {
-    const auction = await auctionsDB.getActiveAuction();
+    let auction = await auctionsDB.getActiveAuction();
+    
+    // Si pas d'enchère active, vérifier s'il y a une enchère clôturée récemment (pour afficher les résultats)
+    if (!auction) {
+        try {
+            const allAuctions = await auctionsDB.getAllAuctions();
+            // Récupérer la dernière enchère clôturée (si elle a été clôturée il y a moins de 24h)
+            const closedAuctions = allAuctions.filter(a => a.status === 'closed');
+            if (closedAuctions.length > 0) {
+                const lastClosed = closedAuctions[0];
+                const closedAt = lastClosed.closedAt ? new Date(lastClosed.closedAt).getTime() : 0;
+                const now = Date.now();
+                // Afficher les résultats si l'enchère a été clôturée il y a moins de 24h
+                if (now - closedAt < 24 * 60 * 60 * 1000) {
+                    auction = lastClosed;
+                }
+            }
+        } catch (error) {
+            console.error('Erreur récupération enchères clôturées:', error);
+        }
+    }
     
     if (!auction) {
         document.getElementById('noAuction').style.display = 'block';
@@ -29,11 +49,26 @@ async function checkAuction() {
     document.getElementById('auctionContent').style.display = 'block';
     
     displayAuction(auction);
-    startCountdown(auction.endTime);
+    
+    // Si l'enchère est clôturée, afficher "Enchère terminée" et désactiver le bouton
+    if (auction.status === 'closed') {
+        document.getElementById('countdown').textContent = 'Enchère terminée !';
+        const bidButton = document.querySelector('.btn-bid');
+        if (bidButton) bidButton.disabled = true;
+    } else {
+        startCountdown(auction.endTime);
+    }
     
     auctionUnsubscribe = auctionsDB.listenToAuction(auction.id, updatedAuction => {
         currentAuction = updatedAuction;
         updateAuctionInfo(updatedAuction);
+        // Si l'enchère vient d'être clôturée, mettre à jour l'affichage
+        if (updatedAuction.status === 'closed') {
+            document.getElementById('countdown').textContent = 'Enchère terminée !';
+            const bidButton = document.querySelector('.btn-bid');
+            if (bidButton) bidButton.disabled = true;
+            if (countdownInterval) clearInterval(countdownInterval);
+        }
     });
     
     bidsUnsubscribe = auctionsDB.listenToBids(auction.id, bids => {
@@ -119,7 +154,7 @@ function updateAuctionInfo(auction) {
 function startCountdown(endTime) {
     if (countdownInterval) clearInterval(countdownInterval);
     
-    countdownInterval = setInterval(() => {
+    countdownInterval = setInterval(async () => {
         const now = new Date().getTime();
         const end = new Date(endTime).getTime();
         const distance = end - now;
@@ -127,8 +162,19 @@ function startCountdown(endTime) {
         if (distance < 0) {
             clearInterval(countdownInterval);
             document.getElementById('countdown').textContent = 'Enchère terminée !';
-            document.querySelector('.btn-bid').disabled = true;
+            const bidButton = document.querySelector('.btn-bid');
+            if (bidButton) bidButton.disabled = true;
             showToast('L\'enchère est terminée', 'info');
+            
+            // Fermer automatiquement l'enchère dans Firestore
+            if (currentAuction && currentAuction.status !== 'closed') {
+                try {
+                    await auctionsDB.closeAuction(currentAuction.id);
+                    console.log('Enchère clôturée automatiquement');
+                } catch (error) {
+                    console.error('Erreur lors de la fermeture automatique:', error);
+                }
+            }
             return;
         }
         
@@ -153,7 +199,7 @@ function displayBids(bids) {
         <div class="bid-item ${index === 0 ? 'highest' : ''}">
             <div class="bid-info">
                 <strong>${bid.bidderName}</strong>
-                ${index === 0 ? ' <span style="color: #4caf50;">🏆 Meilleure enchère</span>' : ''}
+                ${index === 0 ? ' <span style="color: #4caf50;"><i class="fas fa-trophy"></i> Meilleure enchère</span>' : ''}
                 <div class="bid-time">${new Date(bid.timestamp).toLocaleString('fr-FR')}</div>
             </div>
             <div class="bid-amount">

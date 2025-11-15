@@ -136,6 +136,29 @@ const auctionsDB = {
             console.error('Erreur récupération enchère:', error);
             return null;
         }
+    },
+    
+    async deleteAuction(auctionId) {
+        try {
+            const batch = db.batch();
+            
+            const bidsSnapshot = await db.collection('bids')
+                .where('auctionId', '==', auctionId)
+                .get();
+            
+            bidsSnapshot.docs.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            
+            const auctionRef = db.collection('auctions').doc(auctionId);
+            batch.delete(auctionRef);
+            
+            await batch.commit();
+            return { success: true };
+        } catch (error) {
+            console.error('Erreur suppression enchère:', error);
+            return { success: false, error: error.message };
+        }
     }
 };
 

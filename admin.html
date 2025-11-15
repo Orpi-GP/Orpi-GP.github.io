@@ -731,9 +731,9 @@
                         <div style="margin-top: 1rem;">
                             <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--secondary-color);">Thème actif :</label>
                             <select id="themeSelector" onchange="changeTheme(this.value)" data-permission="manage_theme" style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-bg); border-radius: 8px; font-size: 1rem; margin-bottom: 1rem;">
-                                <option value="default">🏠 Par défaut (ORPI)</option>
-                                <option value="halloween">🎃 Halloween</option>
-                                <option value="christmas">🎄 Noël</option>
+                                <option value="default"><i class="fas fa-home"></i> Par défaut (ORPI)</option>
+                                <option value="halloween"><i class="fas fa-pumpkin"></i> Halloween</option>
+                                <option value="christmas"><i class="fas fa-tree"></i> Noël</option>
                             </select>
                         </div>
                         <div id="themePreview" style="padding: 1rem; background: var(--light-bg); border-radius: 8px; text-align: center; font-weight: 600; color: var(--primary-color);">
@@ -962,10 +962,15 @@
                         <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
                         <p style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;">Glissez-déposez vos images ici</p>
                         <p style="font-size: 0.9rem; color: #666; margin-bottom: 1rem;">ou</p>
-                        <button type="button" class="btn-select-files" onclick="document.getElementById('propertyImages').click()">
-                            <i class="fas fa-folder-open"></i> Parcourir les fichiers
-                        </button>
-                        <input type="file" id="propertyImages" accept="image/*" multiple required style="display: none;">
+                        <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                            <button type="button" class="btn-select-files" onclick="document.getElementById('propertyImages').click()">
+                                <i class="fas fa-folder-open"></i> Parcourir les fichiers
+                            </button>
+                            <button type="button" class="btn-select-files" onclick="addImagesFromGallery()" style="background: #4caf50;">
+                                <i class="fas fa-images"></i> Galerie média
+                            </button>
+                        </div>
+                        <input type="file" id="propertyImages" accept="image/*" multiple onchange="previewImages(event)" style="display: none;">
                         <p style="font-size: 0.85rem; color: #999; margin-top: 1rem;">
                             <i class="fas fa-info-circle"></i> Maximum 5 images (JPG, PNG, WebP)
                         </p>

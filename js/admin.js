@@ -93,6 +93,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.location.href = 'admin-interieurs.html';
         };
         
+        window.checkEncheresPermission = async function() {
+            if (!(await hasPermission('manage_encheres'))) {
+                toast.error('Vous n\'avez pas la permission de gérer les enchères.');
+                return;
+            }
+            window.location.href = 'admin-encheres.html';
+        };
+        
+        window.checkMediaPermission = async function() {
+            if (!(await hasPermission('manage_media'))) {
+                toast.error('Vous n\'avez pas la permission de gérer les médias.');
+                return;
+            }
+            window.location.href = 'admin-medias.html';
+        };
+        
         setTimeout(() => {
             showAppointmentsCard();
             loadReviewsCount();
@@ -255,26 +271,159 @@ function closeAddPropertyModal() {
     document.body.style.overflow = '';
 }
 
-let selectedImages = [];
+async function showMediaGalleryModal(maxSelection, onSelect) {
+    const WORKER_BASE = 'https://orpi-cloudinary-proxy.orpigp.workers.dev';
+    
+    let modal = document.getElementById('mediaGalleryModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'mediaGalleryModal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 90vw; max-height: 90vh; overflow-y: auto;">
+                <div class="modal-header">
+                    <h2><i class="fas fa-images"></i> Sélectionner des images depuis la galerie</h2>
+                    <button class="modal-close" onclick="closeMediaGalleryModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div style="padding: 1rem;">
+                    <div id="mediaGalleryLoading" style="text-align: center; padding: 2rem;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
+                        <p>Chargement des images...</p>
+                    </div>
+                    <div id="mediaGalleryGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem;"></div>
+                    <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center;">
+                        <span id="mediaGallerySelectionCount" style="font-weight: 600; color: var(--primary-color);">0 image(s) sélectionnée(s)</span>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button onclick="closeMediaGalleryModal()" class="btn-cancel">Annuler</button>
+                            <button onclick="confirmMediaGallerySelection()" class="btn-submit" id="confirmMediaSelectionBtn" disabled>
+                                <i class="fas fa-check"></i> Ajouter (<span id="selectedCount">0</span>)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    let selectedMediaUrls = [];
+    let allMedias = [];
+    
+    window.closeMediaGalleryModal = function() {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+        selectedMediaUrls = [];
+    };
+    
+    window.confirmMediaGallerySelection = function() {
+        if (selectedMediaUrls.length > 0 && onSelect) {
+            onSelect(selectedMediaUrls);
+        }
+        closeMediaGalleryModal();
+    };
+    
+    window.toggleMediaSelection = function(url) {
+        const index = selectedMediaUrls.indexOf(url);
+        if (index > -1) {
+            selectedMediaUrls.splice(index, 1);
+        } else {
+            if (selectedMediaUrls.length >= maxSelection) {
+                toast.warning(`Vous ne pouvez sélectionner que ${maxSelection} image(s) maximum !`);
+                return;
+            }
+            selectedMediaUrls.push(url);
+        }
+        updateMediaGalleryDisplay();
+    };
+    
+    function updateMediaGalleryDisplay() {
+        const count = selectedMediaUrls.length;
+        document.getElementById('selectedCount').textContent = count;
+        document.getElementById('mediaGallerySelectionCount').textContent = `${count} image(s) sélectionnée(s)`;
+        document.getElementById('confirmMediaSelectionBtn').disabled = count === 0;
+        
+        const grid = document.getElementById('mediaGalleryGrid');
+        grid.innerHTML = allMedias.map(media => {
+            const isSelected = selectedMediaUrls.includes(media.url);
+            return `
+                <div style="position: relative; cursor: pointer; border: ${isSelected ? '3px solid #4caf50' : '2px solid #e0e0e0'}; border-radius: 8px; overflow: hidden; aspect-ratio: 1;" onclick="toggleMediaSelection('${media.url}')">
+                    <img src="${media.url}" alt="${media.filename}" style="width: 100%; height: 100%; object-fit: cover;">
+                    ${isSelected ? '<div style="position: absolute; top: 5px; right: 5px; background: #4caf50; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-check" style="font-size: 0.75rem;"></i></div>' : ''}
+                </div>
+            `;
+        }).join('');
+    }
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    document.getElementById('mediaGalleryLoading').style.display = 'block';
+    document.getElementById('mediaGalleryGrid').style.display = 'none';
+    
+    try {
+        const response = await fetch(`${WORKER_BASE}/list`);
+        if (!response.ok) throw new Error('Erreur API proxy');
+        const data = await response.json();
+        allMedias = data.resources.map(resource => ({
+            url: resource.secure_url,
+            filename: resource.public_id.split('/').pop()
+        }));
+        
+        document.getElementById('mediaGalleryLoading').style.display = 'none';
+        document.getElementById('mediaGalleryGrid').style.display = 'grid';
+        updateMediaGalleryDisplay();
+    } catch (error) {
+        console.error('Erreur chargement galerie:', error);
+        document.getElementById('mediaGalleryLoading').innerHTML = `
+            <p style="color: #f44336;">Erreur lors du chargement des images</p>
+            <button onclick="location.reload()" class="btn-submit" style="margin-top: 1rem;">
+                Réessayer
+            </button>
+        `;
+    }
+}
+
+let selectedImages = []; // Peut contenir des fichiers ou des URLs
 
 window.previewImages = function(event) {
     const files = Array.from(event.target.files);
     
-    if (files.length > 5) {
+    if (selectedImages.length + files.length > 5) {
         toast.warning('Vous ne pouvez sélectionner que 5 images maximum !');
         event.target.value = '';
         return;
     }
     
-    selectedImages = files;
+    selectedImages.push(...files);
+    updateImagesPreview();
+}
+
+window.addImagesFromGallery = async function() {
+    const remainingSlots = 5 - selectedImages.length;
+    if (remainingSlots <= 0) {
+        toast.warning('Vous avez déjà atteint la limite de 5 images !');
+        return;
+    }
+    
+    await showMediaGalleryModal(remainingSlots, (selectedUrls) => {
+        selectedImages.push(...selectedUrls);
+        updateImagesPreview();
+    });
+}
+
+function updateImagesPreview() {
     const container = document.getElementById('imagesPreviewContainer');
     container.innerHTML = '';
     
-    files.forEach((file, index) => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
+    selectedImages.forEach((item, index) => {
             const div = document.createElement('div');
             div.className = 'image-preview-item';
+        
+        if (item instanceof File) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
             div.innerHTML = `
                 <img src="${e.target.result}" alt="Aperçu ${index + 1}">
                 <button type="button" class="remove-image" onclick="removeImage(${index})">
@@ -283,7 +432,16 @@ window.previewImages = function(event) {
             `;
             container.appendChild(div);
         };
-        reader.readAsDataURL(file);
+            reader.readAsDataURL(item);
+        } else {
+            div.innerHTML = `
+                <img src="${item}" alt="Image ${index + 1}">
+                <button type="button" class="remove-image" onclick="removeImage(${index})">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        }
     });
 }
 
@@ -291,26 +449,13 @@ window.removeImage = function(index) {
     selectedImages.splice(index, 1);
     const input = document.getElementById('propertyImages');
     const dt = new DataTransfer();
-    selectedImages.forEach(file => dt.items.add(file));
-    input.files = dt.files;
-    
-    const container = document.getElementById('imagesPreviewContainer');
-    container.innerHTML = '';
-    selectedImages.forEach((file, idx) => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const div = document.createElement('div');
-            div.className = 'image-preview-item';
-            div.innerHTML = `
-                <img src="${e.target.result}" alt="Aperçu ${idx + 1}">
-                <button type="button" class="remove-image" onclick="removeImage(${idx})">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
-            container.appendChild(div);
-        };
-        reader.readAsDataURL(file);
+    selectedImages.forEach(item => {
+        if (item instanceof File) {
+            dt.items.add(item);
+        }
     });
+    input.files = dt.files;
+    updateImagesPreview();
 }
 
 async function handleAddProperty(event) {
@@ -326,30 +471,37 @@ async function handleAddProperty(event) {
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
 
     try {
-        const imageFiles = document.getElementById('propertyImages').files;
-        
-        if (imageFiles.length === 0) {
+        if (selectedImages.length === 0) {
             toast.warning('Veuillez sélectionner au moins une image');
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fas fa-save"></i> Enregistrer';
             return;
         }
         
-        if (imageFiles.length > 5) {
+        if (selectedImages.length > 5) {
             toast.warning('Maximum 5 images autorisées');
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fas fa-save"></i> Enregistrer';
             return;
         }
 
-        toast.info(`Upload de ${imageFiles.length} image(s) vers Cloudinary...`);
+        const filesToUpload = selectedImages.filter(item => item instanceof File);
+        const existingUrls = selectedImages.filter(item => typeof item === 'string');
         
-        const imageUrls = await cloudinaryUpload.uploadMultipleImages(
-            imageFiles,
+        let imageUrls = [...existingUrls];
+        
+        if (filesToUpload.length > 0) {
+            toast.info(`Upload de ${filesToUpload.length} image(s) vers Cloudinary...`);
+            
+            const uploadedUrls = await cloudinaryUpload.uploadMultipleImages(
+                filesToUpload,
             (progress, current, total) => {
                 submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Upload ${current}/${total} (${Math.round(progress)}%)`;
             }
         );
+            
+            imageUrls.push(...uploadedUrls);
+        }
 
         const property = {
             title: document.getElementById('propertyTitle').value,
@@ -383,8 +535,8 @@ async function showAuthorizedIdsModal() {
     if (!currentUser) return;
     
     if (!DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
-        const hasPermission = await hasPermission('view_authorized_ids');
-        if (!hasPermission) {
+        const hasViewPermission = await hasPermission('view_authorized_ids');
+        if (!hasViewPermission) {
             toast.error('Vous n\'avez pas la permission de voir les IDs autorisés.');
             return;
         }
@@ -629,18 +781,20 @@ async function checkAndUpdatePermissions() {
     
     if (DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
         document.querySelectorAll('[data-permission]').forEach(btn => {
-            const permission = btn.getAttribute('data-permission');
-            if (permission === 'manage_employees_full' || permission === 'manage_employee_salary') {
+            if (btn.tagName === 'BUTTON' || btn.tagName === 'SELECT') {
+                const computedStyle = window.getComputedStyle(btn);
+                if (computedStyle.display === 'none') {
                 btn.style.display = 'block';
             }
-            if (btn.tagName === 'SELECT') {
+                if (btn.style.display === 'none') {
+                    btn.style.display = 'block';
+                }
+            }
                 btn.disabled = false;
                 btn.style.opacity = '1';
                 btn.style.cursor = 'pointer';
-            } else {
-                btn.disabled = false;
-                btn.style.opacity = '1';
-                btn.style.cursor = 'pointer';
+            if (btn.title && btn.title.includes('permission')) {
+                btn.title = '';
             }
         });
         return;
@@ -2270,7 +2424,7 @@ async function loadReviewsCount() {
                 const stats = await ReviewsManager.getStatistics();
                 const countElement = document.getElementById('reviewsCount');
                 if (countElement) {
-                    countElement.innerHTML = `<i class="fas fa-star"></i> ${stats.total} avis (${stats.average} ⭐)`;
+                    countElement.innerHTML = `<i class="fas fa-star"></i> ${stats.total} avis (${stats.average} <i class="fas fa-star"></i>)`;
                 }
             };
             document.head.appendChild(script);
@@ -2390,12 +2544,12 @@ function updateThemeName(theme) {
     if (!currentThemeName) return;
     
     const themeNames = {
-        'default': '🏠 Par défaut (ORPI)',
-        'halloween': '🎃 Halloween',
-        'christmas': '🎄 Noël'
+        'default': '<i class="fas fa-home"></i> Par défaut (ORPI)',
+        'halloween': '<i class="fas fa-pumpkin"></i> Halloween',
+        'christmas': '<i class="fas fa-tree"></i> Noël'
     };
     
-    currentThemeName.textContent = themeNames[theme] || themeNames['default'];
+    currentThemeName.innerHTML = themeNames[theme] || themeNames['default'];
 }
 
 window.changeTheme = async function(themeName) {

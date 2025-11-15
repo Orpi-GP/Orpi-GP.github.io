@@ -132,8 +132,8 @@ function displaySales() {
                 <td><strong>${formatCurrency(salaire)}</strong></td>
                 <td>${commissionDisplay}</td>
                 <td class="actions">
-                    <button onclick="editSale('${sale.id}')" class="btn btn-sm btn-secondary" title="Modifier">✏️</button>
-                    <button onclick="deleteSale('${sale.id}')" class="btn btn-sm btn-danger" title="Supprimer">🗑️</button>
+                    <button onclick="editSale('${sale.id}')" class="btn btn-sm btn-secondary" title="Modifier"><i class="fas fa-edit"></i></button>
+                    <button onclick="deleteSale('${sale.id}')" class="btn btn-sm btn-danger" title="Supprimer"><i class="fas fa-trash"></i></button>
                 </td>
             </tr>
         `;
