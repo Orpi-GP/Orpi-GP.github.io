@@ -26,105 +26,299 @@
     </script>
     
     <style>
+        body {
+            background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+        }
+
         .declaration-container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 100px auto 50px;
-            padding: 2rem;
+            padding: 0;
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
         }
 
         .declaration-header {
+            background: linear-gradient(135deg, var(--primary-color, #E30613), #ff2a39);
+            color: white;
+            padding: 3rem 2rem;
             text-align: center;
-            margin-bottom: 3rem;
-            padding-bottom: 2rem;
-            border-bottom: 3px solid var(--primary-color);
+            position: relative;
+        }
+
+        .declaration-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
         }
 
         .declaration-id {
-            font-size: 0.9rem;
-            color: #666;
+            font-size: 0.85rem;
+            opacity: 0.9;
             margin-bottom: 0.5rem;
+            font-weight: 500;
         }
 
         .declaration-title {
-            font-size: 2rem;
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .declaration-date {
+            font-size: 1rem;
+            opacity: 0.95;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
         .declaration-summary {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-            padding: 1.5rem;
-            background: #F9FAFB;
-            border-radius: 8px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem;
+            margin-bottom: 3rem;
         }
 
         .summary-item {
-            text-align: center;
-            padding: 1rem;
             background: white;
-            border-radius: 8px;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             border-left: 4px solid var(--primary-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .summary-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), #ff2a39);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .summary-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .summary-item:hover::before {
+            transform: scaleX(1);
+        }
+
+        .summary-item.gradient-green {
+            border-left-color: #28a745;
+            background: linear-gradient(135deg, #f0f9f4 0%, #ffffff 100%);
+        }
+
+        .summary-item.gradient-green::before {
+            background: linear-gradient(90deg, #28a745, #20c997);
+        }
+
+        .summary-item.gradient-blue {
+            border-left-color: #17a2b8;
+            background: linear-gradient(135deg, #f0f9fb 0%, #ffffff 100%);
+        }
+
+        .summary-item.gradient-blue::before {
+            background: linear-gradient(90deg, #17a2b8, #138496);
+        }
+
+        .summary-item.gradient-yellow {
+            border-left-color: #ffc107;
+            background: linear-gradient(135deg, #fffbf0 0%, #ffffff 100%);
+        }
+
+        .summary-item.gradient-yellow::before {
+            background: linear-gradient(90deg, #ffc107, #ffb300);
+        }
+
+        .summary-item.gradient-red {
+            border-left-color: #dc3545;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+        }
+
+        .summary-item.gradient-red::before {
+            background: linear-gradient(90deg, #dc3545, #c82333);
         }
 
         .summary-label {
-            font-size: 0.85rem;
-            color: #666;
-            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .summary-label i {
+            font-size: 1rem;
+            color: var(--primary-color);
+        }
+
+        .summary-item.gradient-green .summary-label i {
+            color: #28a745;
+        }
+
+        .summary-item.gradient-blue .summary-label i {
+            color: #17a2b8;
+        }
+
+        .summary-item.gradient-yellow .summary-label i {
+            color: #ffc107;
+        }
+
+        .summary-item.gradient-red .summary-label i {
+            color: #dc3545;
         }
 
         .summary-value {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: #1F2937;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            line-height: 1.2;
+        }
+
+        .summary-item.gradient-green .summary-value {
+            color: #28a745;
+        }
+
+        .summary-item.gradient-blue .summary-value {
+            color: #17a2b8;
+        }
+
+        .summary-item.gradient-yellow .summary-value {
+            color: #ffc107;
+        }
+
+        .summary-item.gradient-red .summary-value {
+            color: #dc3545;
+        }
+
+        .section-title {
+            color: var(--secondary-color);
+            margin: 2rem 2rem 1.5rem;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
         .employees-table {
             overflow-x: auto;
-            margin-top: 2rem;
+            margin: 0 2rem 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
         .data-table {
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 1000px;
+        }
+
+        .data-table thead {
+            background: linear-gradient(135deg, var(--secondary-color, #1a1a1a), #2d2d2d);
+            color: white;
         }
 
         .data-table th {
-            background: var(--primary-color);
-            color: white;
-            padding: 1rem;
+            padding: 1.25rem 1rem;
             text-align: left;
             font-weight: 600;
+            white-space: nowrap;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .data-table th:last-child {
+            border-right: none;
+        }
+
+        .data-table tbody tr {
+            transition: all 0.2s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .data-table tbody tr:hover {
+            background: linear-gradient(90deg, rgba(227, 6, 19, 0.03), rgba(227, 6, 19, 0.05));
+        }
+
+        .data-table tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .data-table tbody tr:nth-child(even):hover {
+            background: linear-gradient(90deg, rgba(227, 6, 19, 0.05), rgba(227, 6, 19, 0.08));
         }
 
         .data-table td {
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid #E5E7EB;
+            padding: 1.25rem 1rem;
+            font-size: 0.9375rem;
+            color: #333;
         }
 
-        .data-table tr:hover {
-            background: #F9FAFB;
+        .data-table tfoot {
+            background: linear-gradient(135deg, var(--primary-color, #E30613), #ff2a39);
+            color: white;
+            font-weight: 700;
+        }
+
+        .data-table tfoot td {
+            padding: 1.25rem 1rem;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .data-table tfoot td:first-child {
+            text-align: right;
         }
 
         .loading-container {
             text-align: center;
-            padding: 4rem 2rem;
+            padding: 6rem 2rem;
+            background: white;
+            border-radius: 20px;
+            max-width: 600px;
+            margin: 100px auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
         }
 
         .spinner {
             border: 4px solid #f3f3f3;
             border-top: 4px solid var(--primary-color);
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
+            width: 60px;
+            height: 60px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
+            margin: 0 auto 1.5rem;
         }
 
         @keyframes spin {
@@ -132,29 +326,85 @@
             100% { transform: rotate(360deg); }
         }
 
+        .loading-container p {
+            color: var(--text-color);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
         .error-container {
             text-align: center;
-            padding: 4rem 2rem;
+            padding: 6rem 2rem;
+            background: white;
+            border-radius: 20px;
+            max-width: 600px;
+            margin: 100px auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
         }
 
         .error-icon {
-            font-size: 4rem;
+            font-size: 5rem;
             color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            opacity: 0.8;
+        }
+
+        .error-container h2 {
+            color: var(--secondary-color);
             margin-bottom: 1rem;
+        }
+
+        .error-container p {
+            color: var(--text-color);
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1.75rem;
+            background: linear-gradient(135deg, var(--primary-color, #E30613), #ff2a39);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(227, 6, 19, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(227, 6, 19, 0.4);
         }
 
         @media (max-width: 768px) {
             .declaration-container {
                 margin: 80px 1rem 2rem;
-                padding: 1.5rem;
+                border-radius: 16px;
+            }
+
+            .declaration-header {
+                padding: 2rem 1.5rem;
             }
 
             .declaration-title {
-                font-size: 1.5rem;
+                font-size: 1.75rem;
             }
 
             .declaration-summary {
                 grid-template-columns: 1fr;
+                margin: 1.5rem;
+                gap: 1rem;
+            }
+
+            .section-title {
+                margin: 1.5rem;
+                font-size: 1.25rem;
+            }
+
+            .employees-table {
+                margin: 0 1rem 1.5rem;
             }
         }
     </style>
@@ -196,12 +446,12 @@
         <div class="declaration-header">
             <div class="declaration-id">ID: <span id="declarationId"></span></div>
             <h1 class="declaration-title" id="declarationTitle"></h1>
-            <p id="declarationDate" style="color: #666; margin-top: 0.5rem;"></p>
+            <p id="declarationDate" class="declaration-date"></p>
         </div>
 
         <div class="declaration-summary" id="declarationSummary"></div>
 
-        <h3 style="color: var(--secondary-color); margin-bottom: 1rem; border-bottom: 2px solid var(--primary-color); padding-bottom: 0.5rem;">
+        <h3 class="section-title">
             <i class="fas fa-users"></i> Détails par Employé
         </h3>
         <div class="employees-table">
@@ -210,13 +460,14 @@
                     <tr>
                         <th>Employé</th>
                         <th>Grade</th>
-                        <th>Commission</th>
+                        <th>Commission Locations</th>
+                        <th>Montant/Vente</th>
                         <th>Ventes</th>
                         <th>Locations</th>
-                        <th>Total Ventes</th>
+                        <th>Total</th>
                         <th>CA</th>
                         <th>Bénéfice</th>
-                        <th>Salaire</th>
+                        <th style="background: linear-gradient(135deg, #dc3545, #c82333);">Salaire</th>
                     </tr>
                 </thead>
                 <tbody id="employeesTableBody">
