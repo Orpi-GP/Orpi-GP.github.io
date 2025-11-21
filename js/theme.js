@@ -1,4 +1,5 @@
-const themeManager = {
+if (!window.themeManager) {
+window.themeManager = {
     themes: {
         halloween: {
             primaryColor: '#FF6B35',
@@ -268,6 +269,9 @@ const themeManager = {
         }
     }
 };
+}
+
+const themeManager = window.themeManager;
 
 const cachedTheme = localStorage.getItem('orpi_theme') || 'default';
 const theme = themeManager.themes[cachedTheme] || themeManager.themes.default;

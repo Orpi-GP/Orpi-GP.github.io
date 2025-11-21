@@ -89,7 +89,7 @@ async function showMediaGalleryModal(maxSelection, onSelect) {
             const isSelected = selectedMediaUrls.includes(media.url);
             return `
                 <div style="position: relative; cursor: pointer; border: ${isSelected ? '3px solid #4caf50' : '2px solid #e0e0e0'}; border-radius: 8px; overflow: hidden; aspect-ratio: 1;" onclick="toggleMediaSelection('${media.url}')">
-                    <img src="${media.url}" alt="${media.filename}" style="width: 100%; height: 100%; object-fit: cover;">
+                    <img src="${media.url}" alt="${media.filename}" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
                     ${isSelected ? '<div style="position: absolute; top: 5px; right: 5px; background: #4caf50; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-check" style="font-size: 0.75rem;"></i></div>' : ''}
                 </div>
             `;
@@ -283,7 +283,7 @@ function displayImages() {
         const isFeatured = typeof imgObj === 'object' ? imgObj.featured : false;
         return `
         <div class="image-preview-item" style="position: relative; ${isFeatured ? 'border: 3px solid #4caf50;' : ''}">
-            <img src="${imgUrl}" alt="Image ${index + 1}">
+            <img src="${imgUrl}" alt="Image ${index + 1}" loading="lazy">
             <button class="remove-image" onclick="removeImage(${index})">
                 <i class="fas fa-times"></i>
             </button>
@@ -411,7 +411,7 @@ function displayAuctionProperty(property) {
         : `<p>${property.description || ''}</p>`;
     
     container.innerHTML = `
-        <img src="${imageUrl}" alt="${property.title}">
+        <img src="${imageUrl}" alt="${property.title}" loading="lazy">
         <div>
             <h3>${property.title}</h3>
             <div>${descriptionHtml}</div>

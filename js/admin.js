@@ -10,125 +10,134 @@ function escapeHtml(text) {
 
 
 document.addEventListener('DOMContentLoaded', async () => {
-    updateUI();
-    
-    if (discordAuth.isLoggedIn() && await discordAuth.isAuthorized()) {
-        document.getElementById('adminAccess').style.display = 'block';
-        document.getElementById('accessDenied').style.display = 'none';
-        updatePropertyCount();
-        updateConversationsCount();
-        updateContractCount();
-        setupRealtimeListener();
-        setupConversationsListener();
-        setupContractsListener();
+    const initAdmin = async () => {
+        if (typeof discordAuth === 'undefined' || typeof updateUI === 'undefined') {
+            setTimeout(initAdmin, 100);
+            return;
+        }
         
-        const currentUser = discordAuth.getUser();
-        const addAdminIdBtn = document.getElementById('addAdminIdBtn');
-        const managePermissionsBtn = document.getElementById('managePermissionsBtn');
-        const viewAuthorizedIdsBtn = document.getElementById('viewAuthorizedIdsBtn');
-        if (currentUser) {
-            if (DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
-                if (addAdminIdBtn) addAdminIdBtn.style.display = 'block';
-                if (managePermissionsBtn) managePermissionsBtn.style.display = 'block';
-                if (viewAuthorizedIdsBtn) {
-                    viewAuthorizedIdsBtn.disabled = false;
-                    viewAuthorizedIdsBtn.style.opacity = '1';
-                    viewAuthorizedIdsBtn.style.cursor = 'pointer';
+        updateUI();
+        
+        if (discordAuth.isLoggedIn() && await discordAuth.isAuthorized()) {
+            document.getElementById('adminAccess').style.display = 'block';
+            document.getElementById('accessDenied').style.display = 'none';
+            updatePropertyCount();
+            updateConversationsCount();
+            updateContractCount();
+            setupRealtimeListener();
+            setupConversationsListener();
+            setupContractsListener();
+            
+            const currentUser = discordAuth.getUser();
+            const addAdminIdBtn = document.getElementById('addAdminIdBtn');
+            const managePermissionsBtn = document.getElementById('managePermissionsBtn');
+            const viewAuthorizedIdsBtn = document.getElementById('viewAuthorizedIdsBtn');
+            if (currentUser) {
+                if (DISCORD_CONFIG.adminManagerIds.includes(currentUser.id)) {
+                    if (addAdminIdBtn) addAdminIdBtn.style.display = 'block';
+                    if (managePermissionsBtn) managePermissionsBtn.style.display = 'block';
+                    if (viewAuthorizedIdsBtn) {
+                        viewAuthorizedIdsBtn.disabled = false;
+                        viewAuthorizedIdsBtn.style.opacity = '1';
+                        viewAuthorizedIdsBtn.style.cursor = 'pointer';
+                    }
+                } else {
+                    try {
+                        const db = firebase.firestore();
+                        const permissionsDoc = await db.collection('admin_permissions').doc(currentUser.id).get();
+                        if (permissionsDoc.exists && permissionsDoc.data().manage_admin_ids === true) {
+                            if (addAdminIdBtn) addAdminIdBtn.style.display = 'block';
+                        }
+                        if (permissionsDoc.exists && permissionsDoc.data().manage_permissions === true) {
+                            if (managePermissionsBtn) managePermissionsBtn.style.display = 'block';
+                        }
+                    } catch (error) {
+                        console.error('Erreur vérification permissions:', error);
+                    }
                 }
             } else {
-                try {
-                    const db = firebase.firestore();
-                    const permissionsDoc = await db.collection('admin_permissions').doc(currentUser.id).get();
-                    if (permissionsDoc.exists && permissionsDoc.data().manage_admin_ids === true) {
-                        if (addAdminIdBtn) addAdminIdBtn.style.display = 'block';
-                    }
-                    if (permissionsDoc.exists && permissionsDoc.data().manage_permissions === true) {
-                        if (managePermissionsBtn) managePermissionsBtn.style.display = 'block';
-                    }
-                } catch (error) {
-                    console.error('Erreur vérification permissions:', error);
+                if (managePermissionsBtn) managePermissionsBtn.style.display = 'none';
+                if (addAdminIdBtn) addAdminIdBtn.style.display = 'none';
+            }
+            
+            await checkAndUpdatePermissions();
+            await hideCardsWithoutPermissions();
+            
+            window.checkAppointmentPermission = async function(url) {
+                if (!(await hasPermission('manage_appointments'))) {
+                    toast.error('Vous n\'avez pas la permission de gérer les rendez-vous.');
+                    return;
                 }
+                window.location.href = url;
+            };
+            
+            window.checkTableauGeneralPermission = async function() {
+                const hasEmployeesPermission = await hasPermission('manage_employees');
+                const hasEmployeesFullPermission = await hasPermission('manage_employees_full');
+                
+                if (!hasEmployeesPermission && !hasEmployeesFullPermission) {
+                    toast.error('Vous n\'avez pas la permission de voir le tableau général.');
+                    return;
+                }
+                
+                window.location.href = 'tableau-general.html';
+            };
+            
+            window.checkReviewsPermission = async function() {
+                if (!(await hasPermission('manage_reviews'))) {
+                    toast.error('Vous n\'avez pas la permission de gérer les avis.');
+                    return;
+                }
+                window.location.href = 'admin-avis.html';
+            };
+            
+            window.checkInterieursPermission = async function() {
+                if (!(await hasPermission('manage_interieurs'))) {
+                    toast.error('Vous n\'avez pas la permission de gérer les intérieurs.');
+                    return;
+                }
+                window.location.href = 'admin-interieurs.html';
+            };
+            
+            window.checkEncheresPermission = async function() {
+                if (!(await hasPermission('manage_encheres'))) {
+                    toast.error('Vous n\'avez pas la permission de gérer les enchères.');
+                    return;
+                }
+                window.location.href = 'admin-encheres.html';
+            };
+            
+            window.checkMediaPermission = async function() {
+                if (!(await hasPermission('manage_media'))) {
+                    toast.error('Vous n\'avez pas la permission de gérer les médias.');
+                    return;
+                }
+                window.location.href = 'admin-medias.html';
+            };
+            
+            setTimeout(() => {
+                showAppointmentsCard();
+                loadReviewsCount();
+                if (typeof updateUserNamesFromConfig === 'function') {
+                    updateUserNamesFromConfig();
+                }
+            }, 500);
+            
+            if (window.location.hash === '#conversations') {
+                setTimeout(() => {
+                    showConversationsModal();
+                }, 500);
             }
         } else {
-            if (managePermissionsBtn) managePermissionsBtn.style.display = 'none';
-            if (addAdminIdBtn) addAdminIdBtn.style.display = 'none';
+            document.getElementById('adminAccess').style.display = 'none';
+            document.getElementById('accessDenied').style.display = 'block';
         }
         
-        await checkAndUpdatePermissions();
-        await hideCardsWithoutPermissions();
-        
-        window.checkAppointmentPermission = async function(url) {
-            if (!(await hasPermission('manage_appointments'))) {
-                toast.error('Vous n\'avez pas la permission de gérer les rendez-vous.');
-                return;
-            }
-            window.location.href = url;
-        };
-        
-        window.checkTableauGeneralPermission = async function() {
-            const hasEmployeesPermission = await hasPermission('manage_employees');
-            const hasEmployeesFullPermission = await hasPermission('manage_employees_full');
-            
-            if (!hasEmployeesPermission && !hasEmployeesFullPermission) {
-                toast.error('Vous n\'avez pas la permission de voir le tableau général.');
-                return;
-            }
-            
-            window.location.href = 'tableau-general.html';
-        };
-        
-        window.checkReviewsPermission = async function() {
-            if (!(await hasPermission('manage_reviews'))) {
-                toast.error('Vous n\'avez pas la permission de gérer les avis.');
-                return;
-            }
-            window.location.href = 'admin-avis.html';
-        };
-        
-        window.checkInterieursPermission = async function() {
-            if (!(await hasPermission('manage_interieurs'))) {
-                toast.error('Vous n\'avez pas la permission de gérer les intérieurs.');
-                return;
-            }
-            window.location.href = 'admin-interieurs.html';
-        };
-        
-        window.checkEncheresPermission = async function() {
-            if (!(await hasPermission('manage_encheres'))) {
-                toast.error('Vous n\'avez pas la permission de gérer les enchères.');
-                return;
-            }
-            window.location.href = 'admin-encheres.html';
-        };
-        
-        window.checkMediaPermission = async function() {
-            if (!(await hasPermission('manage_media'))) {
-                toast.error('Vous n\'avez pas la permission de gérer les médias.');
-                return;
-            }
-            window.location.href = 'admin-medias.html';
-        };
-        
-        setTimeout(() => {
-            showAppointmentsCard();
-            loadReviewsCount();
-            if (typeof updateUserNamesFromConfig === 'function') {
-                updateUserNamesFromConfig();
-            }
-        }, 500);
-        
-        if (window.location.hash === '#conversations') {
-            setTimeout(() => {
-                showConversationsModal();
-            }, 500);
-        }
-    } else {
-        document.getElementById('adminAccess').style.display = 'none';
-        document.getElementById('accessDenied').style.display = 'block';
-    }
+        setupDragAndDrop();
+        initializeQuillEditors();
+    };
     
-    setupDragAndDrop();
-    initializeQuillEditors();
+    initAdmin();
 });
 
 function initializeQuillEditors() {
@@ -349,7 +358,7 @@ async function showMediaGalleryModal(maxSelection, onSelect) {
             const isSelected = selectedMediaUrls.includes(media.url);
             return `
                 <div style="position: relative; cursor: pointer; border: ${isSelected ? '3px solid #4caf50' : '2px solid #e0e0e0'}; border-radius: 8px; overflow: hidden; aspect-ratio: 1;" onclick="toggleMediaSelection('${media.url}')">
-                    <img src="${media.url}" alt="${media.filename}" style="width: 100%; height: 100%; object-fit: cover;">
+                    <img src="${media.url}" alt="${media.filename}" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
                     ${isSelected ? '<div style="position: absolute; top: 5px; right: 5px; background: #4caf50; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-check" style="font-size: 0.75rem;"></i></div>' : ''}
                 </div>
             `;
@@ -385,7 +394,7 @@ async function showMediaGalleryModal(maxSelection, onSelect) {
     }
 }
 
-let selectedImages = []; // Peut contenir des fichiers ou des URLs
+let selectedImages = [];
 
 window.previewImages = function(event) {
     const files = Array.from(event.target.files);
@@ -1764,13 +1773,11 @@ async function showConversationDetails(conversationId) {
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
         
-        // Activer le scroll automatique et faire défiler vers le bas
         setTimeout(() => {
             const messagesContainer = document.getElementById('messagesContainer');
             if (messagesContainer) {
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             }
-            // Activer le ConversationUI si disponible
             if (typeof ConversationUI !== 'undefined') {
                 ConversationUI.enableAutoScroll(conversationId);
             }
@@ -1801,7 +1808,6 @@ function showReplyModal() {
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
     
-    // Initialiser l'interface améliorée si disponible
     setTimeout(() => {
         if (typeof ConversationUI !== 'undefined') {
             if (!document.getElementById('keywordHelper')) {

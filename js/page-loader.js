@@ -6,17 +6,15 @@ function hideLoader() {
     const loader = document.getElementById('pageLoader');
     if (loader) {
         loader.classList.add('loaded');
-        console.log('✅ Loader caché');
     }
 }
 
 window.addEventListener('load', () => {
-    setTimeout(hideLoader, 300);
+    hideLoader();
 });
 
 setTimeout(() => {
     if (!loaderHidden) {
-        console.warn('⚠️ Timeout: forçage de la disparition du loader');
         hideLoader();
     }
 }, 3000);

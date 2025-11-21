@@ -1,5 +1,8 @@
 async function updateEmployeeCount() {
     try {
+        if (typeof employeesDB === 'undefined') {
+            return;
+        }
         const employees = await employeesDB.getAll();
         const countElement = document.querySelector('#employeeCount span');
         if (countElement) {
@@ -208,6 +211,9 @@ async function deleteEmployee(employeeId) {
     }
 }
 async function updateDeclarationCount() {
+    if (typeof declarationsDB === 'undefined') {
+        return;
+    }
     try {
         const declarations = await declarationsDB.getAll();
         const countElement = document.querySelector('#declarationCount span');
@@ -352,7 +358,6 @@ async function showDeclarationDetails(declarationId) {
             minute: '2-digit'
         }) : 'N/A';
         
-        // Calculer le CA après 15%
         const totalCAAfter15 = declaration.totalEntrepriseRevenue || 0;
         const beneficeNet = declaration.totalBenefice || 0;
         
@@ -673,10 +678,7 @@ async function updateEmployeeSalaryPerSale(employeeId, montant) {
         });
         toast.success('Montant par vente mis à jour avec succès !');
         
-        // Recalculer les salaires pour toutes les ventes de cet employé
         await recalculateEmployeeSales(employeeId);
-        
-        // Rafraîchir l'affichage
         await showAdvancedEmployeeManagementModal();
     } catch (error) {
         console.error('Erreur:', error);
@@ -709,12 +711,10 @@ async function recalculateEmployeeSales(employeeId) {
             let benefice = 0;
             
             if (sale.type === 'vente') {
-                // Pour les ventes : montant fixe par vente
                 entrepriseRevenue = prixMaison * ENTREPRISE_PERCENTAGE;
                 salaire = montantParVente;
                 benefice = entrepriseRevenue - salaire;
             } else if (sale.type === 'location') {
-                // Pour les locations : pourcentage sur le CA après 15%
                 entrepriseRevenue = prixLocation * ENTREPRISE_PERCENTAGE;
                 salaire = Math.min(entrepriseRevenue * (commissionLocations / 100), SALAIRE_MAX);
                 benefice = entrepriseRevenue - salaire;
@@ -736,10 +736,19 @@ async function recalculateEmployeeSales(employeeId) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    updateEmployeeCount();
-    updateDeclarationCount();
+    const initAdminEmployees = () => {
+        if (typeof employeesDB === 'undefined' || typeof declarationsDB === 'undefined') {
+            setTimeout(initAdminEmployees, 100);
+            return;
+        }
+        
+        updateEmployeeCount();
+        updateDeclarationCount();
+        
+        if (typeof declarationsDB.getDeclarationUrl !== 'function') {
+            console.warn('firebase-declarations.js semble être en cache. Rechargez la page (Ctrl+F5) pour obtenir la dernière version.');
+        }
+    };
     
-    if (typeof declarationsDB !== 'undefined' && typeof declarationsDB.getDeclarationUrl !== 'function') {
-        console.warn('⚠️ firebase-declarations.js semble être en cache. Rechargez la page (Ctrl+F5) pour obtenir la dernière version.');
-    }
+    initAdminEmployees();
 });

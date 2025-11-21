@@ -99,7 +99,7 @@ function displayInterieurs(interieurs) {
         const imagesHTML = interieur.images && interieur.images.length > 0 
             ? `
                 <div class="interieur-images">
-                    <img src="${interieur.images[0]}" alt="${interieur.titre}" class="interieur-image" id="img-${interieur.id}">
+                    <img src="${interieur.images[0]}" alt="${interieur.titre}" class="interieur-image" id="img-${interieur.id}" loading="lazy">
                     ${interieur.images.length > 1 ? `
                         <button class="image-nav prev" onclick="event.stopPropagation(); changeImage('${interieur.id}', -1)">
                             <i class="fas fa-chevron-left"></i>
@@ -119,7 +119,7 @@ function displayInterieurs(interieurs) {
             `
             : `
                 <div class="interieur-images">
-                    <img src="https://via.placeholder.com/400x280?text=Aucune+image" alt="${interieur.titre}" class="interieur-image">
+                    <img src="https://via.placeholder.com/400x280?text=Aucune+image" alt="${interieur.titre}" class="interieur-image" loading="lazy">
                 </div>
             `;
 
@@ -195,7 +195,7 @@ function openInterieurModal(interieur) {
     const imagesHTML = interieur.images && interieur.images.length > 0 
         ? `
             <div class="modal-image-container" style="position: relative;">
-                <img src="${interieur.images[currentIndex]}" alt="${interieur.titre}" class="modal-image" id="modal-img-${interieur.id}">
+                <img src="${interieur.images[currentIndex]}" alt="${interieur.titre}" class="modal-image" id="modal-img-${interieur.id}" loading="lazy">
                 ${interieur.images.length > 1 ? `
                     <button class="image-nav prev" onclick="event.stopPropagation(); changeModalImage('${interieur.id}', -1)" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); z-index: 100;">
                         <i class="fas fa-chevron-left"></i>

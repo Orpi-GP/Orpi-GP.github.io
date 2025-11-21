@@ -9,12 +9,28 @@ const firebaseConfig = {
   };
 let app;
 let db;
-try {
-    app = firebase.initializeApp(firebaseConfig);
-    db = firebase.firestore();
-    console.log("✅ Firebase initialisé avec succès");
-} catch (error) {
-    console.error("❌ Erreur lors de l'initialisation de Firebase:", error);
+
+function initFirebase() {
+    if (typeof firebase === 'undefined') {
+        setTimeout(initFirebase, 50);
+        return;
+    }
+    
+    try {
+        if (!firebase.apps || firebase.apps.length === 0) {
+            app = firebase.initializeApp(firebaseConfig);
+        } else {
+            app = firebase.app();
+        }
+        db = firebase.firestore();
+    } catch (error) {
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFirebase);
+} else {
+    initFirebase();
 }
 const COLLECTIONS = {
     PROPERTIES: 'properties',

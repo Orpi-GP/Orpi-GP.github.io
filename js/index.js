@@ -1,23 +1,36 @@
-(async () => {
-    if (discordAuth.isLoggedIn() && await discordAuth.isAuthorized()) {
-        const boutonNotifications = document.getElementById('notificationsBtn');
-        const badgeNotifications = document.getElementById('notificationsBadge');
-        
-        if (boutonNotifications && typeof NotificationsManager !== 'undefined') {
-            boutonNotifications.style.display = 'flex';
-            
-            NotificationsManager.onSnapshot(notifications => {
-                const nombreNonLues = notifications.filter(n => !n.read).length;
-                if (nombreNonLues > 0) {
-                    badgeNotifications.textContent = nombreNonLues;
-                    badgeNotifications.style.display = 'flex';
-                } else {
-                    badgeNotifications.style.display = 'none';
-                }
-            });
+document.addEventListener('DOMContentLoaded', () => {
+    const initNotifications = () => {
+        if (typeof discordAuth === 'undefined' || typeof NotificationsManager === 'undefined') {
+            setTimeout(initNotifications, 100);
+            return;
         }
-    }
-})();
+        
+        (async () => {
+            if (discordAuth.isLoggedIn() && await discordAuth.isAuthorized()) {
+                const boutonNotifications = document.getElementById('notificationsBtn');
+                const badgeNotifications = document.getElementById('notificationsBadge');
+                
+                if (boutonNotifications) {
+                    boutonNotifications.style.display = 'flex';
+                    
+                    NotificationsManager.onSnapshot(notifications => {
+                        const nombreNonLues = notifications.filter(n => !n.read).length;
+                        if (nombreNonLues > 0) {
+                            badgeNotifications.textContent = nombreNonLues;
+                            badgeNotifications.style.display = 'flex';
+                        } else {
+                            badgeNotifications.style.display = 'none';
+                        }
+                    });
+                }
+            }
+        })();
+    };
+    
+    initNotifications();
+    
+    loadFeaturedProperties();
+});
 
 async function loadFeaturedProperties() {
     try {
@@ -25,33 +38,51 @@ async function loadFeaturedProperties() {
             return;
         }
         
+        const cached = ORPI_CACHE.get('featured_properties');
+        if (cached) {
+            displayFeaturedProperties(cached);
+            setTimeout(async () => {
+                const allProperties = await propertyManager.getAll();
+                const featured = allProperties.filter(p => p.featured === true).slice(0, 3);
+                ORPI_CACHE.set('featured_properties', featured);
+                if (JSON.stringify(featured) !== JSON.stringify(cached)) {
+                    displayFeaturedProperties(featured);
+                }
+            }, 100);
+            return;
+        }
+        
         const allProperties = await propertyManager.getAll();
         const featuredProperties = allProperties.filter(p => p.featured === true).slice(0, 3);
-        
-        const grid = document.getElementById('featuredPropertiesGrid');
-        const noFeatured = document.getElementById('noFeaturedProperties');
-        
-        if (!grid || !noFeatured) {
-            return;
-        }
-        
-        if (featuredProperties.length === 0) {
-            grid.style.display = 'none';
-            noFeatured.style.display = 'block';
-            return;
-        }
-        
-        grid.style.display = 'grid';
-        noFeatured.style.display = 'none';
-        grid.innerHTML = '';
-        
-        featuredProperties.forEach(property => {
-            const card = createPropertyCard(property);
-            grid.appendChild(card);
-        });
+        ORPI_CACHE.set('featured_properties', featuredProperties);
+        displayFeaturedProperties(featuredProperties);
     } catch (error) {
         console.error('Erreur:', error);
     }
+}
+
+function displayFeaturedProperties(featuredProperties) {
+    const grid = document.getElementById('featuredPropertiesGrid');
+    const noFeatured = document.getElementById('noFeaturedProperties');
+    
+    if (!grid || !noFeatured) {
+        return;
+    }
+    
+    if (featuredProperties.length === 0) {
+        grid.style.display = 'none';
+        noFeatured.style.display = 'block';
+        return;
+    }
+    
+    grid.style.display = 'grid';
+    noFeatured.style.display = 'none';
+    grid.innerHTML = '';
+    
+    featuredProperties.forEach(property => {
+        const card = createPropertyCard(property);
+        grid.appendChild(card);
+    });
 }
 
 function createPropertyCard(property) {
@@ -71,7 +102,7 @@ function createPropertyCard(property) {
     
     card.innerHTML = `
         <div style="position: relative;">
-            <img src="${firstImage}" alt="${property.title}" style="width: 100%; height: 250px; object-fit: cover;">
+            <img src="${firstImage}" alt="${property.title}" style="width: 100%; height: 250px; object-fit: cover;" loading="lazy">
             <div style="position: absolute; top: 10px; right: 10px; background: var(--primary-color); color: white; padding: 0.5rem 1rem; border-radius: 5px; font-weight: 600; font-size: 0.9rem;">
                 ${property.type}
             </div>
@@ -108,7 +139,4 @@ function formatPrice(price) {
     return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(price);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadFeaturedProperties();
-});
 

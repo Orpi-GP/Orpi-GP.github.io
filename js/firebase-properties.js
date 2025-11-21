@@ -5,15 +5,16 @@ class FirebasePropertyManager {
         this.cache = {
             data: null,
             timestamp: null,
-            ttl: 5 * 60 * 1000
+            ttl: 10 * 60 * 1000
         };
+        this.updatePromise = null;
     }
     
     async getAll() {
         try {
             const cachedData = this.getCachedData();
             if (cachedData) {
-                this.updateCacheInBackground();
+                setTimeout(() => this.updateCacheInBackground(), 100);
                 return cachedData;
             }
             
@@ -55,21 +56,29 @@ class FirebasePropertyManager {
     }
     
     async updateCacheInBackground() {
-        try {
-            const snapshot = await db.collection(this.collection)
-                .orderBy('createdAt', 'desc')
-                .get();
-            const properties = [];
-            snapshot.forEach(doc => {
-                properties.push({
-                    id: doc.id,
-                    ...doc.data()
+        if (this.updatePromise) return this.updatePromise;
+        
+        this.updatePromise = (async () => {
+            try {
+                const snapshot = await db.collection(this.collection)
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                const properties = [];
+                snapshot.forEach(doc => {
+                    properties.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
                 });
-            });
-            this.setCacheData(properties);
-        } catch (error) {
-            console.error('Erreur mise à jour cache:', error);
-        }
+                this.setCacheData(properties);
+            } catch (error) {
+                console.error('Erreur mise à jour cache:', error);
+            } finally {
+                this.updatePromise = null;
+            }
+        })();
+        
+        return this.updatePromise;
     }
     
     clearCache() {

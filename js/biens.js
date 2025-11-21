@@ -2,31 +2,28 @@ let tousLesBiens = [];
 let biensFiltres = [];
 
 async function chargerBiens() {
-    const cached = localStorage.getItem('orpi_biens_cache');
-    const cacheTime = localStorage.getItem('orpi_biens_cache_time');
-    const now = Date.now();
+    const cached = ORPI_CACHE.get('biens_cache');
     
-    if (cached && cacheTime && (now - parseInt(cacheTime)) < 300000) {
-        tousLesBiens = JSON.parse(cached);
-        biensFiltres = tousLesBiens;
+    if (cached) {
+        tousLesBiens = cached;
+        biensFiltres = cached;
         afficherBiens(biensFiltres);
         mettreAJourCompteurBiens();
         
-        propertyManager.getAll().then(biens => {
-            if (JSON.stringify(biens) !== cached) {
+        setTimeout(async () => {
+            const biens = await propertyManager.getAll();
+            if (JSON.stringify(biens) !== JSON.stringify(cached)) {
                 tousLesBiens = biens;
                 biensFiltres = biens;
-                localStorage.setItem('orpi_biens_cache', JSON.stringify(biens));
-                localStorage.setItem('orpi_biens_cache_time', now.toString());
+                ORPI_CACHE.set('biens_cache', biens);
                 afficherBiens(biensFiltres);
                 mettreAJourCompteurBiens();
             }
-        });
+        }, 100);
     } else {
         tousLesBiens = await propertyManager.getAll();
         biensFiltres = tousLesBiens;
-        localStorage.setItem('orpi_biens_cache', JSON.stringify(tousLesBiens));
-        localStorage.setItem('orpi_biens_cache_time', now.toString());
+        ORPI_CACHE.set('biens_cache', tousLesBiens);
         afficherBiens(biensFiltres);
         mettreAJourCompteurBiens();
     }
@@ -35,8 +32,7 @@ async function chargerBiens() {
 function configurerEcouteTempsReel() {
     propertyManager.onSnapshot(biens => {
         tousLesBiens = biens;
-        localStorage.setItem('orpi_biens_cache', JSON.stringify(biens));
-        localStorage.setItem('orpi_biens_cache_time', Date.now().toString());
+        ORPI_CACHE.set('biens_cache', biens);
         filtrerBiens();
     });
 }
@@ -304,8 +300,15 @@ window.contacterAgence = contacterAgence;
 window.toggleFavorite = toggleFavorite;
 
 document.addEventListener('DOMContentLoaded', () => {
-    updateUI();
-    chargerBiens();
-    configurerEcouteTempsReel();
+    const initBiens = () => {
+        if (typeof propertyManager === 'undefined' || typeof ORPI_CACHE === 'undefined') {
+            setTimeout(initBiens, 100);
+            return;
+        }
+        updateUI();
+        chargerBiens();
+        configurerEcouteTempsReel();
+    };
+    initBiens();
 });
 

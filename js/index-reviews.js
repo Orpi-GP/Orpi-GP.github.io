@@ -9,8 +9,15 @@ function escapeHtml(text) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadCarouselReviews();
-    startCarouselAutoplay();
+    const initReviews = () => {
+        if (typeof ReviewsManager === 'undefined') {
+            setTimeout(initReviews, 100);
+            return;
+        }
+        loadCarouselReviews();
+        startCarouselAutoplay();
+    };
+    initReviews();
 });
 
 async function loadCarouselReviews() {
