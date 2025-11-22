@@ -20,11 +20,24 @@ document.addEventListener('DOMContentLoaded', () => {
         showError();
         return;
     }
-    loadContract();
+    waitForFirebaseAndLoad();
 });
+
+function waitForFirebaseAndLoad() {
+    if (typeof firebase === 'undefined' || !firebase.firestore) {
+        setTimeout(waitForFirebaseAndLoad, 100);
+        return;
+    }
+    loadContract();
+}
 
 async function loadContract() {
     try {
+        // Vérifier une dernière fois que Firebase est initialisé
+        if (typeof firebase === 'undefined' || !firebase.firestore) {
+            throw new Error('Firebase n\'est pas initialisé');
+        }
+
         const contract = await ContractsManager.getContract(contractId);
         
         if (!contract) {

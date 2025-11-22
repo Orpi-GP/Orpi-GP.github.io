@@ -310,29 +310,82 @@ window.themeManager = {
         this.applyTheme(cachedTheme);
         THEME_CONFIG.activeTheme = cachedTheme;
         
+        try {
+            await this.waitForFirebase();
+        } catch (error) {
+            console.warn('Firebase non disponible, utilisation du thème en cache');
+            return;
+        }
+        
         if (typeof getActiveTheme === 'function') {
-            const activeTheme = await getActiveTheme();
-            
-            if (activeTheme !== cachedTheme) {
-                localStorage.setItem('orpi_theme', activeTheme);
-                this.removeThemeEffects();
-                THEME_CONFIG.activeTheme = activeTheme;
-                this.applyTheme(activeTheme);
-            }
-            
-            if (typeof listenToThemeChanges === 'function') {
-                listenToThemeChanges((newTheme) => {
-                    if (newTheme !== THEME_CONFIG.activeTheme) {
-                        localStorage.setItem('orpi_theme', newTheme);
-                        this.removeThemeEffects();
-                        THEME_CONFIG.activeTheme = newTheme;
-                        this.applyTheme(newTheme);
+            try {
+                const activeTheme = await getActiveTheme();
+                
+                if (activeTheme !== cachedTheme) {
+                    localStorage.setItem('orpi_theme', activeTheme);
+                    this.removeThemeEffects();
+                    THEME_CONFIG.activeTheme = activeTheme;
+                    this.applyTheme(activeTheme);
+                }
+                
+                if (typeof listenToThemeChanges === 'function') {
+                    try {
+                        listenToThemeChanges((newTheme) => {
+                            if (newTheme !== THEME_CONFIG.activeTheme) {
+                                localStorage.setItem('orpi_theme', newTheme);
+                                this.removeThemeEffects();
+                                THEME_CONFIG.activeTheme = newTheme;
+                                this.applyTheme(newTheme);
+                            }
+                        });
+                    } catch (error) {
                     }
-                });
+                }
+            } catch (error) {
             }
         } else {
             this.applyTheme('default');
         }
+    },
+
+    async waitForFirebase() {
+        return new Promise((resolve, reject) => {
+            let attempts = 0;
+            const maxAttempts = 50; 
+            
+            const checkFirebase = () => {
+                attempts++;
+                
+                if (attempts > maxAttempts) {
+                    reject(new Error('Timeout: Firebase n\'a pas pu être initialisé'));
+                    return;
+                }
+                
+                try {
+                    if (typeof firebase === 'undefined' || !firebase.firestore) {
+                        setTimeout(checkFirebase, 100);
+                        return;
+                    }
+                    if (!firebase.apps || firebase.apps.length === 0) {
+                        setTimeout(checkFirebase, 100);
+                        return;
+                    }
+                    try {
+                        const firestore = firebase.firestore();
+                        if (firestore) {
+                            resolve();
+                        } else {
+                            setTimeout(checkFirebase, 100);
+                        }
+                    } catch (firestoreError) {
+                        setTimeout(checkFirebase, 100);
+                    }
+                } catch (error) {
+                    setTimeout(checkFirebase, 100);
+                }
+            };
+            checkFirebase();
+        });
     }
 };
 }

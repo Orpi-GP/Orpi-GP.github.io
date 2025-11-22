@@ -1,5 +1,10 @@
 const ContractsManager = {
-    collection: firebase.firestore().collection('contracts'),
+    get collection() {
+        if (typeof firebase === 'undefined' || !firebase.firestore) {
+            throw new Error('Firebase n\'est pas encore initialisé');
+        }
+        return firebase.firestore().collection('contracts');
+    },
 
     async createContract(contractData) {
         try {
