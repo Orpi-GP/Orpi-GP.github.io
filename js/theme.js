@@ -10,12 +10,12 @@ window.themeManager = {
             heroOverlay: 'linear-gradient(135deg, rgba(255, 107, 53, 0.75), rgba(168, 85, 247, 0.7))',
         },
         christmas: {
-            primaryColor: '#DC2626',
-            secondaryColor: '#166534',
-            accentColor: '#F59E0B',
-            lightBg: '#FEF3C7',
+            primaryColor: '#C41E3A',
+            secondaryColor: '#1B4332',
+            accentColor: '#FFB800',
+            lightBg: '#FFFBF0',
             textColor: '#1F2937',
-            heroOverlay: 'linear-gradient(135deg, rgba(220, 38, 38, 0.75), rgba(22, 101, 52, 0.7))',
+            heroOverlay: 'linear-gradient(135deg, rgba(196, 30, 58, 0.75), rgba(27, 67, 50, 0.7))',
         },
         default: {
             primaryColor: '#E30613',
@@ -105,35 +105,59 @@ window.themeManager = {
         
         const container = document.createElement('div');
         container.id = 'christmas-decorations';
-        container.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; overflow: hidden;';
+        container.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9998; overflow: hidden; contain: layout style paint; will-change: transform; opacity: 0.85;';
         
-        for (let i = 0; i < 60; i++) {
+        for (let i = 0; i < 25; i++) {
             const snowflake = document.createElement('div');
-            const size = 0.3 + Math.random() * 0.8;
-            const isEmoji = Math.random() > 0.7;
-            
-            snowflake.innerHTML = isEmoji ? '❄️' : '•';
+            const size = 0.3 + Math.random() * 0.5;
+            snowflake.innerHTML = '❄';
             snowflake.style.cssText = `
                 position: absolute;
                 font-size: ${size}rem;
-                color: ${isEmoji ? 'inherit' : 'white'};
-                text-shadow: 0 0 ${size * 10}px rgba(255, 255, 255, 0.8);
-                opacity: ${0.4 + Math.random() * 0.6};
+                color: rgba(255, 255, 255, 0.9);
+                text-shadow: 0 0 ${size * 6}px rgba(255, 255, 255, 0.6);
+                opacity: ${0.4 + Math.random() * 0.4};
                 left: ${Math.random() * 100}%;
                 top: -50px;
-                animation: fallSnowSmooth ${15 + Math.random() * 25}s linear infinite;
+                will-change: transform, opacity;
+                animation: fallSnowSmooth ${20 + Math.random() * 25}s linear infinite;
                 animation-delay: ${Math.random() * 10}s;
             `;
             container.appendChild(snowflake);
         }
         
+        const santaPositions = [
+            { top: '15%', left: '5%', size: 1.8 },
+            { top: '45%', left: '92%', size: 2.2 },
+            { top: '75%', left: '3%', size: 1.6 }
+        ];
+        
+        santaPositions.forEach((pos, i) => {
+            const santa = document.createElement('div');
+            santa.innerHTML = '🎅';
+            const endX = parseFloat(pos.left) + (Math.random() * 15 - 7.5);
+            santa.style.cssText = `
+                position: absolute;
+                font-size: ${pos.size}rem;
+                left: ${pos.left};
+                top: ${pos.top};
+                will-change: transform;
+                animation: santaFloat ${25 + Math.random() * 10}s ease-in-out infinite;
+                animation-delay: ${i * 2}s;
+                filter: drop-shadow(0 3px 6px rgba(0,0,0,0.2));
+                opacity: 0.75;
+            `;
+            santa.setAttribute('data-end-x', endX);
+            container.appendChild(santa);
+        });
+        
         const lights = ['🔴', '🟢', '🟡', '🔵'];
         const lightPositions = [
-            { top: '10%', left: '10%' },
-            { top: '8%', left: '30%' },
-            { top: '12%', left: '50%' },
-            { top: '9%', left: '70%' },
-            { top: '11%', left: '90%' }
+            { top: '12%', left: '12%' },
+            { top: '10%', left: '35%' },
+            { top: '8%', left: '58%' },
+            { top: '11%', left: '78%' },
+            { top: '9%', left: '95%' }
         ];
         
         lightPositions.forEach((pos, i) => {
@@ -141,10 +165,11 @@ window.themeManager = {
             light.innerHTML = lights[i % lights.length];
             light.style.cssText = `
                 position: absolute;
-                font-size: 1.2rem;
+                font-size: 1.1rem;
                 opacity: 0.7;
                 filter: drop-shadow(0 0 8px currentColor);
-                animation: twinkle ${1.5 + (i % 3) * 0.5}s ease-in-out infinite;
+                will-change: transform, opacity;
+                animation: twinkle ${1.5 + (i % 3) * 0.3}s ease-in-out infinite;
                 animation-delay: ${i * 0.2}s;
                 ${Object.entries(pos).map(([k, v]) => `${k}: ${v}`).join('; ')};
             `;
@@ -197,7 +222,7 @@ window.themeManager = {
         style.textContent = `
             @keyframes fallSnowSmooth {
                 0% { 
-                    transform: translateY(0) translateX(0) rotate(0deg);
+                    transform: translate3d(0, 0, 0) rotate(0deg);
                     opacity: 0;
                 }
                 10% {
@@ -207,22 +232,63 @@ window.themeManager = {
                     opacity: 1;
                 }
                 100% { 
-                    transform: translateY(100vh) translateX(${-100 + Math.random() * 200}px) rotate(360deg);
+                    transform: translate3d(var(--snow-x, 0), 100vh, 0) rotate(360deg);
                     opacity: 0;
+                }
+            }
+            @keyframes santaFloat {
+                0%, 100% { 
+                    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+                }
+                25% { 
+                    transform: translate3d(var(--santa-x1, 15px), -12px, 0) scale(1.03) rotate(-2deg);
+                }
+                50% { 
+                    transform: translate3d(var(--santa-x2, -8px), -20px, 0) scale(1.06) rotate(2deg);
+                }
+                75% { 
+                    transform: translate3d(var(--santa-x3, 12px), -15px, 0) scale(1.03) rotate(-1deg);
                 }
             }
             @keyframes twinkle {
                 0%, 100% { 
-                    opacity: 0.7;
-                    transform: scale(1);
+                    opacity: 0.65;
+                    transform: scale3d(1, 1, 1);
                 }
                 50% { 
-                    opacity: 1;
-                    transform: scale(1.2);
+                    opacity: 0.95;
+                    transform: scale3d(1.1, 1.1, 1);
                 }
+            }
+            #christmas-decorations {
+                backface-visibility: hidden;
+                perspective: 1000px;
+            }
+            #christmas-decorations > div {
+                backface-visibility: hidden;
+                transform: translateZ(0);
             }
         `;
         document.head.appendChild(style);
+        
+        const santas = document.querySelectorAll('#christmas-decorations > div[data-end-x]');
+        santas.forEach((santa) => {
+            const endX = parseFloat(santa.getAttribute('data-end-x'));
+            const startX = parseFloat(santa.style.left.replace('%', ''));
+            const diff = endX - startX;
+            const x1 = diff * 0.25;
+            const x2 = diff * 0.5;
+            const x3 = diff * 0.75;
+            santa.style.setProperty('--santa-x1', `${x1}%`);
+            santa.style.setProperty('--santa-x2', `${x2}%`);
+            santa.style.setProperty('--santa-x3', `${x3}%`);
+        });
+        
+        const snowflakes = document.querySelectorAll('#christmas-decorations > div:not([data-end-x])');
+        snowflakes.forEach(snowflake => {
+            const x = -50 + Math.random() * 100;
+            snowflake.style.setProperty('--snow-x', `${x}px`);
+        });
     },
 
     removeThemeEffects() {
