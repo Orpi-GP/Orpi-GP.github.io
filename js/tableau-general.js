@@ -239,8 +239,8 @@ async function displayTableau() {
 }
 async function updateEmployeeField(employeeId, field, value) {
     if (field === 'primes' || field === 'dividendes') {
-        const hasPermission = await hasPermission('manage_primes_dividendes');
-        if (!hasPermission) {
+        const userHasPermission = await hasPermission('manage_primes_dividendes');
+        if (!userHasPermission) {
             showError('Vous n\'avez pas la permission de modifier les primes et dividendes.');
             await loadTableauData();
             return;
@@ -258,6 +258,9 @@ async function updateEmployeeField(employeeId, field, value) {
         showError('Erreur lors de la mise à jour');
     }
 }
+
+// Exposer la fonction globalement pour qu'elle soit accessible depuis le HTML
+window.updateEmployeeField = updateEmployeeField;
 function updateFooter(totals) {
     document.getElementById('footerTotalBenefices').textContent = formatCurrency(totals.benefices);
     document.getElementById('footerTotalVente').textContent = formatCurrency(totals.vente);
