@@ -50,6 +50,12 @@ self.addEventListener('fetch', (e) => {
         return;
     }
 
+    // Ignorer les requêtes Cloudflare Insights et autres analytics
+    if (url.hostname.includes('cloudflareinsights.com') || 
+        url.hostname.includes('cloudflare.com/beacon')) {
+        return;
+    }
+
     if (url.hostname.includes('firebase') && (url.pathname.includes('listen') || url.pathname.includes('channel'))) {
         return;
     }
@@ -59,43 +65,55 @@ self.addEventListener('fetch', (e) => {
             caches.match(request).then((cachedResponse) => {
                 if (cachedResponse) {
                     fetch(request).then((response) => {
-                        if (response.ok) {
+                        if (response && response.ok) {
                             const responseClone = response.clone();
                             caches.open(DYNAMIC_CACHE).then((cache) => {
-                                cache.put(request, responseClone);
+                                cache.put(request, responseClone).catch(() => {});
                             });
                         }
                     }).catch(() => {});
                     return cachedResponse;
                 }
                 return fetch(request).then((response) => {
-                    if (!response.ok) {
-                        return response;
+                    if (!response || !response.ok) {
+                        return response || new Response('Not Found', { status: 404 });
                     }
                     const responseClone = response.clone();
                     caches.open(DYNAMIC_CACHE).then((cache) => {
-                        cache.put(request, responseClone);
+                        cache.put(request, responseClone).catch(() => {});
                     });
                     return response;
+                }).catch(() => {
+                    return new Response('Network error', { status: 503 });
+                });
+            }).catch(() => {
+                return fetch(request).catch(() => {
+                    return new Response('Service unavailable', { status: 503 });
                 });
             })
         );
         return;
     }
 
-    if (request.headers.get('accept').includes('text/html')) {
+    const acceptHeader = request.headers.get('accept');
+    if (acceptHeader && acceptHeader.includes('text/html')) {
         e.respondWith(
             fetch(request).then((response) => {
-                if (response.ok) {
+                if (response && response.ok) {
                     const responseClone = response.clone();
                     caches.open(DYNAMIC_CACHE).then((cache) => {
-                        cache.put(request, responseClone);
+                        cache.put(request, responseClone).catch(() => {});
                     });
                 }
                 return response;
             }).catch(() => {
                 return caches.match(request).then((cachedResponse) => {
-                    return cachedResponse || caches.match('/index.html');
+                    if (cachedResponse) {
+                        return cachedResponse;
+                    }
+                    return caches.match('/index.html').then((fallbackResponse) => {
+                        return fallbackResponse || new Response('Page not found', { status: 404 });
+                    });
                 });
             })
         );
@@ -104,15 +122,17 @@ self.addEventListener('fetch', (e) => {
 
     e.respondWith(
         fetch(request).then((response) => {
-            if (response.ok && url.origin === location.origin) {
+            if (response && response.ok && url.origin === location.origin) {
                 const responseClone = response.clone();
                 caches.open(DYNAMIC_CACHE).then((cache) => {
-                    cache.put(request, responseClone);
+                    cache.put(request, responseClone).catch(() => {});
                 });
             }
             return response;
         }).catch(() => {
-            return caches.match(request);
+            return caches.match(request).then((cachedResponse) => {
+                return cachedResponse || new Response('Network error', { status: 503 });
+            });
         })
     );
 });

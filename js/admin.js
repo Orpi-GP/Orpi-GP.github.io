@@ -622,6 +622,12 @@ async function addAuthorizedId() {
         return;
     }
     
+    const currentUser = discordAuth.getUser();
+    if (!currentUser) {
+        toast.error('Utilisateur non authentifié');
+        return;
+    }
+    
     const idInput = document.getElementById('newDiscordId');
     const discordId = idInput.value.trim();
     
